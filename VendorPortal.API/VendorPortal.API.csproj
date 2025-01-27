@@ -15,10 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference
-      Include="..\VendorPortal.Application\VendorPortal.Application.csproj" />
-    <ProjectReference
-      Include="..\VendorPortal.Infrastructure.IoC\VendorPortal.Infrastructure.IoC.csproj" />
+    <ProjectReference Include="..\VendorPortal.Application\VendorPortal.Application.csproj" />
+    <ProjectReference Include="..\VendorPortal.Infrastructure.IoC\VendorPortal.Infrastructure.IoC.csproj" />
     <ProjectReference Include="..\VendorPortal.Logging\VendorPortal.Logging.csproj" />
   </ItemGroup>
 

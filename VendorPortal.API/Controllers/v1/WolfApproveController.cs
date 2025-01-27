@@ -1,8 +1,10 @@
 using System.ComponentModel;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Swashbuckle.AspNetCore.Annotations;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
@@ -21,7 +23,9 @@ namespace VendorPortal.API.Controllers.v1
 
         [HttpGet]
         [Route("api/v1/wolf-approve/rfq-list")]
-        // [Description("Create By Peetisook || ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "")]
+        [ProducesResponseType(StatusCodes.Status200OK , Type = typeof(RFQResponse))]
         public async Task<IActionResult> GetRFQList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
         {
             RFQResponse response;

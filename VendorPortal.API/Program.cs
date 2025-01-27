@@ -6,10 +6,20 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-using VendorPortal.API.Middleware;
 using VendorPortal.Infrastructure.IoC;
+using VendorPortal.Infrastructure.IoC.Middleware;
+using Serilog;
+using Serilog.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add Serilog
+builder.Host.UseSerilog((context, services, configuration) => configuration
+    .ReadFrom.Configuration(context.Configuration)
+    .ReadFrom.Services(services)
+    .Enrich.FromLogContext()
+    .WriteTo.Console());
+
 
 builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
 builder.Services.AddControllers();
@@ -22,6 +32,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger); // Register Serilog.ILogger
 builder.Services.AddServices(builder.Configuration);
 
 // builder.Services.AddHealthChecks()
@@ -44,9 +55,9 @@ app.UseResponseCompression();
 
 // Configure the HTTP request pipeline.
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
+app.UseMiddleware<MiddlewareLogger>();
 
 app.UseRouting();
 app.MapControllers();
-app.UseMiddleware<MiddlewareLogger>();
 
 app.Run();
