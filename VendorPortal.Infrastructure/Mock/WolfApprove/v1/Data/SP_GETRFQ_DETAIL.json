@@ -1,0 +1,88 @@
+{
+    "id": "1",
+    "number": "RFQ Number",
+    "company_name": "บริษัท เอ จำกัด",
+    "project_name": "ขายปากกา",
+    "description": "รายละเอียดโครงการ",
+    "purchase_type_name": "ประเภทการจัดจ้าง",
+    "category_name": "หมวดหมู่สินค้า/บริการ",
+    "start_date": "วันที่เริ่มต้น 04/10/2024",
+    "end_date": "วันที่สิ้นสุด 04/11/2024",
+    "require_date": "วันที่ต้องการ 04/11/2024",
+    "status": [
+      {
+        "name": "ประกาศจัดจ้าง"
+      },
+      {
+        "name": "อยู่ระหว่างดำเนินการ"
+      },
+      {
+        "name": "สัญญาเสร็จสมบูรณ์"
+      },
+      {
+        "name": "ยกเลิกประกาศ"
+      }
+    ],
+    "contract_value": "1,000,000",
+    "company_address": {
+      "address_1": "address_1",
+      "address_2": "address_2",
+      "sub_district": "sub_district",
+      "district": "district",
+      "province": "province",
+      "zip_code": "zip_code",
+      "branch": "branch",
+      "tax_number": "tax_number"
+    },
+    "company_contract": {
+      "first_name": "first_name",
+      "last_name": "last_name",
+      "phone": "phone",
+      "email": "email"
+    },
+    "sub_total": "sub_total",
+    "discount": "discount",
+    "total_amount": "total_amount",
+    "vat_amount": "vat_amount",
+    "net_amount": "net_amount",
+    "lines": [
+      {
+        "id": "line id",
+        "line_number": "line_number",
+        "item_code": "item_code",
+        "item_name": "item_name",
+        "uom_name": "uom_name",
+        "description": "description",
+        "quantity": "quantity",
+        "unit_price": "unit_price",
+        "vat_rate": "vat_rate",
+        "vat_amount": "vat_amount",
+        "total_amount": "total_amount"
+      },
+      {
+        "id": "line id",
+        "line_number": "line_number",
+        "item_code": "item_code",
+        "item_name": "item_name",
+        "uom_name": "uom_name",
+        "description": "description",
+        "quantity": "quantity",
+        "unit_price": "unit_price",
+        "vat_rate": "vat_rate",
+        "vat_amount": "vat_amount",
+        "total_amount": "total_amount"
+      }
+    ],
+    "payment_condition": "Credit Term 30 Days",
+    "remark": "remark",
+    "documents": [
+      {
+        "name": "รายละเอียดสินค้า",
+        "file_url": "file_url"
+      },
+      {
+        "name": "รายละเอียดสินค้า 2",
+        "file_url": "file_url"
+      }
+    ]
+  }

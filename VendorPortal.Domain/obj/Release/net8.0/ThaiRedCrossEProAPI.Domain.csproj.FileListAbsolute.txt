@@ -1,0 +1,11 @@
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\ThaiRedCrossEProAPI.Domain.deps.json
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\ThaiRedCrossEProAPI.Domain.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\ThaiRedCrossEProAPI.Domain.pdb
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.AssemblyInfoInputs.cache
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.AssemblyInfo.cs
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.csproj.CoreCompileInputs.cache
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\refint\ThaiRedCrossEProAPI.Domain.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ThaiRedCrossEProAPI.Domain.pdb
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\obj\Release\net8.0\ref\ThaiRedCrossEProAPI.Domain.dll

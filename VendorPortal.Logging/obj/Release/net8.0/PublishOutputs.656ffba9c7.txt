@@ -1,0 +1,13 @@
+C:\source\Publish\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging.dll
+C:\source\Publish\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging.deps.json
+C:\source\Publish\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging.pdb
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.AspNetCore.Http.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.AspNetCore.Http.Abstractions.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.AspNetCore.Http.Features.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.AspNetCore.WebUtilities.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.Extensions.DependencyInjection.Abstractions.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.Extensions.ObjectPool.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.Extensions.Options.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.Extensions.Primitives.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.IO.RecyclableMemoryStream.dll
+C:\source\Publish\ThaiRedCrossEProAPI\Microsoft.Net.Http.Headers.dll

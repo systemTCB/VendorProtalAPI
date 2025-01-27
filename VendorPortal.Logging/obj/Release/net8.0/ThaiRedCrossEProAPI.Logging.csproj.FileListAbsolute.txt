@@ -1,0 +1,12 @@
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\bin\Release\net8.0\ThaiRedCrossEProAPI.Logging.deps.json
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\bin\Release\net8.0\ThaiRedCrossEProAPI.Logging.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\bin\Release\net8.0\ThaiRedCrossEProAPI.Logging.pdb
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.csproj.AssemblyReference.cache
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.GeneratedMSBuildEditorConfig.editorconfig
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.AssemblyInfoInputs.cache
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.AssemblyInfo.cs
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.csproj.CoreCompileInputs.cache
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\refint\ThaiRedCrossEProAPI.Logging.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ThaiRedCrossEProAPI.Logging.pdb
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Logging\obj\Release\net8.0\ref\ThaiRedCrossEProAPI.Logging.dll

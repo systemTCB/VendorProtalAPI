@@ -1,0 +1,3 @@
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\publish\ThaiRedCrossEProAPI.Domain.dll
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\publish\ThaiRedCrossEProAPI.Domain.deps.json
+C:\source\ThaiRedCrossEProAPI\ThaiRedCrossEProAPI.Domain\bin\Release\net8.0\publish\ThaiRedCrossEProAPI.Domain.pdb

@@ -1,0 +1,8 @@
+{
+  "VendorPortal.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.API",
+  "VendorPortal.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.Application",
+  "VendorPortal.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.Domain",
+  "VendorPortal.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure",
+  "VendorPortal.Infrastructure.IoC, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure.IoC",
+  "VendorPortal.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "c:\\source\\VendorProtalAPI\\VendorPortal.Logging"
+}
