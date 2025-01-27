@@ -21,3 +21,4 @@ VendorPortal.Infrastructure/Mock/WolfApprove/v1/Data/*.json
 
 # Ignore all bin folders
 **/bin/
+**/obj/
