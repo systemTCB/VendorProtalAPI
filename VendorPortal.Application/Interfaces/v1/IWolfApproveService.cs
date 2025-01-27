@@ -7,5 +7,6 @@ namespace VendorPortal.Application.Interfaces.v1
     {
         Task<RFQResponse> GetRFQ_List();
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
+        Task<PurchaseOrderResponse> GetPurchaseOrderList();
     }
 }

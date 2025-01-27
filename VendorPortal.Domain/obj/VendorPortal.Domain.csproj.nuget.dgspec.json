@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {}
+    "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {}
   },
   "projects": {
-    "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {
+    "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj",
+        "projectUniqueName": "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj",
         "projectName": "VendorPortal.Domain",
-        "projectPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj",
+        "projectPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj",
         "packagesPath": "C:\\Users\\Peetisook\\.nuget\\packages\\",
-        "outputPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\obj\\",
+        "outputPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

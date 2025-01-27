@@ -38,6 +38,21 @@ namespace VendorPortal.Application.Services.v1
             }
         }
 
+        public async Task<PurchaseOrderResponse> GetPurchaseOrderList()
+        {
+            var result = new PurchaseOrderResponse();
+            try
+            {
+                
+            }
+            catch (System.Exception ex)
+            {
+                
+                throw;
+            }
+            return result;
+        }
+
         public async Task<RFQResponse> GetRFQ_List()
         {
             var result = new RFQResponse();

@@ -1,8 +1,0 @@
-{
-  "ThaiRedCrossEProAPI.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.API",
-  "ThaiRedCrossEProAPI.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.Application",
-  "ThaiRedCrossEProAPI.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.Domain",
-  "ThaiRedCrossEProAPI.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.Infrastructure",
-  "ThaiRedCrossEProAPI.Infrastructure.IoC, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.Infrastructure.IoC",
-  "ThaiRedCrossEProAPI.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "C:\\source\\ThaiRedCrossEProAPI\\ThaiRedCrossEProAPI.Logging"
-}

@@ -51,14 +51,14 @@ namespace VendorPortal.API.Middleware
 
         private void LogResponse(HttpContext context)
         {
-            // var response = context.Response;
-            // var responseLog = new StringBuilder();
-            // responseLog.AppendLine("Outgoing Response:");
-            // responseLog.AppendLine($"HTTP {response.StatusCode}");
-            // responseLog.AppendLine($"Content-Type: {response.ContentType}");
-            // responseLog.AppendLine($"Content-Length: {response.ContentLength}");
-            // var logMessage = responseLog.ToString();
-            // _logger.LogInformation(responseLog.ToString());
+            var response = context.Response;
+            var responseLog = new StringBuilder();
+            responseLog.AppendLine("Outgoing Response:");
+            responseLog.AppendLine($"HTTP {response.StatusCode}");
+            responseLog.AppendLine($"Content-Type: {response.ContentType}");
+            responseLog.AppendLine($"Content-Length: {response.ContentLength}");
+            var logMessage = responseLog.ToString();
+            _logger.LogInformation(responseLog.ToString());
         }
     }
 }

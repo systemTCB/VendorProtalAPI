@@ -30,6 +30,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
+
             }
             return mock;
         }
@@ -45,6 +46,23 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
+
+            }
+            return mock;
+        }
+
+        public async Task<List<SP_GETPURCHASE_ORDER>> SP_GETPURCHASE_ORDER_LIST()
+        {
+            var mock = new List<SP_GETPURCHASE_ORDER>();
+            try
+            {
+                string filename = "";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<List<SP_GETPURCHASE_ORDER>>(json);
+            }
+            catch (System.Exception ex)
+            {
+                throw;
             }
             return mock;
         }

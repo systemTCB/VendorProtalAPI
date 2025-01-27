@@ -34,22 +34,19 @@ builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 });
 
 // builder.Services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();
-
 // builder.Services.AddHostedService<RetryReceiverService>();
-// builder.Services.AddHostedService<CreateTxnHistoryReceiverService>();
-// builder.Services.AddHostedService<CreateTxnHistoryHoldReceiverService>();
+
 builder.Services.AddResponseCompression();
 
 var app = builder.Build();
 app.UseSwagger();
-
 app.UseResponseCompression();
-// Configure the HTTP request pipeline.
 
+// Configure the HTTP request pipeline.
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
 
 app.UseRouting();
 app.MapControllers();
-// app.UseMiddleware<MiddlewareLogger>();
+app.UseMiddleware<MiddlewareLogger>();
 
 app.Run();

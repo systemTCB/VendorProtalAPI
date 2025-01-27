@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -66,5 +67,22 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(response);
         }
+    
+        [HttpGet]
+        [Route("")]
+        public async Task<IActionResult> GetPOList()
+        {
+            PurchaseOrderResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.GetPurchaseOrderList();
+            }
+            catch (System.Exception)
+            {
+                throw;
+            }
+            return Ok(response);
+        }
+
     }
 }

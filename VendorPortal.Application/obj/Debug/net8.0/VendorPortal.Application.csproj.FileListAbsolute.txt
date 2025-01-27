@@ -18,3 +18,4 @@ c:\source\VendorProtalAPI\VendorPortal.Application\obj\Debug\net8.0\VendorPortal
 c:\source\VendorProtalAPI\VendorPortal.Application\obj\Debug\net8.0\refint\VendorPortal.Application.dll
 c:\source\VendorProtalAPI\VendorPortal.Application\obj\Debug\net8.0\VendorPortal.Application.pdb
 C:\source\VendorProtalAPI\VendorPortal.Application\obj\Debug\net8.0\ref\VendorPortal.Application.dll
+c:\source\VendorProtalAPI\VendorPortal.Application\obj\Debug\net8.0\VendorPortal.Application.sourcelink.json

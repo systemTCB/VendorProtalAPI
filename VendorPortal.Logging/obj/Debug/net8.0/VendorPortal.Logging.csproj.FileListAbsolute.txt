@@ -10,3 +10,4 @@ c:\source\VendorProtalAPI\VendorPortal.Logging\obj\Debug\net8.0\VendorPortal.Log
 c:\source\VendorProtalAPI\VendorPortal.Logging\obj\Debug\net8.0\refint\VendorPortal.Logging.dll
 c:\source\VendorProtalAPI\VendorPortal.Logging\obj\Debug\net8.0\VendorPortal.Logging.pdb
 c:\source\VendorProtalAPI\VendorPortal.Logging\obj\Debug\net8.0\ref\VendorPortal.Logging.dll
+c:\source\VendorProtalAPI\VendorPortal.Logging\obj\Debug\net8.0\VendorPortal.Logging.sourcelink.json

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj": {}
+    "c:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj": {}
   },
   "projects": {
-    "C:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj": {
+    "c:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj",
+        "projectUniqueName": "c:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj",
         "projectName": "VendorPortal.Logging",
-        "projectPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj",
+        "projectPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Logging\\VendorPortal.Logging.csproj",
         "packagesPath": "C:\\Users\\Peetisook\\.nuget\\packages\\",
-        "outputPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Logging\\obj\\",
+        "outputPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Logging\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -65,6 +65,10 @@
             "Microsoft.IO.RecyclableMemoryStream": {
               "target": "Package",
               "version": "[2.2.0, )"
+            },
+            "Serilog.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.0, )"
             }
           },
           "imports": [

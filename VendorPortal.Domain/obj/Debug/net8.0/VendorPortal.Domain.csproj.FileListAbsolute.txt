@@ -9,3 +9,4 @@ c:\source\VendorProtalAPI\VendorPortal.Domain\obj\Debug\net8.0\VendorPortal.Doma
 c:\source\VendorProtalAPI\VendorPortal.Domain\obj\Debug\net8.0\refint\VendorPortal.Domain.dll
 c:\source\VendorProtalAPI\VendorPortal.Domain\obj\Debug\net8.0\VendorPortal.Domain.pdb
 c:\source\VendorProtalAPI\VendorPortal.Domain\obj\Debug\net8.0\ref\VendorPortal.Domain.dll
+c:\source\VendorProtalAPI\VendorPortal.Domain\obj\Debug\net8.0\VendorPortal.Domain.sourcelink.json

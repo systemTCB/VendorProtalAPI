@@ -24,5 +24,10 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<List<SP_GETPURCHASE_ORDER>> SP_GETPURCHASE_ORDER_LIST()
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

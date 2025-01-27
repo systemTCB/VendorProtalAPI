@@ -482,6 +482,10 @@
             "Microsoft.IO.RecyclableMemoryStream": {
               "target": "Package",
               "version": "[2.2.0, )"
+            },
+            "Serilog.Extensions.Logging": {
+              "target": "Package",
+              "version": "[9.0.0, )"
             }
           },
           "imports": [

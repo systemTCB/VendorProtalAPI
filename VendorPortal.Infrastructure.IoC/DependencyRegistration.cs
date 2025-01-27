@@ -6,6 +6,8 @@ using VendorPortal.Application.Services.v1;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Infrastructure.Repositories.WolfApprove.v1;
+using Serilog;
+using Microsoft.Extensions.Logging;
 namespace VendorPortal.Infrastructure.IoC
 {
     public static class DependencyRegistration

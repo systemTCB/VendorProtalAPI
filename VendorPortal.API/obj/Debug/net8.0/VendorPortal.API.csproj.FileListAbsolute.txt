@@ -111,3 +111,6 @@ c:\source\VendorProtalAPI\VendorPortal.API\obj\Debug\net8.0\refint\VendorPortal.
 c:\source\VendorProtalAPI\VendorPortal.API\obj\Debug\net8.0\VendorPortal.API.pdb
 c:\source\VendorProtalAPI\VendorPortal.API\obj\Debug\net8.0\VendorPortal.API.genruntimeconfig.cache
 c:\source\VendorProtalAPI\VendorPortal.API\obj\Debug\net8.0\ref\VendorPortal.API.dll
+c:\source\VendorProtalAPI\VendorPortal.API\bin\Debug\net8.0\Serilog.dll
+c:\source\VendorProtalAPI\VendorPortal.API\bin\Debug\net8.0\Serilog.Extensions.Logging.dll
+c:\source\VendorProtalAPI\VendorPortal.API\obj\Debug\net8.0\VendorPortal.API.sourcelink.json

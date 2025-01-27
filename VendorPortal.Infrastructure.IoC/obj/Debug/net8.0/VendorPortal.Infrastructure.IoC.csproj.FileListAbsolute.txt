@@ -20,3 +20,4 @@ c:\source\VendorProtalAPI\VendorPortal.Infrastructure.IoC\obj\Debug\net8.0\Vendo
 c:\source\VendorProtalAPI\VendorPortal.Infrastructure.IoC\obj\Debug\net8.0\refint\VendorPortal.Infrastructure.IoC.dll
 c:\source\VendorProtalAPI\VendorPortal.Infrastructure.IoC\obj\Debug\net8.0\VendorPortal.Infrastructure.IoC.pdb
 c:\source\VendorProtalAPI\VendorPortal.Infrastructure.IoC\obj\Debug\net8.0\ref\VendorPortal.Infrastructure.IoC.dll
+c:\source\VendorProtalAPI\VendorPortal.Infrastructure.IoC\obj\Debug\net8.0\VendorPortal.Infrastructure.IoC.sourcelink.json

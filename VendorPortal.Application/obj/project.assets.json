@@ -731,6 +731,36 @@
           }
         }
       },
+      "Serilog/4.2.0": {
+        "type": "package",
+        "compile": {
+          "lib/net8.0/Serilog.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Serilog.dll": {
+            "related": ".xml"
+          }
+        }
+      },
+      "Serilog.Extensions.Logging/9.0.0": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.Extensions.Logging": "9.0.0",
+          "Serilog": "4.2.0"
+        },
+        "compile": {
+          "lib/net8.0/Serilog.Extensions.Logging.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net8.0/Serilog.Extensions.Logging.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "System.Buffers/4.5.0": {
         "type": "package",
         "compile": {
@@ -1019,7 +1049,8 @@
           "Microsoft.AspNetCore.Http": "2.2.2",
           "Microsoft.Extensions.Logging": "9.0.1",
           "Microsoft.Extensions.Logging.Console": "9.0.1",
-          "Microsoft.IO.RecyclableMemoryStream": "2.2.0"
+          "Microsoft.IO.RecyclableMemoryStream": "2.2.0",
+          "Serilog.Extensions.Logging": "9.0.0"
         },
         "compile": {
           "bin/placeholder/VendorPortal.Logging.dll": {}
@@ -2017,6 +2048,54 @@
         "packageIcon.png"
       ]
     },
+    "Serilog/4.2.0": {
+      "sha512": "gmoWVOvKgbME8TYR+gwMf7osROiWAURterc6Rt2dQyX7wtjZYpqFiA/pY6ztjGQKKV62GGCyOcmtP1UKMHgSmA==",
+      "type": "package",
+      "path": "serilog/4.2.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "icon.png",
+        "lib/net462/Serilog.dll",
+        "lib/net462/Serilog.xml",
+        "lib/net471/Serilog.dll",
+        "lib/net471/Serilog.xml",
+        "lib/net6.0/Serilog.dll",
+        "lib/net6.0/Serilog.xml",
+        "lib/net8.0/Serilog.dll",
+        "lib/net8.0/Serilog.xml",
+        "lib/net9.0/Serilog.dll",
+        "lib/net9.0/Serilog.xml",
+        "lib/netstandard2.0/Serilog.dll",
+        "lib/netstandard2.0/Serilog.xml",
+        "serilog.4.2.0.nupkg.sha512",
+        "serilog.nuspec"
+      ]
+    },
+    "Serilog.Extensions.Logging/9.0.0": {
+      "sha512": "NwSSYqPJeKNzl5AuXVHpGbr6PkZJFlNa14CdIebVjK3k/76kYj/mz5kiTRNVSsSaxM8kAIa1kpy/qyT9E4npRQ==",
+      "type": "package",
+      "path": "serilog.extensions.logging/9.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "README.md",
+        "lib/net462/Serilog.Extensions.Logging.dll",
+        "lib/net462/Serilog.Extensions.Logging.xml",
+        "lib/net8.0/Serilog.Extensions.Logging.dll",
+        "lib/net8.0/Serilog.Extensions.Logging.xml",
+        "lib/net9.0/Serilog.Extensions.Logging.dll",
+        "lib/net9.0/Serilog.Extensions.Logging.xml",
+        "lib/netstandard2.0/Serilog.Extensions.Logging.dll",
+        "lib/netstandard2.0/Serilog.Extensions.Logging.xml",
+        "lib/netstandard2.1/Serilog.Extensions.Logging.dll",
+        "lib/netstandard2.1/Serilog.Extensions.Logging.xml",
+        "serilog-extension-nuget.png",
+        "serilog.extensions.logging.9.0.0.nupkg.sha512",
+        "serilog.extensions.logging.nuspec"
+      ]
+    },
     "System.Buffers/4.5.0": {
       "sha512": "pL2ChpaRRWI/p4LXyy4RgeWlYF2sgfj/pnVMvBqwNFr5cXg7CXNnWZWxrOONLg8VGdFB8oB+EG2Qw4MLgTOe+A==",
       "type": "package",
@@ -2546,11 +2625,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\source\\VendorProtalAPI\\VendorPortal.Application\\VendorPortal.Application.csproj",
+      "projectUniqueName": "c:\\source\\VendorProtalAPI\\VendorPortal.Application\\VendorPortal.Application.csproj",
       "projectName": "VendorPortal.Application",
-      "projectPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Application\\VendorPortal.Application.csproj",
+      "projectPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Application\\VendorPortal.Application.csproj",
       "packagesPath": "C:\\Users\\Peetisook\\.nuget\\packages\\",
-      "outputPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Application\\obj\\",
+      "outputPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Application\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -2571,11 +2650,11 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {
-              "projectPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj"
+            "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj": {
+              "projectPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Domain\\VendorPortal.Domain.csproj"
             },
-            "C:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure\\VendorPortal.Infrastructure.csproj": {
-              "projectPath": "C:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure\\VendorPortal.Infrastructure.csproj"
+            "c:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure\\VendorPortal.Infrastructure.csproj": {
+              "projectPath": "c:\\source\\VendorProtalAPI\\VendorPortal.Infrastructure\\VendorPortal.Infrastructure.csproj"
             }
           }
         }
