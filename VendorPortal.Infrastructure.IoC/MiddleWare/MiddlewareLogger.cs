@@ -111,41 +111,7 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
 
                 request.Headers.TryGetValue("refer", out StringValues refer);
                 request.Headers.TryGetValue("forward", out StringValues forward);
-
-                // if(baseResponse?.Status?.Code == "200" && request.Path.ToString().Contains("platformdisburseprocess/v1/request-verify-accountdata-papi"))
-                // {
-                //     responseData = "<Data>";
-                // }
                 
-                // ActLogInfo logInfo = new ActLogInfo()
-                // {
-                //     Scheme = request.Scheme,
-                //     Host = request.Host.ToString(),
-                //     Path = request.Path,
-                //     APIName = apiName,
-                //     Method = request.Method,
-                //     RequestLayer = "T1",
-                //     From = fullIP,
-                //     EmployeeID = refer,
-                //     Forward = forward,
-                //     ExecuteTime = sw.ElapsedMilliseconds,
-                //     TraceID = Agent.Tracer?.CurrentTransaction?.TraceId,
-                //     Request = new RequestInfo()
-                //     {
-                //         Body = requestData,
-                //         Headers = requestHeadersDictionary
-                //     },
-                //     Response = new ResponseInfo()
-                //     {
-                //         Body = responseData,
-                //         Responsecode = baseResponse?.status?.code,
-                //         Responsedatasource = "API",
-                //         Responsemessage = baseResponse?.status?.message,
-                //         StatusCode = response.StatusCode,
-                //         Headers = responseHeadersDictionary
-                //     },
-                // };
-
                 _log.ForContext("Info", "", true)
                     .Information("Receive request and processed");
                 var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "request_response_log.txt");

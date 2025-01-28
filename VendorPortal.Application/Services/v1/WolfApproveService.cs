@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
+using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository;
@@ -38,19 +39,24 @@ namespace VendorPortal.Application.Services.v1
             }
         }
 
-        public async Task<PurchaseOrderResponse> GetPurchaseOrderList()
+        public Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request)
         {
-            var result = new PurchaseOrderResponse();
-            try
-            {
-                
-            }
-            catch (System.Exception ex)
-            {
-                
-                throw;
-            }
-            return result;
+            throw new NotImplementedException();
+        }
+
+        public Task<ClaimResponse> GetClaimList()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PurchaseOrderResponse> GetPurchaseOrderList()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PurchaseOrderDetailResponse> GetPurchaseOrderShow(string order_id , string supplier_id)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<RFQResponse> GetRFQ_List()
