@@ -25,7 +25,7 @@ namespace VendorPortal.API.Controllers
             string version = fileVersionInfo.ProductVersion;
             AliveResponse _result = new AliveResponse();
             _result.alive = true;
-            _result.version = version;
+            _result.version = "1.0.0.0";
 
             return Ok(_result);
         }

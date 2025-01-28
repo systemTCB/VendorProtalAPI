@@ -19,5 +19,14 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<ClaimResponse> GetClaimList();
         Task<ClaimDetailResponse> GetClaimShow(string claim_id , string supplier_id);
         Task<ClaimConfirmResponse> ConfirmClaimStatus(string claim_id , ClaimConfirmRequest request);
+
+        // Companies
+        Task<CompaniesResponse> GetCompaniesList(string supplier_id);
+        Task<CompaniesDetailResponse> GetCompaniesById(string company_id);
+        Task<CompaniesConnectResponse> ConnectCompanies(string supplier_id);
+
+        //Count
+        Task<CountResponse> GetCount(string supplier_id);
+
     }
 }

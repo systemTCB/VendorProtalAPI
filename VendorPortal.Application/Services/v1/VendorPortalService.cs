@@ -51,10 +51,10 @@ namespace VendorPortal.Application.Services.v1
                         OrderSendDate = e.orderSendDate,
                         OrderItem = e.orderItem.Select(s => new PurchaseItem
                         {
-                            orderItem = s.orderItem,
-                            itemName = s.itemName,
-                            itemValue = s.itemValue,
-                            itemUnit = s.itemUnit,
+                            OrderItem = s.orderItem,
+                            ItemName = s.itemName,
+                            ItemValue = s.itemValue,
+                            ItemUnit = s.itemUnit,
                         }).ToList()
                     }).ToList();
                 }

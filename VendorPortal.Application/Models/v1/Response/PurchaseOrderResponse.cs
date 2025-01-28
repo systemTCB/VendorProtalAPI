@@ -18,10 +18,9 @@ namespace VendorPortal.Application.Models.v1.Response
     }
     public class PurchaseItem
     {
-        public int orderItem { get; set; }
-        public string itemName { get; set; }
-        public int itemValue { get; set; }
-
-        public string itemUnit { get; set; }
+        public int OrderItem { get; set; }
+        public string ItemName { get; set; }
+        public int ItemValue { get; set; }
+        public string ItemUnit { get; set; }
     }
 }

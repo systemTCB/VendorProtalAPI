@@ -112,8 +112,8 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
                 request.Headers.TryGetValue("refer", out StringValues refer);
                 request.Headers.TryGetValue("forward", out StringValues forward);
                 
-                _log.ForContext("Info", "", true)
-                    .Information("Receive request and processed");
+                _log.ForContext("Info", "", true).Information("Receive request and processed");
+
                 var logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs", "request_response_log.txt");
                 Directory.CreateDirectory(Path.GetDirectoryName(logFilePath));
                 var logEntry = new StringBuilder();
@@ -122,6 +122,13 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
                 {
                     logEntry.AppendLine($"{header.Key}: {header.Value}");
                 }
+                logEntry.Append("Query:");
+                foreach (var item in request.Query)
+                {
+                    logEntry.Append(item.Key + ": " + item.Value + "|");
+                }
+                logEntry.AppendLine();
+                logEntry.AppendLine("--------------------------------------------------");
                 logEntry.AppendLine("Request:");
                 logEntry.AppendLine(requestData);
                 logEntry.AppendLine("Response:");

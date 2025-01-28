@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 
-namespace VendorPortal.Domain.Models.WolfApprove
+namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
 {
-    public class SP_GETRFQ_DETAIL
+    public class SP_GET_RFQ_DETAIL
     {
         // Add properties and methods here
         public string Id { get; set; }

@@ -1,6 +1,6 @@
-namespace VendorPortal.Domain.Models.WolfApprove.Store
+namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
 {
-    public class SP_GETRFQ
+    public class SP_GET_RFQ
     {
         // Add properties and methods here
         public string Id { get; set; }

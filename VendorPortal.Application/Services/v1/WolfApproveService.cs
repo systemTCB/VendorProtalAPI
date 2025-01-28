@@ -39,12 +39,42 @@ namespace VendorPortal.Application.Services.v1
             }
         }
 
+        public Task<ClaimConfirmResponse> ConfirmClaimStatus(string claim_id, ClaimConfirmRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request)
         {
             throw new NotImplementedException();
         }
 
+        public Task<CompaniesConnectResponse> ConnectCompanies(string supplier_id)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ClaimResponse> GetClaimList()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ClaimDetailResponse> GetClaimShow(string claim_id, string supplier_id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CompaniesDetailResponse> GetCompaniesById(string company_id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CompaniesResponse> GetCompaniesList(string supplier_id)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<CountResponse> GetCount(string supplier_id)
         {
             throw new NotImplementedException();
         }
