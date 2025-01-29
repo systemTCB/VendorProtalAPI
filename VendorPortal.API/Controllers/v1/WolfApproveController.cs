@@ -10,7 +10,9 @@ using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using static VendorPortal.Application.Models.Common.AppEnum;
-
+using VendorPortal.Logging;
+using Newtonsoft.Json;
+using Serilog;
 namespace VendorPortal.API.Controllers.v1
 {
     [ApiController]
@@ -22,144 +24,172 @@ namespace VendorPortal.API.Controllers.v1
             _wolfApproveService = wolfApproveService;
         }
         #region [RFQ]
-    
-            [HttpGet]
-            [Route("api/v1/wolf-approve/rfqs/list")]
-            [Description("Create By Peetisook")]
-            [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
-            [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQResponse))]
-            public async Task<IActionResult> GetRFQList(string q,
-                string supplier_id,
-                string number,
-                string start_date,
-                string end_date,
-                string purchase_type_id,
-                string status_id,
-                string category_id,
-                string page,
-                string per_page,
-                string order_direction,
-                string order_by)
+
+        [HttpGet]
+        [Route("api/v1/wolf-approve/rfqs/list")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQResponse))]
+        public async Task<IActionResult> GetRFQList(string q,
+            string supplier_id,
+            string number,
+            string start_date,
+            string end_date,
+            string purchase_type_id,
+            string status_id,
+            string category_id,
+            string page,
+            string per_page,
+            string order_direction,
+            string order_by)
+        {
+            RFQResponse response;
+            try
             {
-                RFQResponse response;
-                try
-                {
-                    response = await _wolfApproveService.GetRFQ_List();
-    
-                }
-                catch (System.Exception ex)
-                {
-                    response = new RFQResponse()
-                    {
-                        Status = new Application.Models.Common.Status()
-                        {
-                            Code = ResponseCode.InternalError.Text(),
-                            Message = ResponseCode.InternalError.Description()
-                        },
-                        Data = null
-                    };
-                }
-                return Ok(response);
+                response = await _wolfApproveService.GetRFQ_List();
             }
-            [HttpGet]
-            [Route("api/v1/wolf-approve/rfqs/{rfq_id}")]
-            [Description("Create By Peetisook")]
-            [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหา rfq จาก id เพื่อดูรายละเอียด")]
-            [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQShowResponse))]
-            public async Task<IActionResult> GetRFQShow(string rfq_id)
+            catch (System.Exception ex)
             {
-                RFQShowResponse response;
-                try
+                Logger.LogError(ex, "GetRFQList");
+                response = new RFQResponse()
                 {
-                    response = await _wolfApproveService.GetRFQ_Show(rfq_id);
-                }
-                catch (System.Exception ex)
-                {
-                    response = new RFQShowResponse()
+                    Status = new Application.Models.Common.Status()
                     {
-                        Status = new Application.Models.Common.Status()
-                        {
-                            Code = ResponseCode.InternalError.Text(),
-                            Message = ResponseCode.InternalError.Description()
-                        }
-                    };
-                }
-                return Ok(response);
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
-            
-#endregion
-        
+            return Ok(response);
+        }
+        [HttpGet]
+        [Route("api/v1/wolf-approve/rfqs/{rfq_id}")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหา rfq จาก id เพื่อดูรายละเอียด")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQShowResponse))]
+        public async Task<IActionResult> GetRFQShow(string rfq_id)
+        {
+            RFQShowResponse response;
+            try
+            {
+                response = await _wolfApproveService.GetRFQ_Show(rfq_id);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, nameof(GetRFQShow));
+                response = new RFQShowResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
+
+        #endregion
+
         #region [Puchase Order]
-    
-            [HttpGet]
-            [Route("api/v1/wolf-approve/purchases/list")]
-            [Description("Create By Peetisook")]
-            [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO")]
-            [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderResponse))]
-            public async Task<IActionResult> GetPOList(string q,
-                string supplier_id,
-                string number,
-                string start_date,
-                string end_date,
-                string purchase_type_id,
-                string status_id,
-                string category_id,
-                string page,
-                string per_page,
-                string order_direction,
-                string order_by)
+
+        [HttpGet]
+        [Route("api/v1/wolf-approve/purchases/list")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderResponse))]
+        public async Task<IActionResult> GetPOList(string q,
+            string supplier_id,
+            string number,
+            string start_date,
+            string end_date,
+            string purchase_type_id,
+            string status_id,
+            string category_id,
+            string page,
+            string per_page,
+            string order_direction,
+            string order_by)
+        {
+            PurchaseOrderResponse response = new();
+            try
             {
-                PurchaseOrderResponse response = new();
-                try
-                {
-                    response = await _wolfApproveService.GetPurchaseOrderList();
-                }
-                catch (System.Exception)
-                {
-                    throw;
-                }
-                return Ok(response);
+                response = await _wolfApproveService.GetPurchaseOrderList();
             }
-            [HttpGet]
-            [Description("Create By Peetisook")]
-            [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO จาก id")]
-            [Route("api/v1/wolf-approve/purchases/{id}/{supplier_id}")]
-            [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderDetailResponse))]
-            public async Task<IActionResult> GetPOShow(string id, string supplier_id)
+            catch (System.Exception ex)
             {
-                PurchaseOrderDetailResponse response = new();
-                try
+                Logger.LogError(ex, "GetPOList");
+                response = new PurchaseOrderResponse()
                 {
-                    response = await _wolfApproveService.GetPurchaseOrderShow(id, supplier_id);
-                }
-                catch (System.Exception)
-                {
-                    throw;
-                }
-                return Ok(response);
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
-    
-            [HttpPut]
-            [Route("api/v1/wolf-approve/purchases/{id}/confirm-status")]
-            [Description("Create By Peetisook")]
-            [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับยืนยันสถานะ PO")]
-            [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderConfirmResponse))]
-            public async Task<IActionResult> ConfirmPOStatus(string id, [FromBody] PurchaseOrderConfirmRequest request)
+            return Ok(response);
+        }
+        [HttpGet]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO จาก id")]
+        [Route("api/v1/wolf-approve/purchases/{id}/{supplier_id}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderDetailResponse))]
+        public async Task<IActionResult> GetPOShow(string id, string supplier_id)
+        {
+            PurchaseOrderDetailResponse response = new();
+            try
             {
-                PurchaseOrderConfirmResponse response = new();
-                try
-                {
-                    response = await _wolfApproveService.ConfirmPurchaseOrderStatus(id, request);
-                }
-                catch (System.Exception)
-                {
-                    throw;
-                }
-                return Ok(response);
+                response = await _wolfApproveService.GetPurchaseOrderShow(id, supplier_id);
             }
-            
-#endregion
-        
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetPOShow", $"id:{id} , supplier_id:{supplier_id}");
+                response = new PurchaseOrderDetailResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                    ,
+                    Data = null
+                };
+            }
+            return Ok(response);
+        }
+
+        [HttpPut]
+        [Route("api/v1/wolf-approve/purchases/{id}/confirm-status")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับยืนยันสถานะ PO")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderConfirmResponse))]
+        public async Task<IActionResult> ConfirmPOStatus(string id, [FromBody] PurchaseOrderConfirmRequest request)
+        {
+            PurchaseOrderConfirmResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.ConfirmPurchaseOrderStatus(id, request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "ConfirmPOStatus", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                response = new PurchaseOrderConfirmResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
+
+        #endregion
+
         #region [Claim]
 
         [HttpGet]
@@ -204,9 +234,19 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.GetClaimShow(id, supplier_id);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "GetClaimShow", $"id:{id} , supplier_id:{supplier_id}");
+                response = new ClaimDetailResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                    ,
+                    Data = null
+                };
             }
             return Ok(response);
         }
@@ -223,16 +263,25 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.ConfirmClaimStatus(id, request);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "ConfirmClaimStatus", $"id:{id} ,request :{JsonConvert.SerializeObject(request)}");
+                response = new ClaimConfirmResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
             return Ok(response);
         }
         #endregion
-    
+
         #region [Compaines]
-        
+
         [HttpGet]
         [Route("api/v1/wolf-approve/companies/{supplier_id}")]
         [Description("Create By Peetisook")]
@@ -245,9 +294,18 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.GetCompaniesList(supplier_id);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "GetCompanies", $"supplier_id:{supplier_id}");
+                response = new CompaniesResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
             return Ok(response);
         }
@@ -264,9 +322,18 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.GetCompaniesById(id);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "GetCompaniesById", $"id:{id}");
+                response = new CompaniesDetailResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
             return Ok(response);
         }
@@ -283,15 +350,23 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.ConnectCompanies(supplier_id);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "ConnectCompanies", $"supplier_id:{supplier_id}");
+                response = new CompaniesConnectResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
             }
             return Ok(response);
         }
 
         #endregion
-    
+
         #region [Count]
         [HttpGet]
         [Route("api/v1/wolf-approve/count/{suppliers}")]
@@ -305,9 +380,18 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.GetCount(suppliers);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "GetCount", $"suppliers:{suppliers}");
+                response = new CountResponse()
+                {
+                    Status = new Application.Models.Common.Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
             }
             return Ok(response);
         }

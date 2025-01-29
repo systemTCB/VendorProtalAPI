@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using VendorPortal.Application.Models.Common;
+using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Models.v1.Response
 {
@@ -45,13 +46,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string PaymentCondition { get; set; }
         public string Remark { get; set; }
     }
-    public class CompanyContract
-    {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string Phone { get; set; }
-        public string Email { get; set; }
-    }
+
 }
 
 

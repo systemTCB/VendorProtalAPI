@@ -28,6 +28,12 @@
             "name": ".NET Core Attach",
             "type": "coreclr",
             "request": "attach"
-        }
+        },
+        {
+            "type": "msedge",
+            "name": "https://localhost:5001",
+            "request": "launch",
+            "url": "https://localhost:5001"
+          }
     ]
 }

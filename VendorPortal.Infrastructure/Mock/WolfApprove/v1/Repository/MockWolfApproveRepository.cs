@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
+using VendorPortal.Logging;
 
 namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
 {
@@ -31,7 +32,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -47,7 +48,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -63,23 +64,23 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
 
-        public async Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_SHOW(string id , string supplier_id)
+        public async Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_SHOW(string id, string supplier_id)
         {
             var mock = new SP_GET_PURCHASE_ORDER_DETAIL();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_PURCHASE_ORDER_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_GET_PURCHASE_ORDER_DETAIL>(json);
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -95,7 +96,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -111,7 +112,8 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
+
             }
             return mock;
         }
@@ -127,7 +129,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -143,7 +145,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -159,7 +161,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -175,7 +177,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -191,7 +193,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }
@@ -207,7 +209,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "MockWolfApproveRepository");
             }
             return mock;
         }

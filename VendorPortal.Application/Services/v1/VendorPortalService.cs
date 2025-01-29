@@ -45,7 +45,7 @@ namespace VendorPortal.Application.Services.v1
                 var result = await _vendotPortalRepository.GetPurchaseOrder(request.orderNo);
                 if (result.status.code == ResponseCode.Success.Text())
                 {
-                    response.data = result.data.Select(e => new PurchaseOrderData
+                    response.Data = result.data.Select(e => new PurchaseOrderData
                     {
                         OrderNo = e.orderNo,
                         OrderSendDate = e.orderSendDate,

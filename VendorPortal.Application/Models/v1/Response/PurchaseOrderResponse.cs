@@ -6,7 +6,7 @@ namespace VendorPortal.Application.Models.v1.Response
 {
     public class PurchaseOrderResponse : BaseResponse
     {
-        public List<PurchaseOrderData> data { get; set; }
+        public List<PurchaseOrderData> Data { get; set; }
     }
     public class PurchaseOrderData
     {

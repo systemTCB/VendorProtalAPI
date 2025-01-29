@@ -17,9 +17,6 @@ namespace VendorPortal.API.Controllers.v1
     [ApiController]
     public class VendorPortalController : ControllerBase
     {
-        private readonly IVendorPortalService _vendorPortalService;
-        private readonly AppConfigHelper _appConfigHelper;
-        private readonly ILogger<VendorPortalController> _logger;
         public VendorPortalController()
         {
         }

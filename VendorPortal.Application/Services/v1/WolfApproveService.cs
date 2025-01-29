@@ -12,7 +12,9 @@ using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository;
+using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
+using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Services.v1
 {
@@ -84,9 +86,62 @@ namespace VendorPortal.Application.Services.v1
             throw new NotImplementedException();
         }
 
-        public Task<PurchaseOrderDetailResponse> GetPurchaseOrderShow(string order_id , string supplier_id)
+        public async Task<PurchaseOrderDetailResponse> GetPurchaseOrderShow(string order_id, string supplier_id)
         {
-            throw new NotImplementedException();
+            PurchaseOrderDetailResponse result = new();
+            try
+            {
+                if (!string.IsNullOrEmpty(order_id) && !string.IsNullOrEmpty(supplier_id))
+                {
+                    var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_SHOW(order_id, supplier_id);
+                    if (store != null)
+                    {
+                        result.Data = new PurchaseOrderDetailData()
+                        {
+                            Id = store.Id,
+                                   
+                        };
+                        result.Status = new Status()
+                        {
+                            Code = ResponseCode.Success.Text(),
+                            Message = ResponseCode.Success.Description()
+                        };
+                    }
+                    else
+                    {
+                        result = new PurchaseOrderDetailResponse()
+                        {
+                            Status = new Status()
+                            {
+                                Code = ResponseCode.NotFound.Text(),
+                                Message = ResponseCode.NotFound.Description()
+                            },
+                            Data = null
+                        };
+                    }
+                }
+                else
+                {
+                    result = new PurchaseOrderDetailResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.BadRequest.Text(),
+                            Message = "กรุณากรอกข้อมูล order_id และ supplier_id"
+                        },
+                        Data = null
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "GetPurchaseOrderShow", $"order_id: {order_id} , supplier_id: {supplier_id}");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetPurchaseOrderShow", $"order_id: {order_id} , supplier_id: {supplier_id}");
+            }
+            return result;
         }
 
         public async Task<RFQResponse> GetRFQ_List()
@@ -105,8 +160,8 @@ namespace VendorPortal.Application.Services.v1
                         CompanyContract = new CompanyContract
                         {
                             Email = s.Company_Contract.Email,
-                            FirstName = s.Company_Contract.First_Name,
-                            LastName = s.Company_Contract.Last_Name,
+                            First_Name = s.Company_Contract.First_Name,
+                            Last_Name = s.Company_Contract.Last_Name,
                             Phone = s.Company_Contract.Phone
                         },
                         CompanyName = s.Company_Name,
@@ -127,7 +182,7 @@ namespace VendorPortal.Application.Services.v1
                         Status = new Status()
                         {
                             Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Text()
+                            Message = ResponseCode.Success.Description()
                         },
                         Data = data
                     };
@@ -139,10 +194,22 @@ namespace VendorPortal.Application.Services.v1
                         Status = new Status()
                         {
                             Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Text()
+                            Message = ResponseCode.NotFound.Description()
                         }
                     };
                 }
+            }
+            catch (ApplicationException ex)
+            {
+                result = new RFQResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetRFQ_List");
             }
             catch (System.Exception ex)
             {
@@ -151,9 +218,10 @@ namespace VendorPortal.Application.Services.v1
                     Status = new Status()
                     {
                         Code = ResponseCode.InternalError.Text(),
-                        Message = ex.Message
+                        Message = ResponseCode.InternalError.Description(),
                     }
                 };
+                Logger.LogError(ex, "GetRFQ_List");
             }
             return result;
         }
@@ -175,25 +243,26 @@ namespace VendorPortal.Application.Services.v1
                         },
                         Data = new RFQShowData
                         {
-                            CategoryName = sp_result.CategoryName,
-                            CompanyAddress = new CompanyAddress
+                            Category_Name = sp_result.CategoryName,
+                            Company_Address = new CompanyAddress
                             {
-                                Address1 = sp_result.CompanyAddress.Address1,
-                                Address2 = sp_result.CompanyAddress.Address2,
+                                Address_1 = sp_result.CompanyAddress.Address1,
+                                Address_2 = sp_result.CompanyAddress.Address2,
                                 Branch = sp_result.CompanyAddress.Branch,
                                 District = sp_result.CompanyAddress.District,
                                 Province = sp_result.CompanyAddress.Province,
-                                SubDistrict = sp_result.CompanyAddress.SubDistrict,
-                                TaxNumber = sp_result.CompanyAddress.TaxNumber
+                                Sub_District = sp_result.CompanyAddress.SubDistrict,
+                                Tax_Number = sp_result.CompanyAddress.TaxNumber,
+                                Zip_Code = sp_result.CompanyAddress.ZipCode
                             },
-                            CompanyContract = new CompanyContract
+                            Company_Contract = new CompanyContract
                             {
                                 Email = sp_result.CompanyContract.Email,
-                                FirstName = sp_result.CompanyContract.FirstName,
-                                LastName = sp_result.CompanyContract.LastName,
+                                First_Name = sp_result.CompanyContract.FirstName,
+                                Last_Name = sp_result.CompanyContract.LastName,
                                 Phone = sp_result.CompanyContract.Phone,
                             },
-                            CompanyName = sp_result.CompanyName,
+                            Company_Name = sp_result.CompanyName,
                             ContractValue = Decimal.Parse(string.IsNullOrEmpty(sp_result.ContractValue) ? "0" : sp_result.ContractValue),
                             Description = sp_result.Description,
                             Discount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Discount) ? "0" : sp_result.Discount),
@@ -208,12 +277,12 @@ namespace VendorPortal.Application.Services.v1
                             {
                                 Description = s.Description,
                                 Id = s.Id,
-                                ItemCode = s.ItemCode,
-                                ItemName = s.ItemName,
-                                LineNumber = s.LineNumber,
+                                Item_code = s.ItemCode,
+                                Item_name = s.ItemName,
+                                Line_number = s.LineNumber,
                                 Quantity = Decimal.Parse(string.IsNullOrEmpty(s.Quantity) ? "0" : s.Quantity),
-                                UomName = s.UomName,
-                                UnitPrice = Decimal.Parse(string.IsNullOrEmpty(s.UnitPrice) ? "0" : s.UnitPrice)
+                                Uom_name = s.UomName,
+                                Unit_price = Decimal.Parse(string.IsNullOrEmpty(s.UnitPrice) ? "0" : s.UnitPrice)
                             }).ToList(),
                             NetAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.NetAmount) ? "0" : sp_result.NetAmount),
                             Number = sp_result.Number,
@@ -247,6 +316,15 @@ namespace VendorPortal.Application.Services.v1
             }
             catch (System.Exception ex)
             {
+                response = new RFQShowResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetRFQ_Show");
             }
             return response;
         }
