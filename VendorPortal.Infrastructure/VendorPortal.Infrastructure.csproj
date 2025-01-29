@@ -21,10 +21,10 @@
   <ItemGroup>
     <!-- Load Mockup file to Main csProject ,the list as below -->
     <!-- RFQ Mockup File -->
-    <None Update="Mock\WolfApprove\v1\Data\SP_GETRFQ_LIST.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_LIST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_GETRFQ_DETAIL.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_DETAIL.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
@@ -35,7 +35,7 @@
     <None Update="Mock\WolfApprove\v1\Data\SP_GET_PURCHASE_ORDER_LIST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_CLAIM_ORDER_CONFIRM.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_PURCHASE_ORDER_CONFIRM.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
@@ -43,26 +43,26 @@
     <None Update="Mock\WolfApprove\v1\Data\SP_GET_CLAIM_LIST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_GET_CLAIM_SHOW.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_CLAIM_DETAIL.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_CLAIM_ORDER_CONFIRM.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_UPDATE_CLAIM_ORDER_CONFIRM.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 
     <!-- Companies Mockup File -->
-    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANY_LIST.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANIES_LIST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANY_SHOW.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANIES_DETAIL.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_CLAIM_ORDER_CONFIRM.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_CONNECT_COMPANIES_REQUEST.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-
+    
     <!-- Count Mockup File -->
-    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COUNT_LIST.json">
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COUNT_PO_CLAIM.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
 

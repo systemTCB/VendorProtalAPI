@@ -12,6 +12,6 @@ namespace VendorPortal.Application.Models.v1.Response
     public class CompaniesConnectData
     {
         // Add properties and methods here
-        public string Company_request_code { get; set; }
+        public string Status { get; set; }
     }
 }

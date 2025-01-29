@@ -9,12 +9,12 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string Id { get; set; }
         public string Code { get; set; }
         public QuotationData Quotation { get; set; }
-        public string Company_Nameame { get; set; }
+        public string Company_name { get; set; }
         public string Description { get; set; }
         public string purchase_type_name { get; set; }
-        public string Category_Namee { get; set; }
-        public string Order_datete { get; set; }
-        public string Require_Date { get; set; }
+        public string Category_Name { get; set; }
+        public string Order_date { get; set; }
+        public string Request_Date { get; set; }
         public string Status { get; set; }
         public CompanyAddressData Company_address { get; set; }
         public CompanyContractData Company_contract { get; set; }

@@ -8,18 +8,16 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 {
     public class WolfApproveRepository : IWolfApproveRepository
     {
-        private readonly DbContext _context;
+        //private readonly DbContext _context;
         public WolfApproveRepository()
         {
-            
         }
-        // Add your repository methods here
-        public Task<SP_GET_RFQ_DETAIL> SP_GETRFQ_SHOW(string id)
+        public Task<SP_GET_RFQ_DETAIL> SP_GET_RFQ_DETAIL(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<List<SP_GET_RFQ>> SP_GETRFQ_LIST()
+        public Task<List<SP_GET_RFQ>> SP_GET_RFQ_LIST()
         {
             throw new System.NotImplementedException();
         }
@@ -29,7 +27,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             throw new System.NotImplementedException();
         }
 
-        public Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_SHOW(string id , string supplier_id)
+        public Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_DETAIL(string id , string supplier_id)
         {
             throw new System.NotImplementedException();
         }
@@ -39,32 +37,32 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             throw new System.NotImplementedException();
         }
 
-        public Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST()
+        public Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id , string company_id , string from_date , string to_date)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<SP_GET_CLAIM_DETAIL> SP_GET_CLAIM_SHOW(string id, string supplier_id)
+        public Task<SP_GET_CLAIM_DETAIL> SP_GET_CLAIM_DETAIL(string id, string supplier_id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<SP_POST_CLAIM_ORDER_CONFIRM> SP_PUT_CLAIM_ORDER_CONFIRM(string id, string status, string reason, string description)
+        public Task<SP_POST_CLAIM_ORDER_CONFIRM> SP_UPDATE_CLAIM_ORDER_CONFIRM(string id, string status, string reason, string description)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<List<SP_GET_COMPANIES_LIST>> SP_GET_COMPANY_LIST()
+        public Task<List<SP_GET_COMPANIES_LIST>> SP_GET_COMPANIES_LIST( string supplier_id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<SP_GET_COMPANIES_BY_ID> SP_GET_COMPANIES_BY_ID(string id)
+        public Task<SP_GET_COMPANIES_DETAIL> SP_GET_COMPANIES_DETAIL(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id)
+        public Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id , string company_request_code)
         {
             throw new System.NotImplementedException();
         }

@@ -32,11 +32,11 @@ namespace VendorPortal.Application.Models.Common
             public string Item_name { get; set; }
             public string Uom_name { get; set; }
             public string Description { get; set; }
-            public decimal Quantity { get; set; }
-            public decimal Unit_price { get; set; }
-            public decimal Vat_rate { get; set; }
-            public decimal Vat_amount { get; set; }
-            public decimal Total_amount { get; set; }
+            public string Quantity { get; set; }
+            public string Unit_price { get; set; }
+            public string Vat_rate { get; set; }
+            public string Vat_amount { get; set; }
+            public string Total_amount { get; set; }
         }
         public class Document
         {

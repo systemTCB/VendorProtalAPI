@@ -115,7 +115,7 @@ namespace VendorPortal.API.Controllers.v1
             PurchaseOrderResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetPurchaseOrderList();
+                response = await _wolfApproveService.GetPurchaseOrderList(q,supplier_id,number,start_date,end_date,purchase_type_id,status_id,category_id,page,per_page,order_direction,order_by);
             }
             catch (System.Exception ex)
             {
@@ -142,7 +142,7 @@ namespace VendorPortal.API.Controllers.v1
             PurchaseOrderDetailResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetPurchaseOrderShow(id, supplier_id);
+                response = await _wolfApproveService.GetPurchaseOrderDetail(id, supplier_id);
             }
             catch (System.Exception ex)
             {
@@ -197,14 +197,11 @@ namespace VendorPortal.API.Controllers.v1
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API ใช้สำหรับเรียกรายการสินค้าที่ต้องการ claim")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ClaimResponse))]
-        public async Task<IActionResult> GetClaimList(string q,
-            string supplier_id,
-            string number,
-            string start_date,
-            string end_date,
-            string purchase_type_id,
-            string status_id,
-            string category_id,
+        public async Task<IActionResult> GetClaimList(string supplier_id,
+            string company_id,
+            string status,
+            string from_date,
+            string to_date,
             string page,
             string per_page,
             string order_direction,
@@ -213,7 +210,7 @@ namespace VendorPortal.API.Controllers.v1
             ClaimResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetClaimList();
+                response = await _wolfApproveService.GetClaimList(supplier_id, company_id, status, from_date, to_date, page, per_page, order_direction, order_by);
             }
             catch (System.Exception)
             {
@@ -232,7 +229,7 @@ namespace VendorPortal.API.Controllers.v1
             ClaimDetailResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetClaimShow(id, supplier_id);
+                response = await _wolfApproveService.GetClaimDetail(id, supplier_id);
             }
             catch (System.Exception ex)
             {
@@ -320,7 +317,7 @@ namespace VendorPortal.API.Controllers.v1
             CompaniesDetailResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetCompaniesById(id);
+                response = await _wolfApproveService.GetCompaniesDetail(id);
             }
             catch (System.Exception ex)
             {
@@ -343,12 +340,12 @@ namespace VendorPortal.API.Controllers.v1
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API ใช้สำหรับเชื่อมต่อบริษัท")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompaniesConnectResponse))]
-        public async Task<IActionResult> ConnectCompanies(string supplier_id)
+        public async Task<IActionResult> ConnectCompanies(string supplier_id , [FromBody] CompaniesConnectRequest request)
         {
             CompaniesConnectResponse response = new();
             try
             {
-                response = await _wolfApproveService.ConnectCompanies(supplier_id);
+                response = await _wolfApproveService.ConnectCompanies(supplier_id ,request);
             }
             catch (System.Exception ex)
             {
@@ -378,7 +375,7 @@ namespace VendorPortal.API.Controllers.v1
             CountResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetCount(suppliers);
+                response = await _wolfApproveService.GetCountClaimPo(suppliers);
             }
             catch (System.Exception ex)
             {

@@ -41,65 +41,571 @@ namespace VendorPortal.Application.Services.v1
             }
         }
 
-        public Task<ClaimConfirmResponse> ConfirmClaimStatus(string claim_id, ClaimConfirmRequest request)
+        public async Task<ClaimConfirmResponse> ConfirmClaimStatus(string claim_id, ClaimConfirmRequest request)
         {
-            throw new NotImplementedException();
+            ClaimConfirmResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_UPDATE_CLAIM_ORDER_CONFIRM(claim_id, request.Status, request.Reason, request.Description);
+                if (store != null)
+                {
+                    result = new ClaimConfirmResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.Success.Text(),
+                            Message = ResponseCode.Success.Description()
+                        }
+                    };
+                }
+                else
+                {
+                    // รอดูก่อนว่าตรงนี้ทำงานยังไง อาจจะต้องมี reason ที่แตกต่างกัน
+                    result = new ClaimConfirmResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "ConfirmClaimStatus", $"claim_id: {claim_id} , request: {request}");
+                result = new ClaimConfirmResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    },
+                    Data = null
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "ConfirmClaimStatus", $"claim_id: {claim_id} , request: {request}");
+                result = new ClaimConfirmResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
+            }
+            return result;
         }
 
-        public Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request)
+        public async Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request)
         {
-            throw new NotImplementedException();
+            PurchaseOrderConfirmResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_PUT_PURCHASE_ORDER_CONFIRM(purchase_order_id, request.status, request.reason, request.description);
+                if (store != null)
+                {
+
+                }
+                else
+                {
+                    result = new PurchaseOrderConfirmResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        },
+                        Data = null
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
+                result = new PurchaseOrderConfirmResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    },
+                    Data = null
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
+                result = new PurchaseOrderConfirmResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
+
+            }
+            return result;
         }
 
-        public Task<CompaniesConnectResponse> ConnectCompanies(string supplier_id)
+        public async Task<CompaniesConnectResponse> ConnectCompanies(string supplier_id, CompaniesConnectRequest request)
         {
-            throw new NotImplementedException();
+            CompaniesConnectResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_PUT_CONNECT_COMPANIES_REQUEST(supplier_id, request.Company_request_code);
+            }
+            catch (ApplicationException ex)
+            {
+                result = new CompaniesConnectResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    },
+                    Data = null
+                };
+                Logger.LogError(ex, "ConnectCompanies", $"supplier_id: {supplier_id} , request: {request}");
+            }
+            catch (System.Exception ex)
+            {
+                result = new CompaniesConnectResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    },
+                    Data = null
+                };
+                Logger.LogError(ex, "ConnectCompanies", $"supplier_id: {supplier_id} , request: {request}");
+
+            }
+            return result;
         }
 
-        public Task<ClaimResponse> GetClaimList()
+        public async Task<ClaimResponse> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by)
         {
-            throw new NotImplementedException();
+            ClaimResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id, company_id, from_date, to_date);
+                if (store.Count != 0)
+                {
+                    result.Status = new Status()
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    };
+                }
+                else
+                {
+                    result = new ClaimResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "GetClaimList");
+                result = new ClaimResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    }
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetClaimList");
+                result = new ClaimResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+            }
+            return result;
         }
 
-        public Task<ClaimDetailResponse> GetClaimShow(string claim_id, string supplier_id)
+        public async Task<ClaimDetailResponse> GetClaimDetail(string claim_id, string supplier_id)
         {
-            throw new NotImplementedException();
+            ClaimDetailResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_CLAIM_DETAIL(claim_id, supplier_id);
+                if (store != null)
+                {
+                    result.Data = new ClaimDetailData()
+                    {
+                        Claim_date = store.ClaimDate.ToString(),
+                        Claim_description = store.ClaimDescription,
+                        Claim_option = store.ClaimOption,
+                        Claim_reason = store.ClaimReason,
+                        Code = store.Code,
+                        Company_name = store.CompanyName,
+                        Create_date = store.CreatedDate.ToString(),
+                        Documents = store.Documents.Select(s => new Document()
+                        {
+                            FileUrl = s.FileUrl,
+                            Name = s.Name
+                        }).ToList(),
+                        Id = store.Id,
+                        Lines = store.Lines.Select(s => new Line()
+                        {
+                            Description = s.Description,
+                            Id = s.Id,
+                            Item_code = s.ItemCode,
+                            Item_name = s.ItemName,
+                            Line_number = s.LineNumber,
+                            Quantity = s.Quantity,
+                            Uom_name = s.UomName,
+                            Unit_price = s.UnitPrice
+                        }).ToList(),
+                        Status = new ClaimStatus()
+                        {
+                            Name = store.Status.FirstOrDefault().Name
+                        },
+                        Claim_return_address = store.ClaimReturnAddress,
+                        Purchase_order = new ClaimPurchaseOrderData()
+                        {
+                            Code = store.PurchaseOrder.Code,
+                            Purchase_date = store.PurchaseOrder.PurchaseDate.ToString()
+                        }
+                    };
+                    result = new ClaimDetailResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.Success.Text(),
+                            Message = ResponseCode.Success.Description()
+                        }
+                    };
+                }
+                else
+                {
+                    result = new ClaimDetailResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                result = new ClaimDetailResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetClaimDetail", $"claim_id: {claim_id} , supplier_id: {supplier_id}");
+            }
+            catch (System.Exception ex)
+            {
+                result = new ClaimDetailResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetClaimDetail", $"claim_id: {claim_id} , supplier_id: {supplier_id}");
+            }
+            return result;
         }
 
-        public Task<CompaniesDetailResponse> GetCompaniesById(string company_id)
+        public async Task<CompaniesDetailResponse> GetCompaniesDetail(string company_id)
         {
-            throw new NotImplementedException();
+            CompaniesDetailResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_COMPANIES_DETAIL(company_id);
+                if (store != null)
+                {
+                    result.Data = new CompaniesDetailData()
+                    {
+                        Company_address = new CompanyAddress()
+                        {
+                            Address_1 = store.Company_address.Address_1,
+                            Address_2 = store.Company_address.Address_2,
+                            Branch = store.Company_address.Branch,
+                            District = store.Company_address.District,
+                            Province = store.Company_address.Province,
+                            Sub_District = store.Company_address.Sub_district,
+                            Tax_Number = store.Company_address.Tax_id,
+                            Zip_Code = store.Company_address.Zip_code
+                        },
+                        Company_contract = new CompanyContract()
+                        {
+                            Email = store.Company_contact.Email,
+                            First_Name = store.Company_contact.First_name,
+                            Last_Name = store.Company_contact.Last_name,
+                            Phone = store.Company_contact.Phone
+                        },
+                        Id = store.Id,
+                        Name = store.Name,
+                        Request_date = store.Request_date.ToString(),
+                        Request_status = store.Request_status,
+                        Website = store.Website
+                    };
+                    result.Status = new Status()
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    };
+                }
+                else
+                {
+                    result = new CompaniesDetailResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        },
+                        Data = null
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "GetCompaniesDetail", $"company_id: {company_id}");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetCompaniesDetail", $"company_id: {company_id}");
+            }
+            return result;
         }
 
-        public Task<CompaniesResponse> GetCompaniesList(string supplier_id)
+        public async Task<CompaniesResponse> GetCompaniesList(string supplier_id)
         {
-            throw new NotImplementedException();
+            CompaniesResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_COMPANIES_LIST(supplier_id);
+                if (store.Count != 0)
+                {
+
+                }
+                else
+                {
+                    result = new CompaniesResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        },
+                        Data = null
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "GetCompaniesList", $"supplier_id: {supplier_id}");
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetCompaniesList", $"supplier_id: {supplier_id}");
+            }
+            return result;
         }
 
-        public Task<CountResponse> GetCount(string supplier_id)
+        public async Task<CountResponse> GetCountClaimPo(string supplier_id)
         {
-            throw new NotImplementedException();
+            CountResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_COUNT_PO_CLAIM();
+                result = new CountResponse()
+                {
+                    Data = new CountData()
+                    {
+                        Count_claim = store.Count_claim.GetValueOrDefault(),
+                        Count_po = store.Count_po.GetValueOrDefault()
+                    },
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    }
+                };
+            }
+            catch (ApplicationException ex)
+            {
+                result = new CountResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetCount", $"supplier_id: {supplier_id}");
+            }
+            catch (System.Exception ex)
+            {
+                result = new CountResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetCount", $"supplier_id: {supplier_id}");
+            }
+            return result;
         }
 
-        public Task<PurchaseOrderResponse> GetPurchaseOrderList()
+        public async Task<PurchaseOrderResponse> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
         {
-            throw new NotImplementedException();
+            PurchaseOrderResponse result = new();
+            try
+            {
+                var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_LIST();
+                if (store.Count != 0)
+                {
+                    result.Data = [.. store.Select(s => new PurchaseOrderData()
+                    {
+
+                    })];
+                    result.Status = new Status()
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    };
+                }
+                else
+                {
+                    result = new PurchaseOrderResponse()
+                    {
+                        Status = new Status()
+                        {
+                            Code = ResponseCode.NotFound.Text(),
+                            Message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                }
+            }
+            catch (ApplicationException ex)
+            {
+                Logger.LogError(ex, "GetPurchaseOrderList");
+                result = new PurchaseOrderResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.NotImplement.Text(),
+                        Message = ResponseCode.NotImplement.Description()
+                    }
+                };
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetPurchaseOrderList");
+                result = new PurchaseOrderResponse()
+                {
+                    Status = new Status()
+                    {
+                        Code = ResponseCode.InternalError.Text(),
+                        Message = ResponseCode.InternalError.Description()
+                    }
+                };
+            }
+            return result;
         }
 
-        public async Task<PurchaseOrderDetailResponse> GetPurchaseOrderShow(string order_id, string supplier_id)
+        public async Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id)
         {
             PurchaseOrderDetailResponse result = new();
             try
             {
                 if (!string.IsNullOrEmpty(order_id) && !string.IsNullOrEmpty(supplier_id))
                 {
-                    var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_SHOW(order_id, supplier_id);
+                    var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_DETAIL(order_id, supplier_id);
                     if (store != null)
                     {
                         result.Data = new PurchaseOrderDetailData()
                         {
                             Id = store.Id,
-                                   
+                            Cancel_description = store.Cancel_description,
+                            Cancel_reason = store.Cancel_reason,
+                            Category_name = store.Category_Name,
+                            Code = store.Code,
+                            Company_address = new CompanyAddress()
+                            {
+                                Address_1 = store.Company_address.Address_1,
+                                Address_2 = store.Company_address.Address_2,
+                                Branch = store.Company_address.Branch,
+                                District = store.Company_address.District,
+                                Province = store.Company_address.Province,
+                                Sub_District = store.Company_address.Sub_District,
+                                Tax_Number = store.Company_address.Tax_number,
+                                Zip_Code = store.Company_address.Zip_code
+                            },
+                            Company_contract = new CompanyContract()
+                            {
+                                Email = store.Company_contract.Email,
+                                First_Name = store.Company_contract.First_name,
+                                Last_Name = store.Company_contract.Last_name,
+                                Phone = store.Company_contract.Phone
+                            },
+                            Company_name = store.Company_name,
+                            Description = store.Description,
+                            Discount = store.Discount,
+                            Documents = store.Documents.Select(s => new Document()
+                            {
+                                FileUrl = s.File_url,
+                                Name = s.Name
+                            }).ToList(),
+                            Lines = store.Lines.Select(s => new Line()
+                            {
+                                Description = s.Description,
+                                Id = s.Id,
+                                Item_code = s.Item_code,
+                                Item_name = s.Item_name,
+                                Line_number = s.Line_number,
+                                Quantity = s.Quantity,
+                                Uom_name = s.Uom_name,
+                                Unit_price = s.Unit_price
+                            }).ToList(),
+                            Net_amount = store.Net_amount,
+                            Order_date = store.Order_date,
+                            Request_date = store.Request_Date,
+                            Payment_condition = store.Payment_condition,
+                            Quotation = new QuotationData()
+                            {
+                                Code = store.Quotation.Code
+                            },
+                            Remark = store.Remark,
+                            Status = store.Status,
+                            Sub_totoal = store.Sub_totoal,
+                            Total_amount = store.Total_amount,
+                            Vat_amount = store.Vat_amount
+
                         };
                         result.Status = new Status()
                         {
@@ -149,7 +655,7 @@ namespace VendorPortal.Application.Services.v1
             var result = new RFQResponse();
             try
             {
-                var sp_result = await _wolfApproveRepository.SP_GETRFQ_LIST();
+                var sp_result = await _wolfApproveRepository.SP_GET_RFQ_LIST();
                 if (sp_result != null)
                 {
                     var data = sp_result.Select(s => new RFQData()
@@ -231,7 +737,7 @@ namespace VendorPortal.Application.Services.v1
             RFQShowResponse response = new RFQShowResponse();
             try
             {
-                var sp_result = await _wolfApproveRepository.SP_GETRFQ_SHOW(rfq_id);
+                var sp_result = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(rfq_id);
                 if (sp_result != null)
                 {
                     response = new RFQShowResponse()
@@ -280,9 +786,9 @@ namespace VendorPortal.Application.Services.v1
                                 Item_code = s.ItemCode,
                                 Item_name = s.ItemName,
                                 Line_number = s.LineNumber,
-                                Quantity = Decimal.Parse(string.IsNullOrEmpty(s.Quantity) ? "0" : s.Quantity),
+                                Quantity = s.Quantity,
                                 Uom_name = s.UomName,
-                                Unit_price = Decimal.Parse(string.IsNullOrEmpty(s.UnitPrice) ? "0" : s.UnitPrice)
+                                Unit_price = s.UnitPrice
                             }).ToList(),
                             NetAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.NetAmount) ? "0" : sp_result.NetAmount),
                             Number = sp_result.Number,

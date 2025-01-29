@@ -21,12 +21,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             // Constructor logic here
         }
 
-        public async Task<SP_GET_RFQ_DETAIL> SP_GETRFQ_SHOW(string id)
+        public async Task<SP_GET_RFQ_DETAIL> SP_GET_RFQ_DETAIL(string id)
         {
             SP_GET_RFQ_DETAIL mock = new();
             try
             {
-                string filename = "SP_GETRFQ_DETAIL.json";
+                string filename = "SP_GET_RFQ_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_GET_RFQ_DETAIL>(json);
             }
@@ -37,12 +37,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_RFQ>> SP_GETRFQ_LIST()
+        public async Task<List<SP_GET_RFQ>> SP_GET_RFQ_LIST()
         {
             List<SP_GET_RFQ> mock = new();
             try
             {
-                string filename = "SP_GETRFQ_LIST.json";
+                string filename = "SP_GET_RFQ_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ>>(json);
             }
@@ -58,7 +58,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             var mock = new List<SP_GET_PURCHASE_ORDER>();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_PURCHASE_ORDER_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<List<SP_GET_PURCHASE_ORDER>>(json);
             }
@@ -69,7 +69,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_SHOW(string id, string supplier_id)
+        public async Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)
         {
             var mock = new SP_GET_PURCHASE_ORDER_DETAIL();
             try
@@ -90,7 +90,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             var mock = new SP_PUT_PURCHASE_ORDER_CONFIRM();
             try
             {
-                string filename = "";
+                string filename = "SP_PUT_PURCHASE_ORDER_CONFIRM.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_PUT_PURCHASE_ORDER_CONFIRM>(json);
             }
@@ -101,12 +101,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST()
+        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id,string company_id,string from_date,string to_date)
         {
             var mock = new List<SP_GET_CLAIM_LIST>();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_CLAIM_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<List<SP_GET_CLAIM_LIST>>(json);
             }
@@ -118,12 +118,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_GET_CLAIM_DETAIL> SP_GET_CLAIM_SHOW(string id, string supplier_id)
+        public async Task<SP_GET_CLAIM_DETAIL> SP_GET_CLAIM_DETAIL(string id, string supplier_id)
         {
             var mock = new SP_GET_CLAIM_DETAIL();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_CLAIM_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_GET_CLAIM_DETAIL>(json);
             }
@@ -134,12 +134,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_POST_CLAIM_ORDER_CONFIRM> SP_PUT_CLAIM_ORDER_CONFIRM(string id, string status, string reason, string description)
+        public async Task<SP_POST_CLAIM_ORDER_CONFIRM> SP_UPDATE_CLAIM_ORDER_CONFIRM(string id, string status, string reason, string description)
         {
             var mock = new SP_POST_CLAIM_ORDER_CONFIRM();
             try
             {
-                string filename = "";
+                string filename = "SP_UPDATE_CLAIM_ORDER_CONFIRM.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_POST_CLAIM_ORDER_CONFIRM>(json);
             }
@@ -150,12 +150,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_COMPANIES_LIST>> SP_GET_COMPANY_LIST()
+        public async Task<List<SP_GET_COMPANIES_LIST>> SP_GET_COMPANIES_LIST(string supplier_id)
         {
             var mock = new List<SP_GET_COMPANIES_LIST>();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_COMPANISE_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<List<SP_GET_COMPANIES_LIST>>(json);
             }
@@ -166,14 +166,14 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_GET_COMPANIES_BY_ID> SP_GET_COMPANIES_BY_ID(string id)
+        public async Task<SP_GET_COMPANIES_DETAIL> SP_GET_COMPANIES_DETAIL(string id)
         {
-            var mock = new SP_GET_COMPANIES_BY_ID();
+            var mock = new SP_GET_COMPANIES_DETAIL();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_COMPANIES_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
-                mock = JsonConvert.DeserializeObject<SP_GET_COMPANIES_BY_ID>(json);
+                mock = JsonConvert.DeserializeObject<SP_GET_COMPANIES_DETAIL>(json);
             }
             catch (System.Exception ex)
             {
@@ -182,12 +182,12 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id)
+        public async Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id , string Company_request_code)
         {
             var mock = new SP_PUT_CONNECT_COMPANIES_REQUEST();
             try
             {
-                string filename = "";
+                string filename = "SP_PUT_CONNECT_COMPANIES_REQUEST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_PUT_CONNECT_COMPANIES_REQUEST>(json);
             }
@@ -203,7 +203,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             var mock = new SP_GET_COUNT_PO_CLAIM();
             try
             {
-                string filename = "";
+                string filename = "SP_GET_COUNT_PO_CLAIM.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_GET_COUNT_PO_CLAIM>(json);
             }
