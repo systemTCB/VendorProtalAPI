@@ -10,6 +10,7 @@ using VendorPortal.Infrastructure.IoC;
 using VendorPortal.Infrastructure.IoC.Middleware;
 using Serilog;
 using Serilog.Extensions;
+using VendorPortal.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,7 @@ app.UseResponseCompression();
 // Configure the HTTP request pipeline.
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
 app.UseMiddleware<MiddlewareLogger>();
+app.UseMiddleware<TokenVerificationMiddleware>();
 
 app.UseRouting();
 app.MapControllers();
