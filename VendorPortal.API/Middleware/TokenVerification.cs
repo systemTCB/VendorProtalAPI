@@ -57,29 +57,6 @@ namespace VendorPortal.API.Middleware
                         }
 
                     }
-                    // if (handler.CanReadToken(token))
-                    // {
-                    //     var jwtToken = handler.ReadJwtToken(token);
-                    //     var bearerToken = new JwtSecurityToken(token);
-                    //     // Example: Check if the token is expired
-                    //     if (bearerToken.ValidTo < DateTime.UtcNow)
-                    //     {
-                    //         context.Response.StatusCode = 401;
-                    //         await context.Response.WriteAsync("Token has expired");
-                    //         return;
-                    //     }
-
-                    //     // Example: Check for a specific claim
-                    //     var userIdClaim = bearerToken.Claims.FirstOrDefault(c => c.Type == "userId");
-                    //     if (userIdClaim == null)
-                    //     {
-                    //         context.Response.StatusCode = 401;
-                    //         await context.Response.WriteAsync("Token does not contain required claims");
-                    //         return;
-                    //     }
-                    //     // Add your token validation logic here
-                    //     // For example, you can check the token's claims, expiration, etc.
-                    // }
                     else
                     {
                         context.Response.StatusCode = 401;
