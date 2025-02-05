@@ -55,8 +55,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -82,8 +82,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -124,8 +124,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -151,8 +151,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                     ,
                     Data = null
@@ -180,8 +180,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -238,8 +238,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                     ,
                     Data = null
@@ -267,8 +267,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -298,8 +298,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -326,8 +326,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -354,8 +354,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -384,8 +384,8 @@ namespace VendorPortal.API.Controllers.v1
                 {
                     Status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };

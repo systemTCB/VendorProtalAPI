@@ -20,6 +20,7 @@ namespace VendorPortal.Infrastructure.IoC
             // services.AddSingleton<RabbitConfigHelper>();
             /* --------Service v1--------*/
             services.AddScoped<IWolfApproveService, WolfApproveService>();
+            services.AddScoped<IAuthenticationService , AuthenticationService>();
 
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
         //     services.AddFluentValidation(options =>
@@ -44,6 +45,7 @@ namespace VendorPortal.Infrastructure.IoC
             //Infrastructure
             services.AddHttpClient();
             services.AddScoped<IWolfApproveRepository , WolfApproveRepository>();
+            services.AddScoped<IAuthenticationRepository , AuthenticationRepository>();
             return services;
         }
     }

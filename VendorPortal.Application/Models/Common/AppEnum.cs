@@ -26,27 +26,19 @@ namespace VendorPortal.Application.Models.Common
         }
         public static string Text(this Enum value)
         {
-            return (Convert.ToInt16(value)).ToString();
+            return Convert.ToInt16(value).ToString();
         }
 
         public enum ResponseCode
         {
-            [Description("ทำรายการสำเร็จ")]
-            Success = 200,
-            [Description("รูปแบบข้อมูลที่ส่งเข้าระบบไม่ถูกต้อง")]
-            BadRequest = 400,
-            [Description("ไม่อนุญาตให้เข้าถึงระบบ")]
-            Unauthorized = 401,
-            [Description("ไม่มีสิทธิ์ในการใช้งาน")]
-            Forbidden = 403,
-            [Description("ไม่พบข้อมูล")]
-            NotFound = 404,
-            [Description("ข้อมูลที่ส่งเข้ามาไม่ถูกต้อง")]
-            Unprocessable = 422,
-            [Description("มีข้อผิดพลาดบนระบบ")]
-            InternalError = 500,
-            [Description("ระบบไม่สามารถดำเนินการต่อได้")]
-            NotImplement = 501,
+            [Description("ทำรายการสำเร็จ")] Success = 200,
+            [Description("รูปแบบข้อมูลที่ส่งเข้าระบบไม่ถูกต้อง")] BadRequest = 400,
+            [Description("ไม่อนุญาตให้เข้าถึงระบบ")] Unauthorized = 401,
+            [Description("ไม่มีสิทธิ์ในการใช้งาน")] Forbidden = 403,
+            [Description("ไม่พบข้อมูล")] NotFound = 404,
+            [Description("ข้อมูลที่ส่งเข้ามาไม่ถูกต้อง")] Unprocessable = 422,
+            [Description("มีข้อผิดพลาดบนระบบ")] InternalServerError = 500,
+            [Description("ระบบไม่สามารถดำเนินการต่อได้")] NotImplement = 501,
         }
     }
 }

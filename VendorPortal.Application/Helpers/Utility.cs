@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using VendorPortal.Logging;
 
 namespace VendorPortal.Application.Helpers
 {
@@ -10,6 +12,37 @@ namespace VendorPortal.Application.Helpers
         //Function Encrypt And Decrypt
         private readonly static string key = "ThaiRedCrossxTCB2024";
         private readonly static string salt = "TechconsBiz@2024";
+
+        public static string EncyptionToken(string token, DateTime? duration)
+        {
+            var enctptedToken = string.Empty;
+            try
+            {
+                if(string.IsNullOrEmpty(token) || duration == null) return "InvalidToken";
+                enctptedToken = EncryptString(token + "|Expire:" + duration);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "EncyptionToken");
+                return "EncyptionFailed";
+            }
+            return enctptedToken;
+        }
+        public static string DecyptionToken(string token)
+        {
+            var decyptedToken = string.Empty;
+            try
+            {
+                if(string.IsNullOrEmpty(token)) return "InvalidToken";
+                decyptedToken = DecryptString(token);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "DecyptionToken");
+                return "DecyptionFailed";
+            }
+            return decyptedToken;
+        }
         public static string EncryptString(string encryptString)
         {
             try

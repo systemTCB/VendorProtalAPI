@@ -63,7 +63,7 @@ namespace VendorPortal.Application.Services.v1
             {
                 response.Status = new Status()
                 {
-                    Code = ResponseCode.InternalError.Text(),
+                    Code = ResponseCode.InternalServerError.Text(),
                     Message = ex.Message,
                 };
             }

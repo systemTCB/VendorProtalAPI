@@ -13,7 +13,12 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "options": {
+                "env": {
+                    "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "false"
+                }
+            }
         },
         {
             "label": "publish",
@@ -25,7 +30,12 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "options": {
+                "env": {
+                    "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "false"
+                }
+            }
         },
         {
             "label": "watch",
@@ -38,7 +48,12 @@
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
-            "problemMatcher": "$msCompile"
+            "problemMatcher": "$msCompile",
+            "options": {
+                "env": {
+                    "DOTNET_SYSTEM_GLOBALIZATION_INVARIANT": "false"
+                }
+            }
         }
     ]
 }

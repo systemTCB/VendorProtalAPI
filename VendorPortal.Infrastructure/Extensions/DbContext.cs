@@ -17,7 +17,7 @@ namespace VendorPortal.Infrastructure.Extensions
             _configuration = configuration;
         }
 
-        public IDbConnection CreateConnectionRead() => new SqlConnection(_configuration.GetConnectionString(""));
-        public IDbConnection CreateConnectionWrite() => new SqlConnection(_configuration.GetConnectionString(""));
+        public IDbConnection CreateConnectionRead() => new SqlConnection(_configuration.GetConnectionString("WolfApprove"));
+        public IDbConnection CreateConnectionWrite() => new SqlConnection(_configuration.GetConnectionString("WolfApprove"));
     }
 }

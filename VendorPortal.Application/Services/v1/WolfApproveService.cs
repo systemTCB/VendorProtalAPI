@@ -91,8 +91,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -143,8 +143,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -179,8 +179,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -235,8 +235,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -327,8 +327,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetClaimDetail", $"claim_id: {claim_id} , supplier_id: {supplier_id}");
@@ -472,8 +472,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetCount", $"supplier_id: {supplier_id}");
@@ -530,8 +530,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -723,8 +723,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description(),
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description(),
                     }
                 };
                 Logger.LogError(ex, "GetRFQ_List");
@@ -826,8 +826,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Status = new Status()
                     {
-                        Code = ResponseCode.InternalError.Text(),
-                        Message = ResponseCode.InternalError.Description()
+                        Code = ResponseCode.InternalServerError.Text(),
+                        Message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetRFQ_Show");
