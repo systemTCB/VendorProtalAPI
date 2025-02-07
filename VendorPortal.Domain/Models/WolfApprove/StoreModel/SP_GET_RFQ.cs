@@ -23,7 +23,7 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
 
     public class CompanyContract
     {
-        public string First_Name { get; set; }
+        public string First_name { get; set; }
         public string Last_Name { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }

@@ -387,7 +387,7 @@ namespace VendorPortal.Application.Services.v1
                         Company_contract = new CompanyContract()
                         {
                             Email = store.Company_contact.Email,
-                            First_Name = store.Company_contact.First_name,
+                            First_name = store.Company_contact.First_name,
                             Last_Name = store.Company_contact.Last_name,
                             Phone = store.Company_contact.Phone
                         },
@@ -429,17 +429,34 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<CompaniesResponse> GetCompaniesList(string supplier_id)
         {
-            CompaniesResponse result = new();
+            CompaniesResponse response = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_COMPANIES_LIST(supplier_id);
                 if (store.Count != 0)
                 {
+                    response.Data = [.. store.Select(s=> new CompainesData{
+                        Id = s.Id,
+                        Company_contact =  new CompanyContract(){
+                            First_name = s.Company_contact.First_name,
+                            Email = s.Company_contact.Email,
+                            Last_Name = s.Company_contact.Last_Name,
+                            Phone = s.Company_contact.Phone
+                        },
+                        Name = s.Name,
+                        Request_date = s.Request_date,
+                        Request_status = s.Request_status,
 
+                    })];
+                    response.Status = new Status
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    };
                 }
                 else
                 {
-                    result = new CompaniesResponse()
+                    response = new CompaniesResponse()
                     {
                         Status = new Status()
                         {
@@ -458,7 +475,7 @@ namespace VendorPortal.Application.Services.v1
             {
                 Logger.LogError(ex, "GetCompaniesList", $"supplier_id: {supplier_id}");
             }
-            return result;
+            return response;
         }
 
         public async Task<CountResponse> GetCountClaimPo(string supplier_id)
@@ -524,7 +541,7 @@ namespace VendorPortal.Application.Services.v1
                         Category_name = s.Category_name,
                         Code = s.Code,
                         Company_contract = new CompanyContract{
-                            First_Name = s.Company_contract.First_name,
+                            First_name = s.Company_contract.First_name,
                             Last_Name = s.Company_contract.Last_name,
                             Email = s.Company_contract.Email,
                             Phone = s.Company_contract.Phone
@@ -618,7 +635,7 @@ namespace VendorPortal.Application.Services.v1
                             Company_contract = new CompanyContract()
                             {
                                 Email = store.Company_contract.Email,
-                                First_Name = store.Company_contract.First_name,
+                                First_name = store.Company_contract.First_name,
                                 Last_Name = store.Company_contract.Last_name,
                                 Phone = store.Company_contract.Phone
                             },
@@ -715,7 +732,7 @@ namespace VendorPortal.Application.Services.v1
                         CompanyContract = new CompanyContract
                         {
                             Email = s.Company_Contract.Email,
-                            First_Name = s.Company_Contract.First_Name,
+                            First_name = s.Company_Contract.First_name,
                             Last_Name = s.Company_Contract.Last_Name,
                             Phone = s.Company_Contract.Phone
                         },
@@ -813,7 +830,7 @@ namespace VendorPortal.Application.Services.v1
                             Company_Contract = new CompanyContract
                             {
                                 Email = sp_result.Company_contract.Email,
-                                First_Name = sp_result.Company_contract.First_name,
+                                First_name = sp_result.Company_contract.First_name,
                                 Last_Name = sp_result.Company_contract.Last_name,
                                 Phone = sp_result.Company_contract.Phone,
                             },

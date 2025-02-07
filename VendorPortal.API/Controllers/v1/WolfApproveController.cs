@@ -280,7 +280,7 @@ namespace VendorPortal.API.Controllers.v1
         #region [Compaines]
 
         [HttpGet]
-        [Route("api/v1/wolf-approve/companies/{supplier_id}")]
+        [Route("api/v1/wolf-approve/companies/list/{supplier_id}")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API ใช้สำหรับดึงข้อมูลบริษัท")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompaniesResponse))]

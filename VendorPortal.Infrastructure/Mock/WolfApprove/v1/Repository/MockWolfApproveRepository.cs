@@ -155,7 +155,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             var mock = new List<SP_GET_COMPANIES_LIST>();
             try
             {
-                string filename = "SP_GET_COMPANISE_LIST.json";
+                string filename = "SP_GET_COMPANIES_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<List<SP_GET_COMPANIES_LIST>>(json);
             }
