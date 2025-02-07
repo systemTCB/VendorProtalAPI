@@ -98,7 +98,7 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/purchases/list")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderListResponse))]
         public async Task<IActionResult> GetPOList(string q,
             string supplier_id,
             string number,
@@ -112,7 +112,7 @@ namespace VendorPortal.API.Controllers.v1
             string order_direction,
             string order_by)
         {
-            PurchaseOrderResponse response = new();
+            PurchaseOrderListResponse response = new();
             try
             {
                 response = await _wolfApproveService.GetPurchaseOrderList(q,supplier_id,number,start_date,end_date,purchase_type_id,status_id,category_id,page,per_page,order_direction,order_by);
@@ -120,7 +120,7 @@ namespace VendorPortal.API.Controllers.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetPOList");
-                response = new PurchaseOrderResponse()
+                response = new PurchaseOrderListResponse()
                 {
                     Status = new Application.Models.Common.Status()
                     {

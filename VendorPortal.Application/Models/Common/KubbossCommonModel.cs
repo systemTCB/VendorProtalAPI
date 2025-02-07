@@ -5,7 +5,6 @@ namespace VendorPortal.Application.Models.Common
     public class KubbossCommonModel
     {
         // Add properties and methods here
-
         public class CompanyAddress
         {
             public string Address_1 { get; set; }
@@ -43,5 +42,25 @@ namespace VendorPortal.Application.Models.Common
             public string Name { get; set; }
             public string FileUrl { get; set; }
         }
+        public class ClaimPurchaseOrderData
+        {
+            public string Code { get; set; }
+            public string Purchase_date { get; set; }
+        }
+    }
+
+    public class ResponseBasePage : BaseResponse
+    {
+        public string Total { get; set; }
+        public string Per_page { get; set; }
+        public string Current_page { get; set; }
+        public string Last_page { get; set; }
+        public string First_page_url { get; set; }
+        public string Last_page_url { get; set; }
+        public string Next_page_url { get; set; }
+        public string Prev_page_url { get; set; }
+        public string Path { get; set; }
+        public string From { get; set; }
+        public string To { get; set; }
     }
 }

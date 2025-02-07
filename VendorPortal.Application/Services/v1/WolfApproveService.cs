@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using VendorPortal.Application.Helpers;
@@ -102,17 +103,28 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request)
         {
-            PurchaseOrderConfirmResponse result = new();
+            PurchaseOrderConfirmResponse response = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_PUT_PURCHASE_ORDER_CONFIRM(purchase_order_id, request.status, request.reason, request.description);
                 if (store != null)
                 {
-
+                    response = new PurchaseOrderConfirmResponse
+                    {
+                        Data = new PurchaseOrderConfirmData
+                        {
+                            Status = store.Status
+                        }
+                    };
+                    response.Status = new Status
+                    {
+                        Code = ResponseCode.Success.Text(),
+                        Message = ResponseCode.Success.Description()
+                    };
                 }
                 else
                 {
-                    result = new PurchaseOrderConfirmResponse()
+                    response = new PurchaseOrderConfirmResponse()
                     {
                         Status = new Status()
                         {
@@ -126,7 +138,7 @@ namespace VendorPortal.Application.Services.v1
             catch (ApplicationException ex)
             {
                 Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
-                result = new PurchaseOrderConfirmResponse()
+                response = new PurchaseOrderConfirmResponse()
                 {
                     Status = new Status()
                     {
@@ -139,7 +151,7 @@ namespace VendorPortal.Application.Services.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
-                result = new PurchaseOrderConfirmResponse()
+                response = new PurchaseOrderConfirmResponse()
                 {
                     Status = new Status()
                     {
@@ -150,7 +162,7 @@ namespace VendorPortal.Application.Services.v1
                 };
 
             }
-            return result;
+            return response;
         }
 
         public async Task<CompaniesConnectResponse> ConnectCompanies(string supplier_id, CompaniesConnectRequest request)
@@ -198,6 +210,21 @@ namespace VendorPortal.Application.Services.v1
                 var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id, company_id, from_date, to_date);
                 if (store.Count != 0)
                 {
+                    result.Data = [.. store.Select(s => new ClaimData{
+                        Id = s.Id,
+                        Claim_date = s.Claim_date,
+                        Claim_description = s.Claim_description,
+                        Claim_option = s.Claim_option,
+                        Claim_reason = s.Claim_reason,
+                        Claim_return_address = s.Claim_return_address,
+                        Code = s.Code,
+                        Company_name = s.Company_name,
+                        Create_date = s.Create_date,
+                        Purchase_order = new ClaimPurchaseOrderData{
+                            Code = s.Purchase_order.Code,
+                            Purchase_date = s.Purchase_order.Purchase_date
+                        }
+                    })];
                     result.Status = new Status()
                     {
                         Code = ResponseCode.Success.Text(),
@@ -260,13 +287,13 @@ namespace VendorPortal.Application.Services.v1
                         Code = store.Code,
                         Company_name = store.CompanyName,
                         Create_date = store.CreatedDate.ToString(),
-                        Documents = store.Documents.Select(s => new Document()
+                        Documents = [.. store.Documents.Select(s => new Document()
                         {
                             FileUrl = s.FileUrl,
                             Name = s.Name
-                        }).ToList(),
+                        })],
                         Id = store.Id,
-                        Lines = store.Lines.Select(s => new Line()
+                        Lines = [.. store.Lines.Select(s => new Line()
                         {
                             Description = s.Description,
                             Id = s.Id,
@@ -276,7 +303,7 @@ namespace VendorPortal.Application.Services.v1
                             Quantity = s.Quantity,
                             Uom_name = s.UomName,
                             Unit_price = s.UnitPrice
-                        }).ToList(),
+                        })],
                         Status = new ClaimStatus()
                         {
                             Name = store.Status.FirstOrDefault().Name
@@ -481,9 +508,9 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<PurchaseOrderResponse> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
+        public async Task<PurchaseOrderListResponse> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
         {
-            PurchaseOrderResponse result = new();
+            PurchaseOrderListResponse result = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_LIST();
@@ -491,7 +518,29 @@ namespace VendorPortal.Application.Services.v1
                 {
                     result.Data = [.. store.Select(s => new PurchaseOrderData()
                     {
-
+                        Id = s.Id,
+                        Cancel_description = s.Cancel_description,
+                        Cancel_reason = s.Cancel_reason,
+                        Category_name = s.Category_name,
+                        Code = s.Code,
+                        Company_contract = new CompanyContract{
+                            First_Name = s.Company_contract.First_name,
+                            Last_Name = s.Company_contract.Last_name,
+                            Email = s.Company_contract.Email,
+                            Phone = s.Company_contract.Phone
+                        },
+                        Company_Name = s.Company_Name,
+                        Description = s.Description,
+                        Net_Amount = s.Net_Amount,
+                        Order_date = s.Order_date,
+                        Payment_condition = s.Payment_condition,
+                        Purchase_type_name = s.Purchase_type_name,
+                        Quotation = new QuotationData{
+                            Code = s.Quotation.Code
+                        },
+                        Remark = s.Remark,
+                        Require_date = s.Require_date,
+                        Ship_to = s.Ship_to
                     })];
                     result.Status = new Status()
                     {
@@ -501,7 +550,7 @@ namespace VendorPortal.Application.Services.v1
                 }
                 else
                 {
-                    result = new PurchaseOrderResponse()
+                    result = new PurchaseOrderListResponse()
                     {
                         Status = new Status()
                         {
@@ -514,7 +563,7 @@ namespace VendorPortal.Application.Services.v1
             catch (ApplicationException ex)
             {
                 Logger.LogError(ex, "GetPurchaseOrderList");
-                result = new PurchaseOrderResponse()
+                result = new PurchaseOrderListResponse()
                 {
                     Status = new Status()
                     {
@@ -526,7 +575,7 @@ namespace VendorPortal.Application.Services.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetPurchaseOrderList");
-                result = new PurchaseOrderResponse()
+                result = new PurchaseOrderListResponse()
                 {
                     Status = new Status()
                     {
@@ -749,62 +798,62 @@ namespace VendorPortal.Application.Services.v1
                         },
                         Data = new RFQShowData
                         {
-                            Category_Name = sp_result.CategoryName,
+                            Category_Name = sp_result.Category_name,
                             Company_Address = new CompanyAddress
                             {
-                                Address_1 = sp_result.CompanyAddress.Address1,
-                                Address_2 = sp_result.CompanyAddress.Address2,
-                                Branch = sp_result.CompanyAddress.Branch,
-                                District = sp_result.CompanyAddress.District,
-                                Province = sp_result.CompanyAddress.Province,
-                                Sub_District = sp_result.CompanyAddress.SubDistrict,
-                                Tax_Number = sp_result.CompanyAddress.TaxNumber,
-                                Zip_Code = sp_result.CompanyAddress.ZipCode
+                                Address_1 = sp_result.Company_address.Address_1,
+                                Address_2 = sp_result.Company_address.Address_2,
+                                Branch = sp_result.Company_address.Branch,
+                                District = sp_result.Company_address.District,
+                                Province = sp_result.Company_address.Province,
+                                Sub_District = sp_result.Company_address.Sub_district,
+                                Tax_Number = sp_result.Company_address.Tax_number,
+                                Zip_Code = sp_result.Company_address.Zip_code
                             },
                             Company_Contract = new CompanyContract
                             {
-                                Email = sp_result.CompanyContract.Email,
-                                First_Name = sp_result.CompanyContract.FirstName,
-                                Last_Name = sp_result.CompanyContract.LastName,
-                                Phone = sp_result.CompanyContract.Phone,
+                                Email = sp_result.Company_contract.Email,
+                                First_Name = sp_result.Company_contract.First_name,
+                                Last_Name = sp_result.Company_contract.Last_name,
+                                Phone = sp_result.Company_contract.Phone,
                             },
-                            Company_Name = sp_result.CompanyName,
-                            ContractValue = Decimal.Parse(string.IsNullOrEmpty(sp_result.ContractValue) ? "0" : sp_result.ContractValue),
+                            Company_Name = sp_result.Company_name,
+                            ContractValue = Decimal.Parse(string.IsNullOrEmpty(sp_result.Contract_value) ? "0" : sp_result.Contract_value),
                             Description = sp_result.Description,
                             Discount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Discount) ? "0" : sp_result.Discount),
-                            Documents = sp_result.Documents.Select(s => new Document
+                            Documents = [.. sp_result.Documents.Select(s => new Document
                             {
-                                FileUrl = s.FileUrl,
+                                FileUrl = s.File_url,
                                 Name = s.Name,
-                            }).ToList(),
-                            EndDate = sp_result.EndDate,
+                            })],
+                            EndDate = sp_result.End_date,
                             Id = sp_result.Id,
-                            Lines = sp_result.Lines.Select(s => new Line
+                            Lines = [.. sp_result.Lines.Select(s => new Line
                             {
                                 Description = s.Description,
                                 Id = s.Id,
-                                Item_code = s.ItemCode,
-                                Item_name = s.ItemName,
-                                Line_number = s.LineNumber,
+                                Item_code = s.Item_code,
+                                Item_name = s.Item_name,
+                                Line_number = s.Line_number,
                                 Quantity = s.Quantity,
-                                Uom_name = s.UomName,
-                                Unit_price = s.UnitPrice
-                            }).ToList(),
-                            NetAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.NetAmount) ? "0" : sp_result.NetAmount),
+                                Uom_name = s.Uom_name,
+                                Unit_price = s.Unit_price
+                            })],
+                            NetAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Net_amount) ? "0" : sp_result.Net_amount),
                             Number = sp_result.Number,
-                            PaymentCondition = sp_result.PaymentCondition,
-                            ProjectName = sp_result.ProjectName,
-                            PurchaseTypeName = sp_result.PurchaseTypeName,
+                            PaymentCondition = sp_result.Payment_condition,
+                            ProjectName = sp_result.Project_name,
+                            PurchaseTypeName = sp_result.Purchase_type_name,
                             Remark = sp_result.Remark,
-                            RequireDate = sp_result.RequireDate,
-                            StartDate = sp_result.StartDate,
-                            Status = sp_result.Status.Select(s => new StatusName
+                            RequireDate = sp_result.Require_date,
+                            StartDate = sp_result.Start_date,
+                            Status = [.. sp_result.Status.Select(s => new StatusName
                             {
                                 Name = s.Name
-                            }).ToList(),
-                            SubTotal = Decimal.Parse(string.IsNullOrEmpty(sp_result.SubTotal) ? "0" : sp_result.SubTotal),
-                            TotalAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.TotalAmount) ? "0" : sp_result.TotalAmount),
-                            VatAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.VatAmount) ? "0" : sp_result.VatAmount)
+                            })],
+                            SubTotal = Decimal.Parse(string.IsNullOrEmpty(sp_result.Sub_total) ? "0" : sp_result.Sub_total),
+                            TotalAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Total_amount) ? "0" : sp_result.Total_amount),
+                            VatAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Vat_amount) ? "0" : sp_result.Vat_amount)
                         }
                     };
                 }

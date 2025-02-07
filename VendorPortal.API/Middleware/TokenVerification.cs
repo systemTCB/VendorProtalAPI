@@ -21,7 +21,11 @@ namespace VendorPortal.API.Middleware
         {
             _next = next;
         }
-
+        /// <summary>
+        /// Middleware เช็ค Token ที่ทำการเรียกเข้ามาที่ API ว่าหมดอายุหรือยัง
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
             if (!context.Request.Path.Value.Contains("api/v1/wolf-approve/auth"))
@@ -75,8 +79,6 @@ namespace VendorPortal.API.Middleware
             {
                 await _next(context);
             }
-
-            // await _next(context);
         }
     }
 }

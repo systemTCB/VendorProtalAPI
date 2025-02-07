@@ -6,6 +6,6 @@ namespace VendorPortal.Application.Interfaces.v1
 {
     public interface IVendorPortalService
     {
-        Task<PurchaseOrderResponse> GetPurchaseOrder(PurchaseOrderRequest request);
+        Task<PurchaseOrderListResponse> GetPurchaseOrder(PurchaseOrderRequest request);
     }
 }

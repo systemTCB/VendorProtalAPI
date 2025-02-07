@@ -28,11 +28,6 @@ namespace VendorPortal.Application.Models.v1.Response
         public List<Document> Documents { get; set; }
 
     }
-    public class ClaimPurchaseOrderData
-    {
-        public string Code { get; set; }
-        public string Purchase_date { get; set; }
-    }
     public class ClaimStatus
     {
         public string Name { get; set; }

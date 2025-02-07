@@ -37,9 +37,9 @@ namespace VendorPortal.Application.Services.v1
             }
 
         }
-        public async Task<PurchaseOrderResponse> GetPurchaseOrder(PurchaseOrderRequest request)
+        public async Task<PurchaseOrderListResponse> GetPurchaseOrder(PurchaseOrderRequest request)
         {
-            var response = new PurchaseOrderResponse();
+            var response = new PurchaseOrderListResponse();
             try
             {
                 var result = await _vendotPortalRepository.GetPurchaseOrder(request.orderNo);
@@ -47,15 +47,15 @@ namespace VendorPortal.Application.Services.v1
                 {
                     response.Data = result.data.Select(e => new PurchaseOrderData
                     {
-                        OrderNo = e.orderNo,
-                        OrderSendDate = e.orderSendDate,
-                        OrderItem = e.orderItem.Select(s => new PurchaseItem
-                        {
-                            OrderItem = s.orderItem,
-                            ItemName = s.itemName,
-                            ItemValue = s.itemValue,
-                            ItemUnit = s.itemUnit,
-                        }).ToList()
+                        // OrderNo = e.orderNo,
+                        // OrderSendDate = e.orderSendDate,
+                        // OrderItem = e.orderItem.Select(s => new PurchaseItem
+                        // {
+                        //     OrderItem = s.orderItem,
+                        //     ItemName = s.itemName,
+                        //     ItemValue = s.itemValue,
+                        //     ItemUnit = s.itemUnit,
+                        // }).ToList()
                     }).ToList();
                 }
             }
