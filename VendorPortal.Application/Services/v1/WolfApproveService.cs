@@ -278,18 +278,18 @@ namespace VendorPortal.Application.Services.v1
                 var store = await _wolfApproveRepository.SP_GET_CLAIM_DETAIL(claim_id, supplier_id);
                 if (store != null)
                 {
-                    result.Data = new ClaimDetailData()
+                    var data = new ClaimDetailData()
                     {
-                        Claim_date = store.ClaimDate.ToString(),
-                        Claim_description = store.ClaimDescription,
-                        Claim_option = store.ClaimOption,
-                        Claim_reason = store.ClaimReason,
+                        Claim_date = store.Claim_date.ToString(),
+                        Claim_description = store.Claim_description,
+                        Claim_option = store.Claim_option,
+                        Claim_reason = store.Claim_reason,
                         Code = store.Code,
-                        Company_name = store.CompanyName,
-                        Create_date = store.CreatedDate.ToString(),
+                        Company_name = store.Company_name,
+                        Create_date = store.Created_date.ToString(),
                         Documents = [.. store.Documents.Select(s => new Document()
                         {
-                            FileUrl = s.FileUrl,
+                            FileUrl = s.File_url,
                             Name = s.Name
                         })],
                         Id = store.Id,
@@ -297,26 +297,27 @@ namespace VendorPortal.Application.Services.v1
                         {
                             Description = s.Description,
                             Id = s.Id,
-                            Item_code = s.ItemCode,
-                            Item_name = s.ItemName,
-                            Line_number = s.LineNumber,
+                            Item_code = s.Item_code,
+                            Item_name = s.Item_name,
+                            Line_number = s.Line_number,
                             Quantity = s.Quantity,
-                            Uom_name = s.UomName,
-                            Unit_price = s.UnitPrice
+                            Uom_name = s.Uom_name,
+                            Unit_price = s.Unit_price
                         })],
                         Status = new ClaimStatus()
                         {
-                            Name = store.Status.FirstOrDefault().Name
+                            Name = [.. store.Status.Select(s=>s.Name)]
                         },
-                        Claim_return_address = store.ClaimReturnAddress,
+                        Claim_return_address = store.Claim_return_address,
                         Purchase_order = new ClaimPurchaseOrderData()
                         {
-                            Code = store.PurchaseOrder.Code,
-                            Purchase_date = store.PurchaseOrder.PurchaseDate.ToString()
+                            Code = store.Purchase_order.Code,
+                            Purchase_date = store.Purchase_order.Purchase_date.ToString()
                         }
                     };
                     result = new ClaimDetailResponse()
                     {
+                        Data = data,
                         Status = new Status()
                         {
                             Code = ResponseCode.Success.Text(),

@@ -30,6 +30,6 @@ namespace VendorPortal.Application.Models.v1.Response
     }
     public class ClaimStatus
     {
-        public string Name { get; set; }
+        public List<string> Name { get; set; }
     }
 }
