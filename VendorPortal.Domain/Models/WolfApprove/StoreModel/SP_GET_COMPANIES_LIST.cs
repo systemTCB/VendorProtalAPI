@@ -7,6 +7,10 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string Name { get; set; }
         public string Request_date { get; set; }
         public string Request_status { get; set; }
-        public CompanyContract Company_contact { get; set; } 
+        public string sContractEmail { get; set; }
+        public string sContractFirstName { get; set; }
+        public string sContractLastName { get; set; }
+        public string sContractPhone { get; set; }
+        public string sCompanyName { get; set; }
     }
 }

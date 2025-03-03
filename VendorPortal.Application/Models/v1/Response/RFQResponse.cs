@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using VendorPortal.Application.Models.Common;
 using static VendorPortal.Application.Models.Common.KubbossCommonModel;
@@ -36,13 +37,13 @@ namespace VendorPortal.Application.Models.v1.Response
         public string Description { get; set; }
         public string ProcurementTypeName { get; set; }
         public string CategoryName { get; set; }
-        public string StartDate { get; set; }
-        public string EndDate { get; set; }
-        public string RequireDate { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public DateTime RequireDate { get; set; }
         public string Status { get; set; }
-        public string ContractValue { get; set; }
+        public decimal ContractValue { get; set; }
         public CompanyContract CompanyContract { get; set; }
-        public string NetAmount { get; set; }
+        public decimal NetAmount { get; set; }
         public string PaymentCondition { get; set; }
         public string Remark { get; set; }
     }

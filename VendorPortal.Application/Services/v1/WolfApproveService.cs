@@ -439,10 +439,10 @@ namespace VendorPortal.Application.Services.v1
                     response.Data = [.. store.Select(s=> new CompainesData{
                         Id = s.Id,
                         Company_contact =  new CompanyContract(){
-                            First_name = s.Company_contact.First_name,
-                            Email = s.Company_contact.Email,
-                            Last_Name = s.Company_contact.Last_Name,
-                            Phone = s.Company_contact.Phone
+                            First_name = s.sContractFirstName,
+                            Email = s.sContractEmail,
+                            Last_Name = s.sContractLastName,
+                            Phone = s.sContractPhone
                         },
                         Name = s.Name,
                         Request_date = s.Request_date,
@@ -723,32 +723,32 @@ namespace VendorPortal.Application.Services.v1
             try
             {
                 var sp_result = await _wolfApproveRepository.SP_GET_RFQ_LIST();
-                if (sp_result != null)
+                if (sp_result.Any())
                 {
                     var data = sp_result.Select(s => new RFQData()
                     {
-                        CategoryName = s.Category_Name,
-                        Code = s.Code,
-                        Description = s.Description,
+                        CategoryName = s.sCatagoryName,
+                        Code = s.sRFQNumber,
+                        Description = s.sProjectDesc,
                         CompanyContract = new CompanyContract
                         {
-                            Email = s.Company_Contract.Email,
-                            First_name = s.Company_Contract.First_name,
-                            Last_Name = s.Company_Contract.Last_Name,
-                            Phone = s.Company_Contract.Phone
+                            Email = s.sContractEmail,
+                            First_name = s.sContractFirstName,
+                            Last_Name = s.sContractLastName,
+                            Phone = s.sContractPhone
                         },
-                        CompanyName = s.Company_Name,
-                        ContractValue = s.Contract_Value,
-                        EndDate = s.End_Date,
-                        Id = s.Id,
-                        NetAmount = s.Net_Amount,
-                        PaymentCondition = s.Payment_Condition,
-                        ProcurementTypeName = s.Procurement_Type_Name,
-                        ProjectName = s.Project_Name,
-                        Remark = s.Remark,
-                        RequireDate = s.Require_Date,
-                        StartDate = s.Start_Date,
-                        Status = s.Status
+                        CompanyName = s.sCompanyName,
+                        ContractValue = s.nContractValue,
+                        EndDate = s.dEndDate,
+                        Id = s.nRFQID.ToString(),
+                        NetAmount = s.dNetAmount,
+                        PaymentCondition = s.sPaymentCondition,
+                        ProcurementTypeName = s.sProcurementTypeName,
+                        ProjectName = s.sProjectName,
+                        Remark = s.sRemark,
+                        RequireDate = s.dRequireDate,
+                        StartDate = s.dStartDate,
+                        Status = s.sStatusName
                     }).ToList();
                     result = new RFQResponse()
                     {

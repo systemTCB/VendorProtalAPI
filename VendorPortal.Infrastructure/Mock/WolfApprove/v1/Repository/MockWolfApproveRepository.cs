@@ -37,14 +37,14 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_RFQ>> SP_GET_RFQ_LIST()
+        public async Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST()
         {
-            List<SP_GET_RFQ> mock = new();
+            List<SP_GET_RFQ_LIST> mock = new();
             try
             {
                 string filename = "SP_GET_RFQ_LIST.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
-                mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ>>(json);
+                mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ_LIST>>(json);
             }
             catch (System.Exception ex)
             {

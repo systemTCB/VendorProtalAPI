@@ -1,25 +1,45 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Infrastructure.Extensions;
+using VendorPortal.Logging;
 
 namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 {
     public class WolfApproveRepository : IWolfApproveRepository
     {
-        //private readonly DbContext _context;
-        public WolfApproveRepository()
+        private readonly DbContext _context;
+        public WolfApproveRepository(DbContext context)
         {
+            _context = context;
         }
+
         public Task<SP_GET_RFQ_DETAIL> SP_GET_RFQ_DETAIL(string id)
         {
             throw new System.NotImplementedException();
         }
 
-        public Task<List<SP_GET_RFQ>> SP_GET_RFQ_LIST()
+        public async Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST()
         {
-            throw new System.NotImplementedException();
+            List<SP_GET_RFQ_LIST> data = new List<SP_GET_RFQ_LIST>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_RFQ_LIST";
+                    var param = new SqlParameter[] { };
+                    data = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_LIST>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return data;
+            }
+            return data;
         }
 
         public Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST()

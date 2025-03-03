@@ -7,7 +7,7 @@ namespace VendorPortal.Domain.Interfaces.v1
     public interface IWolfApproveRepository
     {
         // RFQ
-        Task<List<SP_GET_RFQ>> SP_GET_RFQ_LIST();
+        Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST();
         Task<SP_GET_RFQ_DETAIL> SP_GET_RFQ_DETAIL(string id);
         
         // Purchase Order

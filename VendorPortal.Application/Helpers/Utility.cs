@@ -10,7 +10,7 @@ namespace VendorPortal.Application.Helpers
     public static class Utility
     {
         //Function Encrypt And Decrypt
-        private readonly static string key = "ThaiRedCrossxTCB2024";
+        private readonly static string key = "!wolfXkubboss@2025";
         private readonly static string salt = "TechconsBiz@2024";
 
         public static string EncyptionToken(string token, DateTime? duration)
