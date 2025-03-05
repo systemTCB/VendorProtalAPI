@@ -7,7 +7,16 @@ namespace VendorPortal.Application.Interfaces.v1
     public interface IWolfApproveService
     {
         // RFQ
-        Task<RFQResponse> GetRFQ_List();
+        Task<RFQResponse> GetRFQ_List(int pageSize , int page , string company_id,
+                    string number,
+                    string start_date,
+                    string end_date,
+                    string purchase_type_id,
+                    string status_id,
+                    string category_id,
+                    string order_direction,
+                    string order_by,
+                    string q);
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
 
         // Purchase Order

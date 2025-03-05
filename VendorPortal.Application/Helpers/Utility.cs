@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -104,6 +105,23 @@ namespace VendorPortal.Application.Helpers
                 return cipherText;
             }
 
+        }
+    
+        public static List<T> PageCalculator<T>(List<T> list, int page, int pageSize)
+        {
+            try
+            {
+                if (list == null || list.Count == 0) return list;
+                if (page <= 0 || pageSize <= 0) return list;
+                int skip = (page - 1) * pageSize;
+                int take = pageSize;
+                return list.GetRange(skip, take);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "PageCalculator");
+                return list;
+            }
         }
     }
 }

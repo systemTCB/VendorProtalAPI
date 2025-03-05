@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Azure;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.v1;
@@ -23,13 +25,16 @@ namespace VendorPortal.Application.Services.v1
     {
         private readonly IWolfApproveRepository _wolfApproveRepository;
         private readonly AppConfigHelper _appConfigHelper;
+        private readonly IHttpContextAccessor _httpContext;
+        private readonly string _baseUrl = string.Empty;
         public WolfApproveService(IHttpContextAccessor httpContext,
             IWolfApproveRepository wolfApproveRepository,
             AppConfigHelper appConfigHelper
             )
         {
-            IHttpContextAccessor _httpContext = httpContext;
+            _httpContext = httpContext;
             _appConfigHelper = appConfigHelper;
+            _baseUrl = $"{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}";
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
             var hop = _httpContext.HttpContext.Request.Headers["hop"].ToString();
             if (hop?.ToLower() == "off" && env?.ToLower() != "production")
@@ -306,7 +311,7 @@ namespace VendorPortal.Application.Services.v1
                         })],
                         Status = new ClaimStatus()
                         {
-                            Name = [.. store.Status.Select(s=>s.Name)]
+                            Name = [.. store.Status.Select(s => s.Name)]
                         },
                         Claim_return_address = store.Claim_return_address,
                         Purchase_order = new ClaimPurchaseOrderData()
@@ -717,17 +722,66 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<RFQResponse> GetRFQ_List()
+        public async Task<RFQResponse> GetRFQ_List(int pageSize, int page, string company_id ,string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new RFQResponse();
             try
             {
                 var sp_result = await _wolfApproveRepository.SP_GET_RFQ_LIST();
-                if (sp_result.Any())
+                if (sp_result != null && sp_result.Any())
                 {
-                    var data = sp_result.Select(s => new RFQData()
+                    // fillter
+                    if(!string.IsNullOrEmpty(company_id))
                     {
-                        CategoryName = s.sCatagoryName,
+                        sp_result = [.. sp_result.Where(s => s.nCompanyID == int.Parse(company_id))];
+                    }
+                    if (!string.IsNullOrEmpty(number))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.sRFQNumber.Contains(number))];
+                    }
+                    if (!string.IsNullOrEmpty(start_date))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.dStartDate >= DateTime.Parse(start_date))];
+                    }
+                    if (!string.IsNullOrEmpty(end_date))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.dEndDate <= DateTime.Parse(end_date))];
+                    }
+                    if (!string.IsNullOrEmpty(purchase_type_id))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.nProcurementTypeID == int.Parse(purchase_type_id))];
+                    }
+                    if (!string.IsNullOrEmpty(status_id))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.nStatusID == int.Parse(status_id))];
+                    }
+                    if (!string.IsNullOrEmpty(category_id))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.nCategoryID == int.Parse(category_id))];
+                    }
+                    if (!string.IsNullOrEmpty(q))
+                    {
+                        sp_result = [.. sp_result.Where(s => s.sRFQNumber.Contains(q) || s.sProjectName.Contains(q) || s.sCompanyName.Contains(q))];
+                    }
+                    if (!string.IsNullOrEmpty(order_direction))
+                    {
+                        if (order_direction == "asc")
+                        {
+                            sp_result = sp_result.OrderBy(s => s.sRFQNumber).ToList();
+                        }
+                        else
+                        {
+                            sp_result = sp_result.OrderByDescending(s => s.sRFQNumber).ToList();
+                        }
+                    }
+
+
+
+
+                    var dataList = Utility.PageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(sp_result, page, pageSize);
+                    var data = dataList.Select(s => new RFQData()
+                    {
+                        CategoryName = s.sCategoryName,
                         Code = s.sRFQNumber,
                         Description = s.sProjectDesc,
                         CompanyContract = new CompanyContract
@@ -759,6 +813,19 @@ namespace VendorPortal.Application.Services.v1
                         },
                         Data = data
                     };
+
+                    //{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}{_httpContext.HttpContext.Request.QueryString}
+                    result.CurrentPage = page;
+                    result.PerPage = pageSize;
+                    result.Total = sp_result.Count();
+                    result.LastPage = (int)Math.Ceiling((double)sp_result.Count() / pageSize);
+                    result.FirstPageUrl = $"{_baseUrl}?page=1";
+                    result.LastPageUrl = $"{_baseUrl}?page={result.LastPage}";
+                    result.NextPageUrl = result.CurrentPage < result.LastPage ? $"{_baseUrl}?page={result.CurrentPage + 1}" : null;
+                    result.PrevPageUrl = result.CurrentPage > 1 ? $"{_baseUrl}?page={result.CurrentPage - 1}" : null;
+                    result.Path = $"{_baseUrl}";
+                    result.From = (result.CurrentPage - 1) * pageSize + 1;
+                    result.To = result.CurrentPage * pageSize > result.Total ? result.Total : result.CurrentPage * pageSize;
                 }
                 else
                 {

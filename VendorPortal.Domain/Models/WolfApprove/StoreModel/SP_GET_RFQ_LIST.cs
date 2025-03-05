@@ -7,13 +7,16 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         // Add properties and methods here
         public Guid nRFQID { get; set; }
         public string sRFQNumber { get; set; }
-        public string sCatagoryName { get; set; }
+        public short nCategoryID { get; set; }
+        public string sCategoryName { get; set; }
         public string sProjectName { get; set; }
         public string sProjectDesc { get; set; }
+        public short nProcurementTypeID {get;set;}
         public string sProcurementTypeName { get; set; }
         public DateTime dStartDate { get; set; }
         public DateTime dEndDate { get; set; }
         public DateTime dRequireDate { get; set; }
+        public short nStatusID { get; set; }
         public string sStatusName { get; set; }
         public decimal nContractValue { get; set; }
         public decimal dNetAmount { get; set; }
@@ -31,5 +34,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sContractLastName { get; set; }
         public string sContractPhone { get; set; }
         public string sCompanyName { get; set; }
+        public int nCompanyID { get; set; }
     }
 }

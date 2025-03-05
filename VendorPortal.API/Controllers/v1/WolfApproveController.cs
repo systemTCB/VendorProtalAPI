@@ -13,6 +13,7 @@ using static VendorPortal.Application.Models.Common.AppEnum;
 using VendorPortal.Logging;
 using Newtonsoft.Json;
 using Serilog;
+using System;
 namespace VendorPortal.API.Controllers.v1
 {
     [ApiController]
@@ -31,7 +32,7 @@ namespace VendorPortal.API.Controllers.v1
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQResponse))]
         public async Task<IActionResult> GetRFQList(string q,
-            string supplier_id,
+            string company_id,
             string number,
             string start_date,
             string end_date,
@@ -46,7 +47,20 @@ namespace VendorPortal.API.Controllers.v1
             RFQResponse response;
             try
             {
-                response = await _wolfApproveService.GetRFQ_List();
+                response = await _wolfApproveService.GetRFQ_List(
+                    pageSize: Convert.ToInt32(per_page),
+                    page: Convert.ToInt32(page),
+                    company_id: company_id,
+                    number: number,
+                    start_date: start_date,
+                    end_date: end_date,
+                    purchase_type_id: purchase_type_id,
+                    status_id: status_id,
+                    category_id: category_id,
+                    order_direction: order_direction,
+                    order_by: order_by,
+                    q: q
+                );
             }
             catch (System.Exception ex)
             {
@@ -115,7 +129,7 @@ namespace VendorPortal.API.Controllers.v1
             PurchaseOrderListResponse response = new();
             try
             {
-                response = await _wolfApproveService.GetPurchaseOrderList(q,supplier_id,number,start_date,end_date,purchase_type_id,status_id,category_id,page,per_page,order_direction,order_by);
+                response = await _wolfApproveService.GetPurchaseOrderList(q, supplier_id, number, start_date, end_date, purchase_type_id, status_id, category_id, page, per_page, order_direction, order_by);
             }
             catch (System.Exception ex)
             {
@@ -340,12 +354,12 @@ namespace VendorPortal.API.Controllers.v1
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API ใช้สำหรับเชื่อมต่อบริษัท")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompaniesConnectResponse))]
-        public async Task<IActionResult> ConnectCompanies(string supplier_id , [FromBody] CompaniesConnectRequest request)
+        public async Task<IActionResult> ConnectCompanies(string supplier_id, [FromBody] CompaniesConnectRequest request)
         {
             CompaniesConnectResponse response = new();
             try
             {
-                response = await _wolfApproveService.ConnectCompanies(supplier_id ,request);
+                response = await _wolfApproveService.ConnectCompanies(supplier_id, request);
             }
             catch (System.Exception ex)
             {
