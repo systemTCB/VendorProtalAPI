@@ -880,7 +880,6 @@ namespace VendorPortal.Application.Services.v1
                     tempList = new RFQShowData
                     {
                         Id = _companyInfo.nRFQID.ToString(),
-                        Category_Name = _companyInfo.sCategoryName,
                         Company_Address = new CompanyAddress
                         {
                             Address_1 = _companyInfo.sAddress1,
@@ -899,6 +898,8 @@ namespace VendorPortal.Application.Services.v1
                             Last_Name = _companyInfo.sContractLastName,
                             Phone = _companyInfo.sContractPhone,
                         },
+                        Category_Name = _companyInfo.sCategoryName,
+                        Company_Id = _companyInfo.nCompanyID,
                         Company_Name = _companyInfo.sCompanyName,
                         ContractValue = _companyInfo.nContractValue,
                         Description = _companyInfo.sProjectDesc,
@@ -955,7 +956,7 @@ namespace VendorPortal.Application.Services.v1
                             });
                         }
                     }
-                    
+
                     response = new RFQShowResponse()
                     {
                         Status = new Status()

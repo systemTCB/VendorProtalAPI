@@ -14,6 +14,7 @@ namespace VendorPortal.Application.Models.v1.Response
     {
         public string Id { get; set; }
         public string Number { get; set; }
+        public int Company_Id { get; set; }
         public string Company_Name { get; set; }
         public string ProjectName { get; set; }
         public string Description { get; set; }
@@ -40,5 +41,5 @@ namespace VendorPortal.Application.Models.v1.Response
     public class StatusName
     {
         public string Name { get; set; }
-    } 
+    }
 }
