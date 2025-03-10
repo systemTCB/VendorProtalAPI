@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure;
 using Microsoft.AspNetCore.Http;
@@ -298,17 +299,17 @@ namespace VendorPortal.Application.Services.v1
                             Name = s.Name
                         })],
                         Id = store.Id,
-                        Lines = [.. store.Lines.Select(s => new Line()
-                        {
-                            Description = s.Description,
-                            Id = s.Id,
-                            Item_code = s.Item_code,
-                            Item_name = s.Item_name,
-                            Line_number = s.Line_number,
-                            Quantity = s.Quantity,
-                            Uom_name = s.Uom_name,
-                            Unit_price = s.Unit_price
-                        })],
+                        // Lines = [.. store.Lines.Select(s => new Line()
+                        // {
+                        //     Description = s.Description,
+                        //     Id = s.Id,
+                        //     Item_code = s.Item_code,
+                        //     Item_name = s.Item_name,
+                        //     Line_number = s.Line_number,
+                        //     Quantity = s.Quantity,
+                        //     Uom_name = s.Uom_name,
+                        //     Unit_price = s.Unit_price
+                        // })],
                         Status = new ClaimStatus()
                         {
                             Name = [.. store.Status.Select(s => s.Name)]
@@ -653,17 +654,17 @@ namespace VendorPortal.Application.Services.v1
                                 FileUrl = s.File_url,
                                 Name = s.Name
                             }).ToList(),
-                            Lines = store.Lines.Select(s => new Line()
-                            {
-                                Description = s.Description,
-                                Id = s.Id,
-                                Item_code = s.Item_code,
-                                Item_name = s.Item_name,
-                                Line_number = s.Line_number,
-                                Quantity = s.Quantity,
-                                Uom_name = s.Uom_name,
-                                Unit_price = s.Unit_price
-                            }).ToList(),
+                            // Lines = store.Lines.Select(s => new Line()
+                            // {
+                            //     Description = s.Description,
+                            //     Id = s.Id,
+                            //     Item_code = s.Item_code,
+                            //     Item_name = s.Item_name,
+                            //     Line_number = s.Line_number,
+                            //     Quantity = s.Quantity,
+                            //     Uom_name = s.Uom_name,
+                            //     Unit_price = s.Unit_price
+                            // }).ToList(),
                             Net_amount = store.Net_amount,
                             Order_date = store.Order_date,
                             Request_date = store.Request_Date,
@@ -722,63 +723,63 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<RFQResponse> GetRFQ_List(int pageSize, int page, string company_id ,string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
+        public async Task<RFQResponse> GetRFQ_List(int pageSize, int page, string company_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new RFQResponse();
             try
             {
-                var sp_result = await _wolfApproveRepository.SP_GET_RFQ_LIST();
-                if (sp_result != null && sp_result.Any())
+                var item = await _wolfApproveRepository.SP_GET_RFQ_LIST();
+                if (item != null && item.Any())
                 {
                     // fillter
-                    if(!string.IsNullOrEmpty(company_id))
+                    if (!string.IsNullOrEmpty(company_id))
                     {
-                        sp_result = [.. sp_result.Where(s => s.nCompanyID == int.Parse(company_id))];
+                        item = [.. item.Where(s => s.nCompanyID == int.Parse(company_id))];
                     }
                     if (!string.IsNullOrEmpty(number))
                     {
-                        sp_result = [.. sp_result.Where(s => s.sRFQNumber.Contains(number))];
+                        item = [.. item.Where(s => s.sRFQNumber.Contains(number))];
                     }
                     if (!string.IsNullOrEmpty(start_date))
                     {
-                        sp_result = [.. sp_result.Where(s => s.dStartDate >= DateTime.Parse(start_date))];
+                        item = [.. item.Where(s => s.dStartDate >= DateTime.Parse(start_date))];
                     }
                     if (!string.IsNullOrEmpty(end_date))
                     {
-                        sp_result = [.. sp_result.Where(s => s.dEndDate <= DateTime.Parse(end_date))];
+                        item = [.. item.Where(s => s.dEndDate <= DateTime.Parse(end_date))];
                     }
                     if (!string.IsNullOrEmpty(purchase_type_id))
                     {
-                        sp_result = [.. sp_result.Where(s => s.nProcurementTypeID == int.Parse(purchase_type_id))];
+                        item = [.. item.Where(s => s.nProcurementTypeID == int.Parse(purchase_type_id))];
                     }
                     if (!string.IsNullOrEmpty(status_id))
                     {
-                        sp_result = [.. sp_result.Where(s => s.nStatusID == int.Parse(status_id))];
+                        item = [.. item.Where(s => s.nStatusID == int.Parse(status_id))];
                     }
                     if (!string.IsNullOrEmpty(category_id))
                     {
-                        sp_result = [.. sp_result.Where(s => s.nCategoryID == int.Parse(category_id))];
+                        item = [.. item.Where(s => s.nCategoryID == int.Parse(category_id))];
                     }
                     if (!string.IsNullOrEmpty(q))
                     {
-                        sp_result = [.. sp_result.Where(s => s.sRFQNumber.Contains(q) || s.sProjectName.Contains(q) || s.sCompanyName.Contains(q))];
+                        item = [.. item.Where(s => s.sRFQNumber.Contains(q) || s.sProjectName.Contains(q) || s.sCompanyName.Contains(q))];
                     }
                     if (!string.IsNullOrEmpty(order_direction))
                     {
                         if (order_direction == "asc")
                         {
-                            sp_result = sp_result.OrderBy(s => s.sRFQNumber).ToList();
+                            item = item.OrderBy(s => s.sRFQNumber).ToList();
                         }
                         else
                         {
-                            sp_result = sp_result.OrderByDescending(s => s.sRFQNumber).ToList();
+                            item = item.OrderByDescending(s => s.sRFQNumber).ToList();
                         }
                     }
 
 
 
 
-                    var dataList = Utility.PageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(sp_result, page, pageSize);
+                    var dataList = Utility.PageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(item, page, pageSize);
                     var data = dataList.Select(s => new RFQData()
                     {
                         CategoryName = s.sCategoryName,
@@ -817,8 +818,8 @@ namespace VendorPortal.Application.Services.v1
                     //{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}{_httpContext.HttpContext.Request.QueryString}
                     result.CurrentPage = page;
                     result.PerPage = pageSize;
-                    result.Total = sp_result.Count();
-                    result.LastPage = (int)Math.Ceiling((double)sp_result.Count() / pageSize);
+                    result.Total = item.Count();
+                    result.LastPage = (int)Math.Ceiling((double)item.Count() / pageSize);
                     result.FirstPageUrl = $"{_baseUrl}?page=1";
                     result.LastPageUrl = $"{_baseUrl}?page={result.LastPage}";
                     result.NextPageUrl = result.CurrentPage < result.LastPage ? $"{_baseUrl}?page={result.CurrentPage + 1}" : null;
@@ -872,8 +873,89 @@ namespace VendorPortal.Application.Services.v1
             try
             {
                 var sp_result = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(rfq_id);
-                if (sp_result != null)
+                if (sp_result != null && sp_result.Any())
                 {
+                    var tempList = new RFQShowData();
+                    var _companyInfo = sp_result.FirstOrDefault();
+                    tempList = new RFQShowData
+                    {
+                        Id = _companyInfo.nRFQID.ToString(),
+                        Category_Name = _companyInfo.sCategoryName,
+                        Company_Address = new CompanyAddress
+                        {
+                            Address_1 = _companyInfo.sAddress1,
+                            Address_2 = _companyInfo.sAddress2,
+                            Branch = _companyInfo.sBranch,
+                            District = _companyInfo.sDistrict,
+                            Province = _companyInfo.sProvince,
+                            Sub_District = _companyInfo.sSubDistrict,
+                            Tax_Number = _companyInfo.sTaxNumber,
+                            Zip_Code = _companyInfo.sZipCode
+                        },
+                        Company_Contract = new CompanyContract
+                        {
+                            Email = _companyInfo.sContractEmail,
+                            First_name = _companyInfo.sContractFirstName,
+                            Last_Name = _companyInfo.sContractLastName,
+                            Phone = _companyInfo.sContractPhone,
+                        },
+                        Company_Name = _companyInfo.sCompanyName,
+                        ContractValue = _companyInfo.nContractValue,
+                        Description = _companyInfo.sProjectDesc,
+                        Discount = _companyInfo.dDiscount,
+                        EndDate = _companyInfo.dEndDate,
+                        NetAmount = _companyInfo.dNetAmount,
+                        Number = _companyInfo.sRFQNumber,
+                        PaymentCondition = _companyInfo.sPaymentCondition,
+                        ProjectName = _companyInfo.sProjectName,
+                        PurchaseTypeName = _companyInfo.sProcurementTypeName,
+                        Remark = _companyInfo.sRemark,
+                        RequireDate = _companyInfo.dRequireDate,
+                        StartDate = _companyInfo.dStartDate,
+                        Status = new List<StatusName>{
+                                new StatusName{
+                                    Name = _companyInfo.sStatusName
+                                }
+                            },
+                        SubTotal = _companyInfo.dSubTotal,
+                        TotalAmount = _companyInfo.dTotalAmount,
+                        VatAmount = _companyInfo.dVatAmount,
+                        Lines = new List<Line>(),
+                        Documents = new List<Document>()
+                    };
+                    int i = 1;
+                    foreach (var item in sp_result.OrderBy(s => s.nLineID))
+                    {
+                        tempList.Lines.Add(new Line
+                        {
+                            Description = item.sItemDescption,
+                            Id = item.nLineID,
+                            Line_number = i.ToString(),
+                            Item_code = item.sItemCode,
+                            Item_name = item.sItemName,
+                            Quantity = item.nQuantity,
+                            Uom_name = item.sItemUomName,
+                            Unit_price = item.dUnitPrice,
+                            Total_amount = item.dTotalAmount,
+                            Vat_amount = item.dVatAmount,
+                            Vat_rate = item.dVatRate
+                        });
+                        i++;
+                    }
+                    
+                    var _documnet = await _wolfApproveRepository.SP_GET_RFQ_DOCUMENT(rfq_id);
+                    if (_documnet.Any())
+                    {
+                        foreach (var item in _documnet.Where(e => e.isActive == true))
+                        {
+                            tempList.Documents.Add(new Document
+                            {
+                                FileUrl = item.sFilePath,
+                                Name = item.sFileName
+                            });
+                        }
+                    }
+                    
                     response = new RFQShowResponse()
                     {
                         Status = new Status()
@@ -881,65 +963,7 @@ namespace VendorPortal.Application.Services.v1
                             Code = ResponseCode.Success.Text(),
                             Message = ResponseCode.Success.Text()
                         },
-                        Data = new RFQShowData
-                        {
-                            Category_Name = sp_result.Category_name,
-                            Company_Address = new CompanyAddress
-                            {
-                                Address_1 = sp_result.Company_address.Address_1,
-                                Address_2 = sp_result.Company_address.Address_2,
-                                Branch = sp_result.Company_address.Branch,
-                                District = sp_result.Company_address.District,
-                                Province = sp_result.Company_address.Province,
-                                Sub_District = sp_result.Company_address.Sub_district,
-                                Tax_Number = sp_result.Company_address.Tax_number,
-                                Zip_Code = sp_result.Company_address.Zip_code
-                            },
-                            Company_Contract = new CompanyContract
-                            {
-                                Email = sp_result.Company_contract.Email,
-                                First_name = sp_result.Company_contract.First_name,
-                                Last_Name = sp_result.Company_contract.Last_name,
-                                Phone = sp_result.Company_contract.Phone,
-                            },
-                            Company_Name = sp_result.Company_name,
-                            ContractValue = Decimal.Parse(string.IsNullOrEmpty(sp_result.Contract_value) ? "0" : sp_result.Contract_value),
-                            Description = sp_result.Description,
-                            Discount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Discount) ? "0" : sp_result.Discount),
-                            Documents = [.. sp_result.Documents.Select(s => new Document
-                            {
-                                FileUrl = s.File_url,
-                                Name = s.Name,
-                            })],
-                            EndDate = sp_result.End_date,
-                            Id = sp_result.Id,
-                            Lines = [.. sp_result.Lines.Select(s => new Line
-                            {
-                                Description = s.Description,
-                                Id = s.Id,
-                                Item_code = s.Item_code,
-                                Item_name = s.Item_name,
-                                Line_number = s.Line_number,
-                                Quantity = s.Quantity,
-                                Uom_name = s.Uom_name,
-                                Unit_price = s.Unit_price
-                            })],
-                            NetAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Net_amount) ? "0" : sp_result.Net_amount),
-                            Number = sp_result.Number,
-                            PaymentCondition = sp_result.Payment_condition,
-                            ProjectName = sp_result.Project_name,
-                            PurchaseTypeName = sp_result.Purchase_type_name,
-                            Remark = sp_result.Remark,
-                            RequireDate = sp_result.Require_date,
-                            StartDate = sp_result.Start_date,
-                            Status = [.. sp_result.Status.Select(s => new StatusName
-                            {
-                                Name = s.Name
-                            })],
-                            SubTotal = Decimal.Parse(string.IsNullOrEmpty(sp_result.Sub_total) ? "0" : sp_result.Sub_total),
-                            TotalAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Total_amount) ? "0" : sp_result.Total_amount),
-                            VatAmount = Decimal.Parse(string.IsNullOrEmpty(sp_result.Vat_amount) ? "0" : sp_result.Vat_amount)
-                        }
+                        Data = tempList
                     };
                 }
                 else

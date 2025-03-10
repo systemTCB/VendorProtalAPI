@@ -27,7 +27,11 @@
     <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_DETAIL.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_DOCUMENT.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
 
+  
     <!-- Purchase Order Mockup File-->
     <None Update="Mock\WolfApprove\v1\Data\SP_GET_PURCHASE_ORDER_DETAIL.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

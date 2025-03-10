@@ -21,14 +21,14 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             // Constructor logic here
         }
 
-        public async Task<SP_GET_RFQ_DETAIL> SP_GET_RFQ_DETAIL(string id)
+        public async Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id)
         {
-            SP_GET_RFQ_DETAIL mock = new();
+            List<SP_GET_RFQ_DETAIL> mock = new();
             try
             {
                 string filename = "SP_GET_RFQ_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
-                mock = JsonConvert.DeserializeObject<SP_GET_RFQ_DETAIL>(json);
+                mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ_DETAIL>>(json);
             }
             catch (System.Exception ex)
             {
@@ -101,7 +101,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id,string company_id,string from_date,string to_date)
+        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id, string company_id, string from_date, string to_date)
         {
             var mock = new List<SP_GET_CLAIM_LIST>();
             try
@@ -182,7 +182,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id , string Company_request_code)
+        public async Task<SP_PUT_CONNECT_COMPANIES_REQUEST> SP_PUT_CONNECT_COMPANIES_REQUEST(string id, string Company_request_code)
         {
             var mock = new SP_PUT_CONNECT_COMPANIES_REQUEST();
             try
@@ -206,6 +206,22 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
                 string filename = "SP_GET_COUNT_PO_CLAIM.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
                 mock = JsonConvert.DeserializeObject<SP_GET_COUNT_PO_CLAIM>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
+            return mock;
+        }
+
+        public async Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id)
+        {
+            var mock = new List<SP_GET_RFQ_DOCUMENT>();
+            try
+            {
+                string filename = "SP_GET_RFQ_DOCUMENT.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ_DOCUMENT>>(json);
             }
             catch (System.Exception ex)
             {
