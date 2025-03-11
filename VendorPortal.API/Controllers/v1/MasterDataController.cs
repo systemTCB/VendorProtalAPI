@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 using VendorPortal.Application.Interfaces.v1;
@@ -23,6 +24,7 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/master/company")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "MasterData" }, Summary = "", Description = "ใช้สำหรับขอข้อมูลของบริษัททั้งหมด")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MasterCompanyResponse))]
         public async Task<IActionResult> GetCompanyList(bool isShowAll = false)
         {
             var response = new MasterCompanyResponse();
@@ -50,6 +52,7 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/master/company/{companyId}")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "MasterData" }, Summary = "", Description = "ใช้สำหรับขอข้อมูลของบริษัทตาม CompanyId")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MasterCompanyByIdResponse))]
         public async Task<IActionResult> GetCompanyById(string companyId)
         {
             var response = new MasterCompanyByIdResponse();

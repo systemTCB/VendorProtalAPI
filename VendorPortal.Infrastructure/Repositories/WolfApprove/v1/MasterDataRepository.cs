@@ -27,7 +27,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 {
                     connection.Open();
                     var sql = "SP_GET_MASTER_COMPANY";
-                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll) };
+                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll ? "1" : "0") };
                     data = await _dbContext.ExcuteStoreQueryListAsync<SP_GET_MASTER_COMPANY>(sql, param);
                 }
             }
