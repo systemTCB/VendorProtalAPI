@@ -21,6 +21,7 @@ namespace VendorPortal.Infrastructure.IoC
             /* --------Service v1--------*/
             services.AddScoped<IWolfApproveService, WolfApproveService>();
             services.AddScoped<IAuthenticationService , AuthenticationService>();
+            services.AddScoped<IMasterDataService, MasterDataService>();
 
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
         //     services.AddFluentValidation(options =>
@@ -46,6 +47,7 @@ namespace VendorPortal.Infrastructure.IoC
             services.AddHttpClient();
             services.AddScoped<IWolfApproveRepository , WolfApproveRepository>();
             services.AddScoped<IAuthenticationRepository , AuthenticationRepository>();
+            services.AddScoped<IMasterDataRepository, MasterDataRepository>();
             return services;
         }
     }

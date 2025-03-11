@@ -24,7 +24,7 @@ namespace VendorPortal.API.Controllers.v1
         [HttpPost]
         [Route("api/v1/wolf-approve/auth")]
         [Description("Create By Peetisook")]
-        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับขอ Token ในการเข้าใช้งาน API ต่างๆ")]
+        [SwaggerOperation(Tags = new[] { "Authentication" }, Summary = "", Description = "ใช้สำหรับขอ Token ในการเข้าใช้งาน API ต่างๆ")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(AuthenticationResponse))]
         public async Task<IActionResult> Authentication([FromBody] AuthenticationRequest request)
         {
