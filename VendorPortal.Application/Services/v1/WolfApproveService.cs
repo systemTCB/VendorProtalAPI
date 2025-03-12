@@ -913,11 +913,7 @@ namespace VendorPortal.Application.Services.v1
                         Remark = _companyInfo.sRemark,
                         RequireDate = _companyInfo.dRequireDate,
                         StartDate = _companyInfo.dStartDate,
-                        Status = new List<StatusName>{
-                                new StatusName{
-                                    Name = _companyInfo.sStatusName
-                                }
-                            },
+                        Status = _companyInfo.sStatusName,
                         SubTotal = _companyInfo.dSubTotal,
                         TotalAmount = _companyInfo.dTotalAmount,
                         VatAmount = _companyInfo.dVatAmount,

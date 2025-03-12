@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -13,6 +14,7 @@ namespace VendorPortal.API.Controllers.v1
 {
     // Your code goes here
     [ApiController]
+    [AllowAnonymous]
     public class  AuthenticationControlller : ControllerBase
     {
         private readonly IAuthenticationService _authenticationService;

@@ -23,7 +23,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public DateTime RequireDate { get; set; }
-        public List<StatusName> Status { get; set; }
+        public string Status { get; set; }
         public decimal ContractValue { get; set; }
         public CompanyAddress Company_Address { get; set; }
         public CompanyContract Company_Contract { get; set; }
