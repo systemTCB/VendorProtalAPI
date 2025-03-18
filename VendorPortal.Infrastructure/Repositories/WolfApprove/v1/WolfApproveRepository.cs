@@ -20,7 +20,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 
         public async Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id)
         {
-            List<SP_GET_RFQ_DETAIL> data = new List<SP_GET_RFQ_DETAIL>();
+            List<SP_GET_RFQ_DETAIL> result = new List<SP_GET_RFQ_DETAIL>();
             try
             {
                 using (var connection = _context.CreateConnectionRead())
@@ -28,20 +28,20 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     connection.Open();
                     var sql = "SP_GET_RFQ_DETAIL";
                     var param = new SqlParameter[] { new SqlParameter("@nRFQID", id) };
-                    data = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_DETAIL>(sql, param);
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_DETAIL>(sql, param);
                 }
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "WolfApproveRepository");
-                return data;
+                return result;
             }
-            return data;
+            return result;
         }
 
         public async Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST()
         {
-            List<SP_GET_RFQ_LIST> data = new List<SP_GET_RFQ_LIST>();
+            List<SP_GET_RFQ_LIST> result = new List<SP_GET_RFQ_LIST>();
             try
             {
                 using (var connection = _context.CreateConnectionRead())
@@ -49,20 +49,20 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     connection.Open();
                     var sql = "SP_GET_RFQ_LIST";
                     var param = new SqlParameter[] { };
-                    data = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_LIST>(sql, param);
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_LIST>(sql, param);
                 }
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "WolfApproveRepository");
-                return data;
+                return result;
             }
-            return data;
+            return result;
         }
 
         public async Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id)
         {
-            List<SP_GET_RFQ_DOCUMENT> data = new List<SP_GET_RFQ_DOCUMENT>();
+            List<SP_GET_RFQ_DOCUMENT> result = new List<SP_GET_RFQ_DOCUMENT>();
             try
             {
                 using (var connection = _context.CreateConnectionRead())
@@ -70,20 +70,36 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     connection.Open();
                     var sql = "SP_GET_RFQ_DOCUMENT";
                     var param = new SqlParameter[] { new SqlParameter("@nRFQID", id) };
-                    data = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_DOCUMENT>(sql, param);
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_DOCUMENT>(sql, param);
                 }
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "WolfApproveRepository");
-                return data;
+                return result;
             }
-            return data;
+            return result;
         }
 
-        public Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST()
+        public async Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST()
         {
-            throw new System.NotImplementedException();
+            List<SP_GET_PURCHASE_ORDER> result = new List<SP_GET_PURCHASE_ORDER>();
+            try
+            {
+                using(var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_PURCHASE_ORDER_LIST";
+                    var param = new SqlParameter[] { };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_PURCHASE_ORDER>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return result;
+            }
+            return result;
         }
 
         public Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)

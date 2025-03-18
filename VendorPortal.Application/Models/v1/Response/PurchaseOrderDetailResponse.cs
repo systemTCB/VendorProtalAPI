@@ -41,6 +41,6 @@ namespace VendorPortal.Application.Models.v1.Response
 
     public class QuotationData
     {
-        public string Code { get; set; }
+        public string code { get; set; }
     }
 }

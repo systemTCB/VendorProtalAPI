@@ -7,39 +7,34 @@ namespace VendorPortal.Application.Models.v1.Response
 {
     public class RFQShowResponse : BaseResponse
     {
-        public RFQShowData Data { get; set; }
+        public RFQShowData data { get; set; }
     }
 
     public class RFQShowData
     {
-        public string Id { get; set; }
-        public string Number { get; set; }
-        public int Company_Id { get; set; }
-        public string Company_Name { get; set; }
-        public string ProjectName { get; set; }
-        public string Description { get; set; }
-        public string PurchaseTypeName { get; set; }
-        public string Category_Name { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public DateTime RequireDate { get; set; }
-        public string Status { get; set; }
-        public decimal ContractValue { get; set; }
-        public CompanyAddress Company_Address { get; set; }
-        public CompanyContract Company_Contract { get; set; }
-        public decimal SubTotal { get; set; }
-        public decimal Discount { get; set; }
-        public decimal TotalAmount { get; set; }
-        public decimal VatAmount { get; set; }
-        public decimal NetAmount { get; set; }
-        public List<Line> Lines { get; set; }
-        public string PaymentCondition { get; set; }
-        public string Remark { get; set; }
-        public List<Document> Documents { get; set; }
-    }
-
-    public class StatusName
-    {
-        public string Name { get; set; }
+        public string id { get; set; }
+        public string number { get; set; }
+        public int company_id { get; set; }
+        public string company_name { get; set; }
+        public string project_name { get; set; }
+        public string description { get; set; }
+        public string purchase_type_name { get; set; }
+        public string category_name { get; set; }
+        public DateTime start_date { get; set; }
+        public DateTime end_date { get; set; }
+        public DateTime require_date { get; set; }
+        public string status { get; set; }
+        public decimal contract_value { get; set; }
+        public CompanyAddress company_address { get; set; }
+        public CompanyContract company_contract { get; set; }
+        public decimal sub_total { get; set; }
+        public decimal discount { get; set; }
+        public decimal total_amount { get; set; }
+        public decimal vat_amount { get; set; }
+        public decimal net_amount { get; set; }
+        public List<Line> lines { get; set; }
+        public string payment_condition { get; set; }
+        public string remark { get; set; }
+        public List<Document> documents { get; set; }
     }
 }

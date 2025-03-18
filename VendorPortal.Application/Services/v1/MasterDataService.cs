@@ -53,20 +53,20 @@ namespace VendorPortal.Application.Services.v1
                             Contract_Email = data.sContractEmail,
                             Contract_Phone = data.sContractPhone
                         };
-                        response.Status = new Status()
+                        response.status = new Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
                         };
                     }
                     else
                     {
                         response = new MasterCompanyByIdResponse()
                         {
-                            Status = new Status()
+                            status = new Status()
                             {
-                                Code = ResponseCode.NotFound.Text(),
-                                Message = ResponseCode.NotFound.Description()
+                                code = ResponseCode.NotFound.Text(),
+                                message = ResponseCode.NotFound.Description()
                             },
                             Data = null
                         };
@@ -76,10 +76,10 @@ namespace VendorPortal.Application.Services.v1
                 {
                     response = new MasterCompanyByIdResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         },
                         Data = null
                     };
@@ -90,10 +90,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "GetCompanyById");
                 response = new MasterCompanyByIdResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -130,20 +130,20 @@ namespace VendorPortal.Application.Services.v1
                         ModifiedBy = s.ModifiedBy,
                         ModifiedDate = s.ModifiedDate
                     }).ToList()];
-                    response.Status = new Status()
+                    response.status = new Status()
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
                     response = new MasterCompanyResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         },
                         Data = null
                     };
@@ -154,10 +154,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "GetCompanyList");
                 response = new MasterCompanyResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };

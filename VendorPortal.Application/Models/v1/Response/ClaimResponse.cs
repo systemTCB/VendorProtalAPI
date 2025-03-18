@@ -4,13 +4,9 @@ using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Models.v1.Response
 {
-    public class ClaimResponse : ResponseBasePage
+    public class ClaimResponse 
     {
         // Add properties and methods here
-        public List<ClaimData> Data { get; set; }
-    }
-    public class ClaimData
-    {
         public string Id { get; set; }
         public string Code { get; set; }
         public string Create_date { get; set; }

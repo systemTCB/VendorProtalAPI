@@ -5,47 +5,28 @@ using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Models.v1.Response
 {
-    public class RFQResponse : BaseResponse
+    public class RFQDataItem
     {
-        public RFQResponse()
+        public RFQDataItem()
         {
-            Data = new List<RFQData>();
+            company_contract = new CompanyContract();
         }
-        public int Total { get; set; }
-        public int PerPage { get; set; }
-        public int CurrentPage { get; set; }
-        public int LastPage { get; set; }
-        public string FirstPageUrl { get; set; }
-        public string LastPageUrl { get; set; }
-        public string NextPageUrl { get; set; }
-        public string PrevPageUrl { get; set; }
-        public string Path { get; set; }
-        public int From { get; set; }
-        public int To { get; set; }
-        public List<RFQData> Data { get; set; }
-    }
-    public class RFQData
-    {
-        public RFQData()
-        {
-            CompanyContract = new CompanyContract();
-        }
-        public string Id { get; set; }
-        public string Code { get; set; }
-        public string CompanyName { get; set; }
-        public string ProjectName { get; set; }
-        public string Description { get; set; }
-        public string ProcurementTypeName { get; set; }
-        public string CategoryName { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
-        public DateTime RequireDate { get; set; }
-        public string Status { get; set; }
-        public decimal ContractValue { get; set; }
-        public CompanyContract CompanyContract { get; set; }
-        public decimal NetAmount { get; set; }
-        public string PaymentCondition { get; set; }
-        public string Remark { get; set; }
+        public string id { get; set; }
+        public string code { get; set; }
+        public string company_name { get; set; }
+        public string project_name { get; set; }
+        public string description { get; set; }
+        public string procurement_type_name { get; set; }
+        public string category_name { get; set; }
+        public DateTime start_date { get; set; }
+        public DateTime end_date { get; set; }
+        public DateTime require_date { get; set; }
+        public string status { get; set; }
+        public decimal contract_value { get; set; }
+        public CompanyContract company_contract { get; set; }
+        public decimal net_amount { get; set; }
+        public string payment_condition { get; set; }
+        public string remark { get; set; }
     }
 
 }

@@ -14,6 +14,8 @@ using VendorPortal.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using VendorPortal.Application.Models.Common;
+using System.Collections.Generic;
 namespace VendorPortal.API.Controllers.v1
 {
     [ApiController]
@@ -30,7 +32,7 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/rfqs/list")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RFQDataItem>))]
         public async Task<IActionResult> GetRFQList(string q,
             string company_id,
             string number,
@@ -44,7 +46,7 @@ namespace VendorPortal.API.Controllers.v1
             string order_direction,
             string order_by)
         {
-            RFQResponse response;
+            BaseResponse<List<RFQDataItem>> response;
             try
             {
                 response = await _wolfApproveService.GetRFQ_List(
@@ -65,14 +67,14 @@ namespace VendorPortal.API.Controllers.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetRFQList");
-                response = new RFQResponse()
+                response = new BaseResponse<List<RFQDataItem>>()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
-                    Data = null
+                    data = null
                 };
             }
             return Ok(response);
@@ -94,10 +96,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, nameof(GetRFQShow));
                 response = new RFQShowResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -112,7 +114,7 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/purchases/list")]
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderListResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderResponse))]
         public async Task<IActionResult> GetPOList(string q,
             string supplier_id,
             string number,
@@ -126,7 +128,7 @@ namespace VendorPortal.API.Controllers.v1
             string order_direction,
             string order_by)
         {
-            PurchaseOrderListResponse response = new();
+            BaseResponse<List<PurchaseOrderResponse>> response = new();
             try
             {
                 response = await _wolfApproveService.GetPurchaseOrderList(q, supplier_id, number, start_date, end_date, purchase_type_id, status_id, category_id, page, per_page, order_direction, order_by);
@@ -134,14 +136,14 @@ namespace VendorPortal.API.Controllers.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetPOList");
-                response = new PurchaseOrderListResponse()
+                response = new BaseResponse<List<PurchaseOrderResponse>>()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
-                    Data = null
+                    data = null
                 };
             }
             return Ok(response);
@@ -163,10 +165,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetPOShow", $"id:{id} , supplier_id:{supplier_id}");
                 response = new PurchaseOrderDetailResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                     ,
                     Data = null
@@ -192,10 +194,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "ConfirmPOStatus", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
                 response = new PurchaseOrderConfirmResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -221,7 +223,7 @@ namespace VendorPortal.API.Controllers.v1
             string order_direction,
             string order_by)
         {
-            ClaimResponse response = new();
+            BaseResponse<List<ClaimResponse>> response = new();
             try
             {
                 response = await _wolfApproveService.GetClaimList(supplier_id, company_id, status, from_date, to_date, page, per_page, order_direction, order_by);
@@ -250,10 +252,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetClaimShow", $"id:{id} , supplier_id:{supplier_id}");
                 response = new ClaimDetailResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                     ,
                     Data = null
@@ -279,10 +281,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "ConfirmClaimStatus", $"id:{id} ,request :{JsonConvert.SerializeObject(request)}");
                 response = new ClaimConfirmResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -300,7 +302,7 @@ namespace VendorPortal.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(CompaniesResponse))]
         public async Task<IActionResult> GetCompanies(string supplier_id)
         {
-            CompaniesResponse response = new();
+            BaseResponse<List<CompaniesResponse>> response = new();
             try
             {
                 response = await _wolfApproveService.GetCompaniesList(supplier_id);
@@ -308,14 +310,14 @@ namespace VendorPortal.API.Controllers.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetCompanies", $"supplier_id:{supplier_id}");
-                response = new CompaniesResponse()
+                response = new BaseResponse<List<CompaniesResponse>>()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
-                    Data = null
+                    data = null
                 };
             }
             return Ok(response);
@@ -338,10 +340,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetCompaniesById", $"id:{id}");
                 response = new CompaniesDetailResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -366,10 +368,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "ConnectCompanies", $"supplier_id:{supplier_id}");
                 response = new CompaniesConnectResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -396,10 +398,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetCount", $"suppliers:{suppliers}");
                 response = new CountResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };

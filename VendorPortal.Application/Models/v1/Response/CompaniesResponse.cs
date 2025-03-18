@@ -4,12 +4,7 @@ using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Models.v1.Response
 {
-    public class CompaniesResponse : ResponseBasePage
-    {
-        public List<CompainesData> Data { get; set; }
-        // Add properties and methods here
-    }
-    public class CompainesData
+    public class CompaniesResponse
     {
         public string Id { get; set; }
         public string Name { get; set; }

@@ -40,10 +40,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex , "Authentication");
                 response = new AuthenticationResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };

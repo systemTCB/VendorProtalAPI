@@ -4,6 +4,7 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using VendorPortal.Application.Models.Common;
 using VendorPortal.Logging;
 
 namespace VendorPortal.Application.Helpers
@@ -19,7 +20,7 @@ namespace VendorPortal.Application.Helpers
             var enctptedToken = string.Empty;
             try
             {
-                if(string.IsNullOrEmpty(token) || duration == null) return "InvalidToken";
+                if (string.IsNullOrEmpty(token) || duration == null) return "InvalidToken";
                 enctptedToken = EncryptString(token + "|Expire:" + duration);
             }
             catch (Exception ex)
@@ -34,7 +35,7 @@ namespace VendorPortal.Application.Helpers
             var decyptedToken = string.Empty;
             try
             {
-                if(string.IsNullOrEmpty(token)) return "InvalidToken";
+                if (string.IsNullOrEmpty(token)) return "InvalidToken";
                 decyptedToken = DecryptString(token);
             }
             catch (Exception ex)
@@ -106,13 +107,14 @@ namespace VendorPortal.Application.Helpers
             }
 
         }
-    
-        public static List<T> PageCalculator<T>(List<T> list, int page, int pageSize)
+
+        public static List<T> ItemPerpageCalculator<T>(List<T> list, int page, int pageSize)
         {
             try
             {
                 if (list == null || list.Count == 0) return list;
-                if (page <= 0 || pageSize <= 0) return list;
+                if (page <= 0 || pageSize <= 0)
+                    return list;
                 int skip = (page - 1) * pageSize;
                 int take = pageSize;
                 return list.GetRange(skip, take);
@@ -121,6 +123,48 @@ namespace VendorPortal.Application.Helpers
             {
                 Logger.LogError(ex, "PageCalculator");
                 return list;
+            }
+        }
+        public static List<T> PageCalculator<T>(List<T> list, int page, int pageSize)
+        {
+            try
+            {
+                if (list == null || list.Count == 0) return list;
+                if (page <= 0 || pageSize <= 0)
+                    return list;
+                int skip = (page - 1) * pageSize;
+                int take = pageSize;
+                return list.GetRange(skip, take);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "PageCalculator");
+                return list;
+            }
+        }
+        public static BaseResponse<T> Paging<T>(int page, int pageSize, int item, string _baseUrl)
+        {
+            try
+            {
+                BaseResponse<T> response = new BaseResponse<T>();
+                response.data = default(T);
+                response.current_page = page;
+                response.per_page = pageSize;
+                response.total = item;
+                response.last_page = item == 0 ? 1 : (int)Math.Ceiling((double)item / pageSize);
+                response.first_page_url = $"{_baseUrl}?page=1";
+                response.last_page_url = $"{_baseUrl}?page={(response.last_page == 0 ? "1" : response.last_page)}";
+                response.next_page_url = response.current_page < response.last_page ? $"{_baseUrl}?page={response.current_page + 1}" : null;
+                response.prev_page_url = response.current_page > 1 ? $"{_baseUrl}?page={response.current_page - 1}" : null;
+                response.path = $"{_baseUrl}";
+                response.from = (response.current_page - 1) * pageSize + 1;
+                response.to = response.current_page * pageSize > response.total ? response.total : response.current_page * pageSize;
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Paging");
+                return null;
             }
         }
     }

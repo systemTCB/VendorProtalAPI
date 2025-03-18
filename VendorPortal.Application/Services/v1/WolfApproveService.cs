@@ -58,10 +58,10 @@ namespace VendorPortal.Application.Services.v1
                 {
                     result = new ClaimConfirmResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
                         }
                     };
                 }
@@ -70,10 +70,10 @@ namespace VendorPortal.Application.Services.v1
                     // รอดูก่อนว่าตรงนี้ทำงานยังไง อาจจะต้องมี reason ที่แตกต่างกัน
                     result = new ClaimConfirmResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         }
                     };
                 }
@@ -83,10 +83,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "ConfirmClaimStatus", $"claim_id: {claim_id} , request: {request}");
                 result = new ClaimConfirmResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     },
                     Data = null
                 };
@@ -96,10 +96,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "ConfirmClaimStatus", $"claim_id: {claim_id} , request: {request}");
                 result = new ClaimConfirmResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -122,20 +122,20 @@ namespace VendorPortal.Application.Services.v1
                             Status = store.Status
                         }
                     };
-                    response.Status = new Status
+                    response.status = new Status
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
                     response = new PurchaseOrderConfirmResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         },
                         Data = null
                     };
@@ -146,10 +146,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
                 response = new PurchaseOrderConfirmResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     },
                     Data = null
                 };
@@ -159,10 +159,10 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "ConfirmPurchaseOrderStatus", $"purchase_order_id: {purchase_order_id} , request: {request}");
                 response = new PurchaseOrderConfirmResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -182,10 +182,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new CompaniesConnectResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     },
                     Data = null
                 };
@@ -195,10 +195,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new CompaniesConnectResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -208,15 +208,15 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<ClaimResponse> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by)
+        public async Task<BaseResponse<List<ClaimResponse>>> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by)
         {
-            ClaimResponse result = new();
+            BaseResponse<List<ClaimResponse>> result = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id, company_id, from_date, to_date);
                 if (store.Count != 0)
                 {
-                    result.Data = [.. store.Select(s => new ClaimData{
+                    result.data = [.. store.Select(s => new ClaimResponse{
                         Id = s.Id,
                         Claim_date = s.Claim_date,
                         Claim_description = s.Claim_description,
@@ -227,24 +227,24 @@ namespace VendorPortal.Application.Services.v1
                         Company_name = s.Company_name,
                         Create_date = s.Create_date,
                         Purchase_order = new ClaimPurchaseOrderData{
-                            Code = s.Purchase_order.Code,
-                            Purchase_date = s.Purchase_order.Purchase_date
+                            code = s.Purchase_order.Code,
+                            purchase_date = s.Purchase_order.Purchase_date
                         }
                     })];
-                    result.Status = new Status()
+                    result.status = new Status()
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
-                    result = new ClaimResponse()
+                    result = new BaseResponse<List<ClaimResponse>>()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         }
                     };
                 }
@@ -252,24 +252,24 @@ namespace VendorPortal.Application.Services.v1
             catch (ApplicationException ex)
             {
                 Logger.LogError(ex, "GetClaimList");
-                result = new ClaimResponse()
+                result = new BaseResponse<List<ClaimResponse>>()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     }
                 };
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetClaimList");
-                result = new ClaimResponse()
+                result = new BaseResponse<List<ClaimResponse>>()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
@@ -295,8 +295,8 @@ namespace VendorPortal.Application.Services.v1
                         Create_date = store.Created_date.ToString(),
                         Documents = [.. store.Documents.Select(s => new Document()
                         {
-                            FileUrl = s.File_url,
-                            Name = s.Name
+                            fileUrl = s.File_url,
+                            name = s.Name
                         })],
                         Id = store.Id,
                         // Lines = [.. store.Lines.Select(s => new Line()
@@ -317,17 +317,17 @@ namespace VendorPortal.Application.Services.v1
                         Claim_return_address = store.Claim_return_address,
                         Purchase_order = new ClaimPurchaseOrderData()
                         {
-                            Code = store.Purchase_order.Code,
-                            Purchase_date = store.Purchase_order.Purchase_date.ToString()
+                            code = store.Purchase_order.Code,
+                            purchase_date = store.Purchase_order.Purchase_date.ToString()
                         }
                     };
                     result = new ClaimDetailResponse()
                     {
                         Data = data,
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
                         }
                     };
                 }
@@ -335,10 +335,10 @@ namespace VendorPortal.Application.Services.v1
                 {
                     result = new ClaimDetailResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         }
                     };
                 }
@@ -347,10 +347,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new ClaimDetailResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     }
                 };
                 Logger.LogError(ex, "GetClaimDetail", $"claim_id: {claim_id} , supplier_id: {supplier_id}");
@@ -359,10 +359,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new ClaimDetailResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetClaimDetail", $"claim_id: {claim_id} , supplier_id: {supplier_id}");
@@ -393,10 +393,10 @@ namespace VendorPortal.Application.Services.v1
                         },
                         Company_contract = new CompanyContract()
                         {
-                            Email = store.Company_contact.Email,
-                            First_name = store.Company_contact.First_name,
-                            Last_Name = store.Company_contact.Last_name,
-                            Phone = store.Company_contact.Phone
+                            email = store.Company_contact.Email,
+                            first_name = store.Company_contact.First_name,
+                            last_name = store.Company_contact.Last_name,
+                            phone = store.Company_contact.Phone
                         },
                         Id = store.Id,
                         Name = store.Name,
@@ -404,20 +404,20 @@ namespace VendorPortal.Application.Services.v1
                         Request_status = store.Request_status,
                         Website = store.Website
                     };
-                    result.Status = new Status()
+                    result.status = new Status()
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
                     result = new CompaniesDetailResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         },
                         Data = null
                     };
@@ -434,43 +434,43 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<CompaniesResponse> GetCompaniesList(string supplier_id)
+        public async Task<BaseResponse<List<CompaniesResponse>>> GetCompaniesList(string supplier_id)
         {
-            CompaniesResponse response = new();
+            BaseResponse<List<CompaniesResponse>> response = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_COMPANIES_LIST(supplier_id);
                 if (store.Count != 0)
                 {
-                    response.Data = [.. store.Select(s=> new CompainesData{
+                    response.data = [.. store.Select(s=> new CompaniesResponse{
                         Id = s.Id,
                         Company_contact =  new CompanyContract(){
-                            First_name = s.sContractFirstName,
-                            Email = s.sContractEmail,
-                            Last_Name = s.sContractLastName,
-                            Phone = s.sContractPhone
+                            first_name = s.sContractFirstName,
+                            email = s.sContractEmail,
+                            last_name = s.sContractLastName,
+                            phone = s.sContractPhone
                         },
                         Name = s.Name,
                         Request_date = s.Request_date,
                         Request_status = s.Request_status,
 
                     })];
-                    response.Status = new Status
+                    response.status = new Status
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
-                    response = new CompaniesResponse()
+                    response = new BaseResponse<List<CompaniesResponse>>()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         },
-                        Data = null
+                        data = null
                     };
                 }
             }
@@ -498,10 +498,10 @@ namespace VendorPortal.Application.Services.v1
                         Count_claim = store.Count_claim.GetValueOrDefault(),
                         Count_po = store.Count_po.GetValueOrDefault()
                     },
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     }
                 };
             }
@@ -509,10 +509,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new CountResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     }
                 };
                 Logger.LogError(ex, "GetCount", $"supplier_id: {supplier_id}");
@@ -521,10 +521,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 result = new CountResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetCount", $"supplier_id: {supplier_id}");
@@ -532,54 +532,54 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<PurchaseOrderListResponse> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
+        public async Task<BaseResponse<List<PurchaseOrderResponse>>> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
         {
-            PurchaseOrderListResponse result = new();
+            BaseResponse<List<PurchaseOrderResponse>> response = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_LIST();
                 if (store.Count != 0)
                 {
-                    result.Data = [.. store.Select(s => new PurchaseOrderData()
+                    response.data = [.. store.Select(s => new PurchaseOrderResponse()
                     {
-                        Id = s.Id,
-                        Cancel_description = s.Cancel_description,
-                        Cancel_reason = s.Cancel_reason,
-                        Category_name = s.Category_name,
-                        Code = s.Code,
-                        Company_contract = new CompanyContract{
-                            First_name = s.Company_contract.First_name,
-                            Last_Name = s.Company_contract.Last_name,
-                            Email = s.Company_contract.Email,
-                            Phone = s.Company_contract.Phone
+                        id = s.Id,
+                        cancel_description = s.Cancel_description,
+                        cancel_reason = s.Cancel_reason,
+                        category_name = s.Category_name,
+                        code = s.Code,
+                        company_contract = new CompanyContract{
+                            first_name = s.Company_contract.First_name,
+                            last_name = s.Company_contract.Last_name,
+                            email = s.Company_contract.Email,
+                            phone = s.Company_contract.Phone
                         },
-                        Company_Name = s.Company_Name,
-                        Description = s.Description,
-                        Net_Amount = s.Net_Amount,
-                        Order_date = s.Order_date,
-                        Payment_condition = s.Payment_condition,
-                        Purchase_type_name = s.Purchase_type_name,
-                        Quotation = new QuotationData{
-                            Code = s.Quotation.Code
+                        company_name = s.Company_Name,
+                        description = s.Description,
+                        net_amount = s.Net_Amount,
+                        order_date = s.Order_date,
+                        payment_condition = s.Payment_condition,
+                        purchase_type_name = s.Purchase_type_name,
+                        quotation = new QuotationData{
+                            code = s.Quotation.Code
                         },
-                        Remark = s.Remark,
-                        Require_date = s.Require_date,
-                        Ship_to = s.Ship_to
+                        remark = s.Remark,
+                        require_date = s.Require_date,
+                        ship_to = s.Ship_to
                     })];
-                    result.Status = new Status()
+                    response.status = new Status()
                     {
-                        Code = ResponseCode.Success.Text(),
-                        Message = ResponseCode.Success.Description()
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
                 }
                 else
                 {
-                    result = new PurchaseOrderListResponse()
+                    response = new BaseResponse<List<PurchaseOrderResponse>>()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         }
                     };
                 }
@@ -587,28 +587,28 @@ namespace VendorPortal.Application.Services.v1
             catch (ApplicationException ex)
             {
                 Logger.LogError(ex, "GetPurchaseOrderList");
-                result = new PurchaseOrderListResponse()
+                response = new BaseResponse<List<PurchaseOrderResponse>>()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     }
                 };
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetPurchaseOrderList");
-                result = new PurchaseOrderListResponse()
+                response = new BaseResponse<List<PurchaseOrderResponse>>()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
             }
-            return result;
+            return response;
         }
 
         public async Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id)
@@ -641,18 +641,18 @@ namespace VendorPortal.Application.Services.v1
                             },
                             Company_contract = new CompanyContract()
                             {
-                                Email = store.Company_contract.Email,
-                                First_name = store.Company_contract.First_name,
-                                Last_Name = store.Company_contract.Last_name,
-                                Phone = store.Company_contract.Phone
+                                email = store.Company_contract.Email,
+                                first_name = store.Company_contract.First_name,
+                                last_name = store.Company_contract.Last_name,
+                                phone = store.Company_contract.Phone
                             },
                             Company_name = store.Company_name,
                             Description = store.Description,
                             Discount = store.Discount,
                             Documents = store.Documents.Select(s => new Document()
                             {
-                                FileUrl = s.File_url,
-                                Name = s.Name
+                                fileUrl = s.File_url,
+                                name = s.Name
                             }).ToList(),
                             // Lines = store.Lines.Select(s => new Line()
                             // {
@@ -671,7 +671,7 @@ namespace VendorPortal.Application.Services.v1
                             Payment_condition = store.Payment_condition,
                             Quotation = new QuotationData()
                             {
-                                Code = store.Quotation.Code
+                                code = store.Quotation.Code
                             },
                             Remark = store.Remark,
                             Status = store.Status,
@@ -680,20 +680,20 @@ namespace VendorPortal.Application.Services.v1
                             Vat_amount = store.Vat_amount
 
                         };
-                        result.Status = new Status()
+                        result.status = new Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
                         };
                     }
                     else
                     {
                         result = new PurchaseOrderDetailResponse()
                         {
-                            Status = new Status()
+                            status = new Status()
                             {
-                                Code = ResponseCode.NotFound.Text(),
-                                Message = ResponseCode.NotFound.Description()
+                                code = ResponseCode.NotFound.Text(),
+                                message = ResponseCode.NotFound.Description()
                             },
                             Data = null
                         };
@@ -703,10 +703,10 @@ namespace VendorPortal.Application.Services.v1
                 {
                     result = new PurchaseOrderDetailResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.BadRequest.Text(),
-                            Message = "กรุณากรอกข้อมูล order_id และ supplier_id"
+                            code = ResponseCode.BadRequest.Text(),
+                            message = "กรุณากรอกข้อมูล order_id และ supplier_id"
                         },
                         Data = null
                     };
@@ -723,9 +723,9 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<RFQResponse> GetRFQ_List(int pageSize, int page, string company_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
+        public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string company_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
         {
-            var result = new RFQResponse();
+            var result = new BaseResponse<List<RFQDataItem>>();
             try
             {
                 var item = await _wolfApproveRepository.SP_GET_RFQ_LIST();
@@ -775,93 +775,77 @@ namespace VendorPortal.Application.Services.v1
                             item = item.OrderByDescending(s => s.sRFQNumber).ToList();
                         }
                     }
-
-
-
-
-                    var dataList = Utility.PageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(item, page, pageSize);
-                    var data = dataList.Select(s => new RFQData()
+                    page = page <= 0 ? 1 : page;
+                    pageSize = pageSize <= 0 ? 10 : pageSize;
+                    var dataList = Utility.ItemPerpageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(item, page, pageSize);
+                    var data = dataList.Select(s => new RFQDataItem()
                     {
-                        CategoryName = s.sCategoryName,
-                        Code = s.sRFQNumber,
-                        Description = s.sProjectDesc,
-                        CompanyContract = new CompanyContract
+                        category_name = s.sCategoryName,
+                        code = s.sRFQNumber,
+                        description = s.sProjectDesc,
+                        company_contract = new CompanyContract
                         {
-                            Email = s.sContractEmail,
-                            First_name = s.sContractFirstName,
-                            Last_Name = s.sContractLastName,
-                            Phone = s.sContractPhone
+                            email = s.sContractEmail,
+                            first_name = s.sContractFirstName,
+                            last_name = s.sContractLastName,
+                            phone = s.sContractPhone
                         },
-                        CompanyName = s.sCompanyName,
-                        ContractValue = s.nContractValue,
-                        EndDate = s.dEndDate,
-                        Id = s.nRFQID.ToString(),
-                        NetAmount = s.dNetAmount,
-                        PaymentCondition = s.sPaymentCondition,
-                        ProcurementTypeName = s.sProcurementTypeName,
-                        ProjectName = s.sProjectName,
-                        Remark = s.sRemark,
-                        RequireDate = s.dRequireDate,
-                        StartDate = s.dStartDate,
-                        Status = s.sStatusName
+                        company_name = s.sCompanyName,
+                        contract_value = s.nContractValue,
+                        end_date = s.dEndDate,
+                        id = s.nRFQID.ToString(),
+                        net_amount = s.dNetAmount,
+                        payment_condition = s.sPaymentCondition,
+                        procurement_type_name = s.sProcurementTypeName,
+                        project_name = s.sProjectName,
+                        remark = s.sRemark,
+                        require_date = s.dRequireDate,
+                        start_date = s.dStartDate,
+                        status = s.sStatusName
                     }).ToList();
-                    result = new RFQResponse()
+                    result = Utility.Paging<List<RFQDataItem>>(page, pageSize, data.Count, _baseUrl);
+                    result.data = data;
+                    result.status = new Status()
                     {
-                        Status = new Status()
-                        {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
-                        },
-                        Data = data
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
                     };
-
-                    //{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}{_httpContext.HttpContext.Request.QueryString}
-                    result.CurrentPage = page;
-                    result.PerPage = pageSize;
-                    result.Total = item.Count();
-                    result.LastPage = (int)Math.Ceiling((double)item.Count() / pageSize);
-                    result.FirstPageUrl = $"{_baseUrl}?page=1";
-                    result.LastPageUrl = $"{_baseUrl}?page={result.LastPage}";
-                    result.NextPageUrl = result.CurrentPage < result.LastPage ? $"{_baseUrl}?page={result.CurrentPage + 1}" : null;
-                    result.PrevPageUrl = result.CurrentPage > 1 ? $"{_baseUrl}?page={result.CurrentPage - 1}" : null;
-                    result.Path = $"{_baseUrl}";
-                    result.From = (result.CurrentPage - 1) * pageSize + 1;
-                    result.To = result.CurrentPage * pageSize > result.Total ? result.Total : result.CurrentPage * pageSize;
                 }
                 else
                 {
-                    result = new RFQResponse()
+                    result.status = new Status()
                     {
-                        Status = new Status()
-                        {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Description()
-                        }
+                        code = ResponseCode.NotFound.Text(),
+                        message = ResponseCode.NotFound.Description()
                     };
                 }
             }
             catch (ApplicationException ex)
             {
-                result = new RFQResponse()
+                result = new BaseResponse<List<RFQDataItem>>()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
-                    }
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
+                    },
+                    data = null,
                 };
                 Logger.LogError(ex, "GetRFQ_List");
             }
             catch (System.Exception ex)
             {
-                result = new RFQResponse()
+                result = new BaseResponse<List<RFQDataItem>>()
                 {
-                    Status = new Status()
+                    status = new Status
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description(),
-                    }
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description(),
+
+                    },
+                    data = null
                 };
+
                 Logger.LogError(ex, "GetRFQ_List");
             }
             return result;
@@ -879,8 +863,8 @@ namespace VendorPortal.Application.Services.v1
                     var _companyInfo = sp_result.FirstOrDefault();
                     tempList = new RFQShowData
                     {
-                        Id = _companyInfo.nRFQID.ToString(),
-                        Company_Address = new CompanyAddress
+                        id = _companyInfo.nRFQID.ToString(),
+                        company_address = new CompanyAddress
                         {
                             Address_1 = _companyInfo.sAddress1,
                             Address_2 = _companyInfo.sAddress2,
@@ -891,86 +875,86 @@ namespace VendorPortal.Application.Services.v1
                             Tax_Number = _companyInfo.sTaxNumber,
                             Zip_Code = _companyInfo.sZipCode
                         },
-                        Company_Contract = new CompanyContract
+                        company_contract = new CompanyContract
                         {
-                            Email = _companyInfo.sContractEmail,
-                            First_name = _companyInfo.sContractFirstName,
-                            Last_Name = _companyInfo.sContractLastName,
-                            Phone = _companyInfo.sContractPhone,
+                            email = _companyInfo.sContractEmail,
+                            first_name = _companyInfo.sContractFirstName,
+                            last_name = _companyInfo.sContractLastName,
+                            phone = _companyInfo.sContractPhone,
                         },
-                        Category_Name = _companyInfo.sCategoryName,
-                        Company_Id = _companyInfo.nCompanyID,
-                        Company_Name = _companyInfo.sCompanyName,
-                        ContractValue = _companyInfo.nContractValue,
-                        Description = _companyInfo.sProjectDesc,
-                        Discount = _companyInfo.dDiscount,
-                        EndDate = _companyInfo.dEndDate,
-                        NetAmount = _companyInfo.dNetAmount,
-                        Number = _companyInfo.sRFQNumber,
-                        PaymentCondition = _companyInfo.sPaymentCondition,
-                        ProjectName = _companyInfo.sProjectName,
-                        PurchaseTypeName = _companyInfo.sProcurementTypeName,
-                        Remark = _companyInfo.sRemark,
-                        RequireDate = _companyInfo.dRequireDate,
-                        StartDate = _companyInfo.dStartDate,
-                        Status = _companyInfo.sStatusName,
-                        SubTotal = _companyInfo.dSubTotal,
-                        TotalAmount = _companyInfo.dTotalAmount,
-                        VatAmount = _companyInfo.dVatAmount,
-                        Lines = new List<Line>(),
-                        Documents = new List<Document>()
+                        category_name = _companyInfo.sCategoryName,
+                        company_id = _companyInfo.nCompanyID,
+                        company_name = _companyInfo.sCompanyName,
+                        contract_value = _companyInfo.nContractValue,
+                        description = _companyInfo.sProjectDesc,
+                        discount = _companyInfo.dDiscount,
+                        end_date = _companyInfo.dEndDate,
+                        net_amount = _companyInfo.dNetAmount,
+                        number = _companyInfo.sRFQNumber,
+                        payment_condition = _companyInfo.sPaymentCondition,
+                        project_name = _companyInfo.sProjectName,
+                        purchase_type_name = _companyInfo.sProcurementTypeName,
+                        remark = _companyInfo.sRemark,
+                        require_date = _companyInfo.dRequireDate,
+                        start_date = _companyInfo.dStartDate,
+                        status = _companyInfo.sStatusName,
+                        sub_total = _companyInfo.dSubTotal,
+                        total_amount = _companyInfo.dTotalAmount,
+                        vat_amount = _companyInfo.dVatAmount,
+                        lines = new List<Line>(),
+                        documents = new List<Document>()
                     };
                     int i = 1;
                     foreach (var item in sp_result.OrderBy(s => s.nLineID))
                     {
-                        tempList.Lines.Add(new Line
+                        tempList.lines.Add(new Line
                         {
-                            Description = item.sItemDescption,
-                            Id = item.nLineID,
-                            Line_number = i.ToString(),
-                            Item_code = item.sItemCode,
-                            Item_name = item.sItemName,
-                            Quantity = item.nQuantity,
-                            Uom_name = item.sItemUomName,
-                            Unit_price = item.dUnitPrice,
-                            Total_amount = item.dTotalAmount,
-                            Vat_amount = item.dVatAmount,
-                            Vat_rate = item.dVatRate
+                            description = item.sItemDescption,
+                            id = item.nLineID,
+                            line_number = i.ToString(),
+                            item_code = item.sItemCode,
+                            item_name = item.sItemName,
+                            quantity = item.nQuantity,
+                            uom_name = item.sItemUomName,
+                            unit_price = item.dUnitPrice,
+                            total_amount = item.dTotalAmount,
+                            vat_amount = item.dVatAmount,
+                            vat_rate = item.dVatRate
                         });
                         i++;
                     }
-                    
+
                     var _documnet = await _wolfApproveRepository.SP_GET_RFQ_DOCUMENT(rfq_id);
                     if (_documnet.Any())
                     {
                         foreach (var item in _documnet.Where(e => e.isActive == true))
                         {
-                            tempList.Documents.Add(new Document
+                            tempList.documents.Add(new Document
                             {
-                                FileUrl = item.sFilePath,
-                                Name = item.sFileName
+                                fileUrl = item.sFilePath,
+                                name = item.sFileName
                             });
                         }
                     }
 
                     response = new RFQShowResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Text()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Text()
                         },
-                        Data = tempList
+                        data = tempList
                     };
                 }
                 else
                 {
                     response = new RFQShowResponse()
                     {
-                        Status = new Status()
+                        status = new Status()
                         {
-                            Code = ResponseCode.NotFound.Text(),
-                            Message = ResponseCode.NotFound.Text()
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Text()
                         }
                     };
                 }
@@ -979,10 +963,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 response = new RFQShowResponse()
                 {
-                    Status = new Status()
+                    status = new Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     }
                 };
                 Logger.LogError(ex, "GetRFQ_Show");

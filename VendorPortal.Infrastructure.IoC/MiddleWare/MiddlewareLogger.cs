@@ -78,14 +78,14 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
                 {
                     context.Response.Headers.Append("responsecode", response.StatusCode != StatusCodes.Status200OK
                         ? response.StatusCode.ToString() 
-                        : baseResponse?.Status?.Code);
+                        : baseResponse?.status?.code);
                 }
 
                 if (!context.Response.Headers.ContainsKey("responsemessage"))
                 {
                     context.Response.Headers.Append("responsemessage", response.StatusCode != StatusCodes.Status200OK
                         ? MappingResponseMessage(response.StatusCode.ToString()) 
-                        : MappingResponseMessage(baseResponse?.Status?.Code));
+                        : MappingResponseMessage(baseResponse?.status?.code));
                 }
 
                 // var routeData = context.GetRouteData();

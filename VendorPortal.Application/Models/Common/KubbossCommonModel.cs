@@ -18,49 +18,34 @@ namespace VendorPortal.Application.Models.Common
         }
         public class CompanyContract
         {
-            public string First_name { get; set; }
-            public string Last_Name { get; set; }
-            public string Phone { get; set; }
-            public string Email { get; set; }
+            public string first_name { get; set; }
+            public string last_name { get; set; }
+            public string phone { get; set; }
+            public string email { get; set; }
         }
         public class Line
         {
-            public int Id { get; set; }
-            public string Line_number { get; set; }
-            public string Item_code { get; set; }
-            public string Item_name { get; set; }
-            public string Uom_name { get; set; }
-            public string Description { get; set; }
-            public int Quantity { get; set; }
-            public decimal Unit_price { get; set; }
-            public decimal Vat_rate { get; set; }
-            public decimal Vat_amount { get; set; }
-            public decimal Total_amount { get; set; }
+            public int id { get; set; }
+            public string line_number { get; set; }
+            public string item_code { get; set; }
+            public string item_name { get; set; }
+            public string uom_name { get; set; }
+            public string description { get; set; }
+            public int quantity { get; set; }
+            public decimal unit_price { get; set; }
+            public decimal vat_rate { get; set; }
+            public decimal vat_amount { get; set; }
+            public decimal total_amount { get; set; }
         }
         public class Document
         {
-            public string Name { get; set; }
-            public string FileUrl { get; set; }
+            public string name { get; set; }
+            public string fileUrl { get; set; }
         }
         public class ClaimPurchaseOrderData
         {
-            public string Code { get; set; }
-            public string Purchase_date { get; set; }
+            public string code { get; set; }
+            public string purchase_date { get; set; }
         }
-    }
-
-    public class ResponseBasePage : BaseResponse
-    {
-        public string Total { get; set; }
-        public string Per_page { get; set; }
-        public string Current_page { get; set; }
-        public string Last_page { get; set; }
-        public string First_page_url { get; set; }
-        public string Last_page_url { get; set; }
-        public string Next_page_url { get; set; }
-        public string Prev_page_url { get; set; }
-        public string Path { get; set; }
-        public string From { get; set; }
-        public string To { get; set; }
     }
 }

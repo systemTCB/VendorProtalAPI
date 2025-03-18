@@ -43,10 +43,10 @@ namespace VendorPortal.Application.Services.v1
                     var enctptedToken = Utility.EncyptionToken(token, ExpireDate);
                     response = new AuthenticationResponse()
                     {
-                        Status = new Models.Common.Status()
+                        status = new Models.Common.Status()
                         {
-                            Code = ResponseCode.Success.Text(),
-                            Message = ResponseCode.Success.Description()
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
                         },
                         Data = new AuthenticationData
                         {
@@ -60,10 +60,10 @@ namespace VendorPortal.Application.Services.v1
                     var message = sp_result.Message ?? ResponseCode.Unauthorized.Description();
                     response = new AuthenticationResponse()
                     {
-                        Status = new Models.Common.Status()
+                        status = new Models.Common.Status()
                         {
-                            Code = ResponseCode.Unauthorized.Text(),
-                            Message = message
+                            code = ResponseCode.Unauthorized.Text(),
+                            message = message
                         },
                         Data = null
                     };
@@ -74,10 +74,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 response = new AuthenticationResponse()
                 {
-                    Status = new Models.Common.Status()
+                    status = new Models.Common.Status()
                     {
-                        Code = ResponseCode.NotImplement.Text(),
-                        Message = ResponseCode.NotImplement.Description()
+                        code = ResponseCode.NotImplement.Text(),
+                        message = ResponseCode.NotImplement.Description()
                     },
                     Data = null
                 };
@@ -87,10 +87,10 @@ namespace VendorPortal.Application.Services.v1
             {
                 response = new AuthenticationResponse()
                 {
-                    Status = new Models.Common.Status()
+                    status = new Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };

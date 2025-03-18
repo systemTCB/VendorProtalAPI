@@ -37,10 +37,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetCompanyList");
                 response = new MasterCompanyResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
@@ -65,10 +65,10 @@ namespace VendorPortal.API.Controllers.v1
                 Logger.LogError(ex, "GetCompanyById");
                 response = new MasterCompanyByIdResponse()
                 {
-                    Status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status()
                     {
-                        Code = ResponseCode.InternalServerError.Text(),
-                        Message = ResponseCode.InternalServerError.Description()
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
                 };
