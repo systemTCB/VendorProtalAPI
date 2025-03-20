@@ -39,19 +39,19 @@ namespace VendorPortal.Application.Services.v1
                     {
                         response.Data = new MasterCompanyByIdData()
                         {
-                            Company_id = data.nCompanyID,
-                            Company_name = data.sCompanyName,
-                            Address_1 = data.sAddress1,
-                            Address_2 = data.sAddress2,
-                            District = data.sDistrict,
-                            Province = data.sProvince,
-                            Zip_Code = data.sZipCode,
-                            Branch = data.sBranch,
-                            Tax_number = data.sTaxNumber,
-                            Contract_first_name = data.sContractFirstName,
-                            Contract_last_name = data.sContractLastName,
-                            Contract_Email = data.sContractEmail,
-                            Contract_Phone = data.sContractPhone
+                            company_id = data.nCompanyID,
+                            company_name = data.sCompanyName,
+                            address_1 = data.sAddress1,
+                            address_2 = data.sAddress2,
+                            district = data.sDistrict,
+                            province = data.sProvince,
+                            zip_code = data.sZipCode,
+                            branch = data.sBranch,
+                            tax_number = data.sTaxNumber,
+                            contract_first_name = data.sContractFirstName,
+                            contract_last_name = data.sContractLastName,
+                            contract_email = data.sContractEmail,
+                            contract_phone = data.sContractPhone
                         };
                         response.status = new Status()
                         {
@@ -111,19 +111,19 @@ namespace VendorPortal.Application.Services.v1
                 {
                     response.Data = [.. result.Select(s=> new MasterCompanyData
                     {
-                        Company_id = s.nCompanyID,
-                        Company_name = s.sCompanyName,
-                        Address_1 = s.sAddress1,
-                        Address_2 = s.sAddress2,
-                        District = s.sDistrict,
-                        Province = s.sProvince,
-                        Zip_Code = s.sZipCode,
-                        Branch = s.sBranch,
-                        Tax_number = s.sTaxNumber,
-                        Contract_first_name = s.sContractFirstName,
-                        Contract_last_name = s.sContractLastName,
-                        Contract_Email = s.sContractEmail,
-                        Contract_Phone = s.sContractPhone,
+                        company_id = s.nCompanyID,
+                        company_name = s.sCompanyName,
+                        address_1 = s.sAddress1,
+                        address_2 = s.sAddress2,
+                        district = s.sDistrict,
+                        province = s.sProvince,
+                        zip_code = s.sZipCode,
+                        branch = s.sBranch,
+                        tax_number = s.sTaxNumber,
+                        contract_first_name = s.sContractFirstName,
+                        contract_last_name = s.sContractLastName,
+                        contract_email = s.sContractEmail,
+                        contract_phone = s.sContractPhone,
                         IsActive = s.isActive,
                         CreatedBy = s.CreatedBy,
                         CreatedDate = s.CreatedDate,

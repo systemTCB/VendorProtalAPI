@@ -125,24 +125,7 @@ namespace VendorPortal.Application.Helpers
                 return list;
             }
         }
-        public static List<T> PageCalculator<T>(List<T> list, int page, int pageSize)
-        {
-            try
-            {
-                if (list == null || list.Count == 0) return list;
-                if (page <= 0 || pageSize <= 0)
-                    return list;
-                int skip = (page - 1) * pageSize;
-                int take = pageSize;
-                return list.GetRange(skip, take);
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "PageCalculator");
-                return list;
-            }
-        }
-        public static BaseResponse<T> Paging<T>(int page, int pageSize, int item, string _baseUrl)
+        public static BaseResponse<T> PagingCalculator<T>(int page, int pageSize, int item, string _baseUrl)
         {
             try
             {

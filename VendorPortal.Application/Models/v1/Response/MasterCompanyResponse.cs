@@ -13,19 +13,19 @@ namespace VendorPortal.Application.Models.v1.Response
     public class MasterCompanyData
     {
         // Add properties and methods as needed
-        public int Company_id { get; set; }
-        public string Company_name { get; set; }
-        public string Address_1 { get; set; }
-        public string Address_2 { get; set; }
-        public string District { get; set; }
-        public string Province { get; set; }
-        public string Zip_Code { get; set; }
-        public string Branch { get; set; }
-        public string Tax_number { get; set; }
-        public string Contract_first_name { get; set; }
-        public string Contract_last_name { get; set; }
-        public string Contract_Email { get; set; }
-        public string Contract_Phone { get; set; }
+        public int company_id { get; set; }
+        public string company_name { get; set; }
+        public string address_1 { get; set; }
+        public string address_2 { get; set; }
+        public string district { get; set; }
+        public string province { get; set; }
+        public string zip_code { get; set; }
+        public string branch { get; set; }
+        public string tax_number { get; set; }
+        public string contract_first_name { get; set; }
+        public string contract_last_name { get; set; }
+        public string contract_email { get; set; }
+        public string contract_phone { get; set; }
         public bool IsActive { get; set; }
         public string CreatedBy { get; set; }
         public string ModifiedBy { get; set; }

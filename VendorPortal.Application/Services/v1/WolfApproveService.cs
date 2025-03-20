@@ -217,16 +217,16 @@ namespace VendorPortal.Application.Services.v1
                 if (store.Count != 0)
                 {
                     result.data = [.. store.Select(s => new ClaimResponse{
-                        Id = s.Id,
-                        Claim_date = s.Claim_date,
-                        Claim_description = s.Claim_description,
-                        Claim_option = s.Claim_option,
-                        Claim_reason = s.Claim_reason,
-                        Claim_return_address = s.Claim_return_address,
-                        Code = s.Code,
-                        Company_name = s.Company_name,
-                        Create_date = s.Create_date,
-                        Purchase_order = new ClaimPurchaseOrderData{
+                        id = s.Id,
+                        claim_date = s.Claim_date,
+                        claim_description = s.Claim_description,
+                        claim_option = s.Claim_option,
+                        claim_reason = s.Claim_reason,
+                        claim_return_address = s.Claim_return_address,
+                        code = s.Code,
+                        company_name = s.Company_name,
+                        create_date = s.Create_date,
+                        purchase_order = new ClaimPurchaseOrderData{
                             code = s.Purchase_order.Code,
                             purchase_date = s.Purchase_order.Purchase_date
                         }
@@ -286,19 +286,19 @@ namespace VendorPortal.Application.Services.v1
                 {
                     var data = new ClaimDetailData()
                     {
-                        Claim_date = store.Claim_date.ToString(),
-                        Claim_description = store.Claim_description,
-                        Claim_option = store.Claim_option,
-                        Claim_reason = store.Claim_reason,
-                        Code = store.Code,
-                        Company_name = store.Company_name,
-                        Create_date = store.Created_date.ToString(),
-                        Documents = [.. store.Documents.Select(s => new Document()
+                        claim_date = store.Claim_date.ToString(),
+                        claim_description = store.Claim_description,
+                        claim_option = store.Claim_option,
+                        claim_reason = store.Claim_reason,
+                        code = store.Code,
+                        company_name = store.Company_name,
+                        create_date = store.Created_date.ToString(),
+                        documents = [.. store.Documents.Select(s => new Document()
                         {
                             fileUrl = s.File_url,
                             name = s.Name
                         })],
-                        Id = store.Id,
+                        id = store.Id,
                         // Lines = [.. store.Lines.Select(s => new Line()
                         // {
                         //     Description = s.Description,
@@ -310,12 +310,12 @@ namespace VendorPortal.Application.Services.v1
                         //     Uom_name = s.Uom_name,
                         //     Unit_price = s.Unit_price
                         // })],
-                        Status = new ClaimStatus()
+                        status = new ClaimStatus()
                         {
                             Name = [.. store.Status.Select(s => s.Name)]
                         },
-                        Claim_return_address = store.Claim_return_address,
-                        Purchase_order = new ClaimPurchaseOrderData()
+                        claim_return_address = store.Claim_return_address,
+                        purchase_order = new ClaimPurchaseOrderData()
                         {
                             code = store.Purchase_order.Code,
                             purchase_date = store.Purchase_order.Purchase_date.ToString()
@@ -380,29 +380,29 @@ namespace VendorPortal.Application.Services.v1
                 {
                     result.Data = new CompaniesDetailData()
                     {
-                        Company_address = new CompanyAddress()
+                        company_address = new CompanyAddress()
                         {
-                            Address_1 = store.Company_address.Address_1,
-                            Address_2 = store.Company_address.Address_2,
-                            Branch = store.Company_address.Branch,
-                            District = store.Company_address.District,
-                            Province = store.Company_address.Province,
-                            Sub_District = store.Company_address.Sub_district,
-                            Tax_Number = store.Company_address.Tax_id,
-                            Zip_Code = store.Company_address.Zip_code
+                            address_1 = store.Company_address.Address_1,
+                            address_2 = store.Company_address.Address_2,
+                            branch = store.Company_address.Branch,
+                            district = store.Company_address.District,
+                            province = store.Company_address.Province,
+                            sub_district = store.Company_address.Sub_district,
+                            tax_number = store.Company_address.Tax_id,
+                            zip_code = store.Company_address.Zip_code
                         },
-                        Company_contract = new CompanyContract()
+                        company_contract = new CompanyContract()
                         {
                             email = store.Company_contact.Email,
                             first_name = store.Company_contact.First_name,
                             last_name = store.Company_contact.Last_name,
                             phone = store.Company_contact.Phone
                         },
-                        Id = store.Id,
-                        Name = store.Name,
-                        Request_date = store.Request_date.ToString(),
-                        Request_status = store.Request_status,
-                        Website = store.Website
+                        id = store.Id,
+                        name = store.Name,
+                        request_date = store.Request_date.ToString(),
+                        request_status = store.Request_status,
+                        website = store.Website
                     };
                     result.status = new Status()
                     {
@@ -443,16 +443,16 @@ namespace VendorPortal.Application.Services.v1
                 if (store.Count != 0)
                 {
                     response.data = [.. store.Select(s=> new CompaniesResponse{
-                        Id = s.Id,
-                        Company_contact =  new CompanyContract(){
+                        id = s.Id,
+                        company_contact =  new CompanyContract(){
                             first_name = s.sContractFirstName,
                             email = s.sContractEmail,
                             last_name = s.sContractLastName,
                             phone = s.sContractPhone
                         },
-                        Name = s.Name,
-                        Request_date = s.Request_date,
-                        Request_status = s.Request_status,
+                        name = s.Name,
+                        request_date = s.Request_date,
+                        request_status = s.Request_status,
 
                     })];
                     response.status = new Status
@@ -495,8 +495,8 @@ namespace VendorPortal.Application.Services.v1
                 {
                     Data = new CountData()
                     {
-                        Count_claim = store.Count_claim.GetValueOrDefault(),
-                        Count_po = store.Count_po.GetValueOrDefault()
+                        count_claim = store.Count_claim.GetValueOrDefault(),
+                        count_po = store.Count_po.GetValueOrDefault()
                     },
                     status = new Status()
                     {
@@ -532,7 +532,19 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<BaseResponse<List<PurchaseOrderResponse>>> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by)
+        public async Task<BaseResponse<List<PurchaseOrderResponse>>> GetPurchaseOrderList(
+            string q,
+            string supplier_id,
+            string number,
+            string start_date,
+            string end_date,
+            string purchase_type_id,
+            string status_id,
+            string category_id,
+            int page,
+            int per_page,
+            string order_direction,
+            string order_by)
         {
             BaseResponse<List<PurchaseOrderResponse>> response = new();
             try
@@ -540,31 +552,42 @@ namespace VendorPortal.Application.Services.v1
                 var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_LIST();
                 if (store.Count != 0)
                 {
+                    page = page <= 0 ? 1 : page;
+                    per_page = per_page <= 0 ? 10 : per_page;
+                    response = Utility.PagingCalculator<List<PurchaseOrderResponse>>(page, per_page, store.Count, _baseUrl);
+                    store = Utility.ItemPerpageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_PURCHASE_ORDER>(store, page, per_page);
                     response.data = [.. store.Select(s => new PurchaseOrderResponse()
                     {
-                        id = s.Id,
-                        cancel_description = s.Cancel_description,
-                        cancel_reason = s.Cancel_reason,
-                        category_name = s.Category_name,
-                        code = s.Code,
+                        id = s.nPOID,
+                        cancel_description = s.sCancelDesc ?? "",
+                        cancel_reason = s.sCancelReason ?? "",
+                        catagory_id = s.nCategoryID,
+                        category_name = s.sCategoryName,
+                        code = s.sPOCode,
                         company_contract = new CompanyContract{
-                            first_name = s.Company_contract.First_name,
-                            last_name = s.Company_contract.Last_name,
-                            email = s.Company_contract.Email,
-                            phone = s.Company_contract.Phone
+                            first_name = s.sContractFirstName,
+                            last_name = s.sContractLastName,
+                            email = s.sContractEmail,
+                            phone = s.sContractPhone
                         },
-                        company_name = s.Company_Name,
-                        description = s.Description,
-                        net_amount = s.Net_Amount,
-                        order_date = s.Order_date,
-                        payment_condition = s.Payment_condition,
-                        purchase_type_name = s.Purchase_type_name,
+                        company_id = s.nCompanyID,
+                        company_name = s.sCompanyName,
+                        project_name = s.sProjectName,
+                        description = s.sProjectDesc,
+                        net_amount = s.dNetAmount,
+                        order_date = s.dOrderDate,
+                        payment_condition = s.sPaymentCondition,
+                        purchase_type_name = s.sProcurementTypeName,
                         quotation = new QuotationData{
-                            code = s.Quotation.Code
+                            code = s.sQuotationCode
                         },
-                        remark = s.Remark,
-                        require_date = s.Require_date,
-                        ship_to = s.Ship_to
+                        remark = s.sRemark,
+                        require_date = s.dRequireDate,
+                        ship_to = s.sShipTo,
+                        status_id = s.nStatusID,
+                        status = s.sStatusName,
+                        rfq_status_id = s.nRFQStatusID,
+                        rfq_status_name = s.sRFQStatusName
                     })];
                     response.status = new Status()
                     {
@@ -613,74 +636,83 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id)
         {
-            PurchaseOrderDetailResponse result = new();
+            PurchaseOrderDetailResponse response = new();
             try
             {
                 if (!string.IsNullOrEmpty(order_id) && !string.IsNullOrEmpty(supplier_id))
                 {
-                    var store = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_DETAIL(order_id, supplier_id);
-                    if (store != null)
+                    var result = await _wolfApproveRepository.SP_GET_PURCHASE_ORDER_DETAIL(order_id, supplier_id);
+                    if (result != null)
                     {
-                        result.Data = new PurchaseOrderDetailData()
+                        var _temp = result.FirstOrDefault();
+                        response.Data = new PurchaseOrderDetailData()
                         {
-                            Id = store.Id,
-                            Cancel_description = store.Cancel_description,
-                            Cancel_reason = store.Cancel_reason,
-                            Category_name = store.Category_Name,
-                            Code = store.Code,
-                            Company_address = new CompanyAddress()
+                            id = _temp.nPOID,
+                            cancel_description = _temp.sCancelDesc,
+                            cancel_reason = _temp.sCancelReason,
+                            category_name = _temp.sCategoryName,
+                            code = _temp.sPOCode,
+                            company_address = new CompanyAddress()
                             {
-                                Address_1 = store.Company_address.Address_1,
-                                Address_2 = store.Company_address.Address_2,
-                                Branch = store.Company_address.Branch,
-                                District = store.Company_address.District,
-                                Province = store.Company_address.Province,
-                                Sub_District = store.Company_address.Sub_District,
-                                Tax_Number = store.Company_address.Tax_number,
-                                Zip_Code = store.Company_address.Zip_code
+                                address_1 = _temp.sAddress1,
+                                address_2 = _temp.sAddress2,
+                                branch = _temp.sBranch,
+                                district = _temp.sDistrict,
+                                province = _temp.sProvince,
+                                sub_district = _temp.sSubDistrict,
+                                tax_number = _temp.sTaxNumber,
+                                zip_code = _temp.sZipCode
                             },
-                            Company_contract = new CompanyContract()
+                            company_contract = new CompanyContract()
                             {
-                                email = store.Company_contract.Email,
-                                first_name = store.Company_contract.First_name,
-                                last_name = store.Company_contract.Last_name,
-                                phone = store.Company_contract.Phone
+                                email = _temp.sContractEmail,
+                                first_name = _temp.sContractFirstName,
+                                last_name = _temp.sContractLastName,
+                                phone = _temp.sContractPhone
                             },
-                            Company_name = store.Company_name,
-                            Description = store.Description,
-                            Discount = store.Discount,
-                            Documents = store.Documents.Select(s => new Document()
+                            company_id = _temp.nCompanyID,
+                            company_name = _temp.sCompanyName,
+                            project_name = _temp.sProjectName,
+                            description = _temp.sProjectDesc,
+                            discount = _temp.dDiscount,
+                            order_date = _temp.dOrderDate,
+                            request_date = _temp.dRequireDate,
+                            payment_condition = _temp.sPaymentCondition,
+                            quotation = new QuotationData()
                             {
-                                fileUrl = s.File_url,
-                                name = s.Name
-                            }).ToList(),
-                            // Lines = store.Lines.Select(s => new Line()
-                            // {
-                            //     Description = s.Description,
-                            //     Id = s.Id,
-                            //     Item_code = s.Item_code,
-                            //     Item_name = s.Item_name,
-                            //     Line_number = s.Line_number,
-                            //     Quantity = s.Quantity,
-                            //     Uom_name = s.Uom_name,
-                            //     Unit_price = s.Unit_price
-                            // }).ToList(),
-                            Net_amount = store.Net_amount,
-                            Order_date = store.Order_date,
-                            Request_date = store.Request_Date,
-                            Payment_condition = store.Payment_condition,
-                            Quotation = new QuotationData()
-                            {
-                                code = store.Quotation.Code
+                                code = _temp.sQuotationCode
                             },
-                            Remark = store.Remark,
-                            Status = store.Status,
-                            Sub_totoal = store.Sub_totoal,
-                            Total_amount = store.Total_amount,
-                            Vat_amount = store.Vat_amount
+                            remark = _temp.sRemark,
+                            status = _temp.sStatusName,
+                            sub_totoal = _temp.dSubtotal,
+                            ship_to = _temp.sShipTo,
+                            lines = new List<Line>()
+                            // net_amount = _temp.dNetAmount,
+                            // total_amount = _temp.dTotalAmount,
+                            // vat_amount = _temp.dVatAmount
 
                         };
-                        result.status = new Status()
+                        // ItemLine
+                        var i = 1;
+                        foreach (var item in result)
+                        {
+                            response.Data.lines.Add(new Line()
+                            {
+                                id = item.nLineID,
+                                description = item.sItemDescption,
+                                item_code = item.sItemCode,
+                                item_name = item.sItemName,
+                                line_number = i.ToString(),
+                                quantity = item.nQuantity,
+                                uom_name = item.sItemUomName,
+                                unit_price = item.dUnitPrice
+                            });
+                            i++;
+                        }
+                        // Document
+                        // var _documnet = xxx 
+                        // for 
+                        response.status = new Status()
                         {
                             code = ResponseCode.Success.Text(),
                             message = ResponseCode.Success.Description()
@@ -688,7 +720,7 @@ namespace VendorPortal.Application.Services.v1
                     }
                     else
                     {
-                        result = new PurchaseOrderDetailResponse()
+                        response = new PurchaseOrderDetailResponse()
                         {
                             status = new Status()
                             {
@@ -701,7 +733,7 @@ namespace VendorPortal.Application.Services.v1
                 }
                 else
                 {
-                    result = new PurchaseOrderDetailResponse()
+                    response = new PurchaseOrderDetailResponse()
                     {
                         status = new Status()
                         {
@@ -720,7 +752,7 @@ namespace VendorPortal.Application.Services.v1
             {
                 Logger.LogError(ex, "GetPurchaseOrderShow", $"order_id: {order_id} , supplier_id: {supplier_id}");
             }
-            return result;
+            return response;
         }
 
         public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string company_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
@@ -803,7 +835,7 @@ namespace VendorPortal.Application.Services.v1
                         start_date = s.dStartDate,
                         status = s.sStatusName
                     }).ToList();
-                    result = Utility.Paging<List<RFQDataItem>>(page, pageSize, data.Count, _baseUrl);
+                    result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, data.Count, _baseUrl);
                     result.data = data;
                     result.status = new Status()
                     {
@@ -866,14 +898,14 @@ namespace VendorPortal.Application.Services.v1
                         id = _companyInfo.nRFQID.ToString(),
                         company_address = new CompanyAddress
                         {
-                            Address_1 = _companyInfo.sAddress1,
-                            Address_2 = _companyInfo.sAddress2,
-                            Branch = _companyInfo.sBranch,
-                            District = _companyInfo.sDistrict,
-                            Province = _companyInfo.sProvince,
-                            Sub_District = _companyInfo.sSubDistrict,
-                            Tax_Number = _companyInfo.sTaxNumber,
-                            Zip_Code = _companyInfo.sZipCode
+                            address_1 = _companyInfo.sAddress1,
+                            address_2 = _companyInfo.sAddress2,
+                            branch = _companyInfo.sBranch,
+                            district = _companyInfo.sDistrict,
+                            province = _companyInfo.sProvince,
+                            sub_district = _companyInfo.sSubDistrict,
+                            tax_number = _companyInfo.sTaxNumber,
+                            zip_code = _companyInfo.sZipCode
                         },
                         company_contract = new CompanyContract
                         {

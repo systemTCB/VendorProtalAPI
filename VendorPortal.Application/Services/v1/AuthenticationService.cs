@@ -48,10 +48,10 @@ namespace VendorPortal.Application.Services.v1
                             code = ResponseCode.Success.Text(),
                             message = ResponseCode.Success.Description()
                         },
-                        Data = new AuthenticationData
+                        data = new AuthenticationData
                         {
-                            Token = enctptedToken,
-                            Expiration = ExpireDate
+                            token = enctptedToken,
+                            expiration = ExpireDate
                         }
                     };
                 }
@@ -65,7 +65,7 @@ namespace VendorPortal.Application.Services.v1
                             code = ResponseCode.Unauthorized.Text(),
                             message = message
                         },
-                        Data = null
+                        data = null
                     };
                     return response;
                 }
@@ -79,7 +79,7 @@ namespace VendorPortal.Application.Services.v1
                         code = ResponseCode.NotImplement.Text(),
                         message = ResponseCode.NotImplement.Description()
                     },
-                    Data = null
+                    data = null
                 };
                 Logger.LogError(ex, "AuthenticateToken");
             }
@@ -92,7 +92,7 @@ namespace VendorPortal.Application.Services.v1
                         code = ResponseCode.InternalServerError.Text(),
                         message = ResponseCode.InternalServerError.Description()
                     },
-                    Data = null
+                    data = null
                 };
                 Logger.LogError(ex, "AuthenticateToken");
             }

@@ -45,7 +45,7 @@ namespace VendorPortal.API.Controllers.v1
                         code = ResponseCode.InternalServerError.Text(),
                         message = ResponseCode.InternalServerError.Description()
                     },
-                    Data = null
+                    data = null
                 };
 
             }

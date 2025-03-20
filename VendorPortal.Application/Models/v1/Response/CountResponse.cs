@@ -10,7 +10,7 @@ namespace VendorPortal.Application.Models.v1.Response
 
     public class CountData
     {
-        public int Count_po {get;set;}
-        public int Count_claim {get;set;}
+        public int count_po {get;set;}
+        public int count_claim {get;set;}
     }
 }

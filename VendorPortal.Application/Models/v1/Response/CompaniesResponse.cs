@@ -6,10 +6,10 @@ namespace VendorPortal.Application.Models.v1.Response
 {
     public class CompaniesResponse
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Request_date { get; set; }
-        public string Request_status { get; set; }
-        public CompanyContract Company_contact { get; set; }   
+        public string id { get; set; }
+        public string name { get; set; }
+        public string request_date { get; set; }
+        public string request_status { get; set; }
+        public CompanyContract company_contact { get; set; }   
     }
 }

@@ -5,11 +5,11 @@ namespace VendorPortal.Application.Models.v1.Response
 {
     public class AuthenticationResponse : BaseResponse
     {
-        public AuthenticationData Data { get; set; }
+        public AuthenticationData data { get; set; }
     }
     public class AuthenticationData
     {
-        public string Token { get; set; }
-        public DateTime? Expiration { get; set; }
+        public string token { get; set; }
+        public DateTime? expiration { get; set; }
     }
 }

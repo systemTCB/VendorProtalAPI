@@ -13,19 +13,19 @@ namespace VendorPortal.Application.Models.v1.Response
 
     public class ClaimDetailData
     {
-        public string Id { get; set; }
-        public string Code { get; set; }
-        public string Create_date { get; set; }
-        public string Company_name { get; set; }
-        public ClaimPurchaseOrderData Purchase_order { get; set; }
-        public ClaimStatus Status { get; set; }
-        public string Claim_date { get; set; }
-        public List<Line> Lines { get; set; }
-        public string Claim_reason { get; set; }
-        public string Claim_description { get; set; }
-        public string Claim_option { get; set; }
-        public string Claim_return_address { get; set; }
-        public List<Document> Documents { get; set; }
+        public string id { get; set; }
+        public string code { get; set; }
+        public string create_date { get; set; }
+        public string company_name { get; set; }
+        public ClaimPurchaseOrderData purchase_order { get; set; }
+        public ClaimStatus status { get; set; }
+        public string claim_date { get; set; }
+        public List<Line> lines { get; set; }
+        public string claim_reason { get; set; }
+        public string claim_description { get; set; }
+        public string claim_option { get; set; }
+        public string claim_return_address { get; set; }
+        public List<Document> documents { get; set; }
 
     }
     public class ClaimStatus

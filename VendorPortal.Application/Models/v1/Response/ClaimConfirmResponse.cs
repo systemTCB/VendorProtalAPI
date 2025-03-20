@@ -10,7 +10,7 @@ namespace VendorPortal.Application.Models.v1.Response
 
     public class ClaimConfirmData
     {
-        public string Status { get; set; }
-        public int ClaimID { get; set; }
+        public string status { get; set; }
+        public int claim_id { get; set; }
     }
 }

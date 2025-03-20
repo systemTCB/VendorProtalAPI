@@ -75,7 +75,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(ex, "WolfApproveRepository");
+                Logger.LogError(ex, "SP_GET_RFQ_DOCUMENT");
                 return result;
             }
             return result;
@@ -86,7 +86,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             List<SP_GET_PURCHASE_ORDER> result = new List<SP_GET_PURCHASE_ORDER>();
             try
             {
-                using(var connection = _context.CreateConnectionRead())
+                using (var connection = _context.CreateConnectionRead())
                 {
                     connection.Open();
                     var sql = "SP_GET_PURCHASE_ORDER_LIST";
@@ -96,15 +96,35 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(ex, "WolfApproveRepository");
+                Logger.LogError(ex, "SP_GET_PURCHASE_ORDER_LIST");
                 return result;
             }
             return result;
         }
 
-        public Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)
+        public async Task<List<SP_GET_PURCHASE_ORDER_DETAIL>> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)
         {
-            throw new System.NotImplementedException();
+            List<SP_GET_PURCHASE_ORDER_DETAIL> result = new List<SP_GET_PURCHASE_ORDER_DETAIL>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_PURCHASE_ORDER_DETAIL";
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@POCode", id),
+                        new SqlParameter("@CompanyID", supplier_id) // xx จะ where supplier จากไหนหว้า ????
+                    };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_PURCHASE_ORDER_DETAIL>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_PURCHASE_ORDER_DETAIL");
+                return result;
+            }
+            return result;
         }
 
         public Task<SP_PUT_PURCHASE_ORDER_CONFIRM> SP_PUT_PURCHASE_ORDER_CONFIRM(string id, string status, string reason, string description)

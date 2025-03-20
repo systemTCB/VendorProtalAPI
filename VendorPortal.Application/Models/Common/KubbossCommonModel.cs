@@ -7,14 +7,14 @@ namespace VendorPortal.Application.Models.Common
         // Add properties and methods here
         public class CompanyAddress
         {
-            public string Address_1 { get; set; }
-            public string Address_2 { get; set; }
-            public string Sub_District { get; set; }
-            public string District { get; set; }
-            public string Province { get; set; }
-            public string Zip_Code { get; set; }
-            public string Branch { get; set; }
-            public string Tax_Number { get; set; }
+            public string address_1 { get; set; }
+            public string address_2 { get; set; }
+            public string sub_district { get; set; }
+            public string district { get; set; }
+            public string province { get; set; }
+            public string zip_code { get; set; }
+            public string branch { get; set; }
+            public string tax_number { get; set; }
         }
         public class CompanyContract
         {
@@ -47,5 +47,10 @@ namespace VendorPortal.Application.Models.Common
             public string code { get; set; }
             public string purchase_date { get; set; }
         }
+        public class QuotationData
+        {
+            public string code { get; set; }
+        }
+
     }
 }

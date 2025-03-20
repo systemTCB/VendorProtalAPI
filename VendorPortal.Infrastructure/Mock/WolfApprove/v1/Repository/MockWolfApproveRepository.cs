@@ -69,14 +69,14 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_GET_PURCHASE_ORDER_DETAIL> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)
+        public async Task<List<SP_GET_PURCHASE_ORDER_DETAIL>> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id)
         {
-            var mock = new SP_GET_PURCHASE_ORDER_DETAIL();
+            var mock = new List<SP_GET_PURCHASE_ORDER_DETAIL>();
             try
             {
                 string filename = "SP_GET_PURCHASE_ORDER_DETAIL.json";
                 string json = await File.ReadAllTextAsync(basePath + filename);
-                mock = JsonConvert.DeserializeObject<SP_GET_PURCHASE_ORDER_DETAIL>(json);
+                mock = JsonConvert.DeserializeObject<List<SP_GET_PURCHASE_ORDER_DETAIL>>(json);
             }
             catch (System.Exception ex)
             {

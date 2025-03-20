@@ -22,7 +22,18 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
 
         // Purchase Order
-        Task<BaseResponse<List<PurchaseOrderResponse>>> GetPurchaseOrderList(string q, string supplier_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string page, string per_page, string order_direction, string order_by);
+        Task<BaseResponse<List<PurchaseOrderResponse>>> GetPurchaseOrderList(string q, 
+            string supplier_id, 
+            string number, 
+            string start_date, 
+            string end_date, 
+            string purchase_type_id, 
+            string status_id, 
+            string category_id, 
+            int page, 
+            int per_page, 
+            string order_direction, 
+            string order_by);
         Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id);
         Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request);
 

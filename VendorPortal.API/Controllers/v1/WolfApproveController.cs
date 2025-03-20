@@ -123,8 +123,8 @@ namespace VendorPortal.API.Controllers.v1
             string purchase_type_id,
             string status_id,
             string category_id,
-            string page,
-            string per_page,
+            int page,
+            int per_page,
             string order_direction,
             string order_by)
         {
@@ -150,7 +150,7 @@ namespace VendorPortal.API.Controllers.v1
         }
         [HttpGet]
         [Description("Create By Peetisook")]
-        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO จาก id")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับดึงข้อมูล PO จาก PO Code")]
         [Route("api/v1/wolf-approve/purchases/{id}/{supplier_id}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(PurchaseOrderDetailResponse))]
         public async Task<IActionResult> GetPOShow(string id, string supplier_id)

@@ -11,13 +11,13 @@ namespace VendorPortal.Application.Models.v1.Response
 
     public class CompaniesDetailData
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Request_date { get; set; }
-        public string Request_status { get; set; }
-        public string Website { get; set; }
-        public CompanyAddress Company_address { get; set; }
-        public CompanyContract Company_contract { get; set; }
+        public string id { get; set; }
+        public string name { get; set; }
+        public string request_date { get; set; }
+        public string request_status { get; set; }
+        public string website { get; set; }
+        public CompanyAddress company_address { get; set; }
+        public CompanyContract company_contract { get; set; }
         
     }
 }
