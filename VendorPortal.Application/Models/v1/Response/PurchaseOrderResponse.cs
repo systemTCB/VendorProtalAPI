@@ -8,8 +8,8 @@ namespace VendorPortal.Application.Models.v1.Response
     public class PurchaseOrderResponse
     {
         public string id { get; set; }
-        public string code { get; set; }
-        public QuotationData quotation { get; set; }
+        public string po_number { get; set; }
+        public string quotation_number { get; set; }
         public int company_id { get; set; }
         public string company_name { get; set; }
         public string project_name { get; set; }

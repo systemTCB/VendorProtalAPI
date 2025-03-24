@@ -17,13 +17,13 @@ namespace VendorPortal.Application.Models.v1.Response
     public class PurchaseOrderDetailData
     {
         public string id { get; set; }
-        public string code { get; set; }
-        public QuotationData quotation { get; set; }
-        public int company_id { get; set; }  
+        public string number { get; set; }
+        public int company_id { get; set; }
         public string company_name { get; set; }
         public string project_name { get; set; }
+        public string quotation_number { get; set; }
         public string description { get; set; }
-        public string category_name { get; set; }   
+        public string category_name { get; set; }
         public DateTime order_date { get; set; }
         public DateTime request_date { get; set; }
         public string status { get; set; }
@@ -34,7 +34,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string total_amount { get; set; }
         public string vat_amount { get; set; }
         public string net_amount { get; set; }
-        public List<Line> lines { get; set; }  
+        public List<Line> lines { get; set; }
         public List<Document> documents { get; set; }
         public string payment_condition { get; set; }
         public string remark { get; set; }

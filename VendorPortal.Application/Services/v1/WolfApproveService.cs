@@ -238,7 +238,7 @@ namespace VendorPortal.Application.Services.v1
                         claim_option = s.sClaimOption,
                         claim_reason = s.sClaimReason,
                         claim_return_address = s.sClaimReturnAddress,
-                        code = s.sClaimCode,
+                        claim_number = s.sClaimCode,
                         company_name = s.sCompanyName,
                         create_date = s.nCreatedDate,
                         purchase_order = new ClaimPurchaseOrderData{
@@ -580,7 +580,7 @@ namespace VendorPortal.Application.Services.v1
                         cancel_reason = s.sCancelReason ?? "",
                         catagory_id = s.nCategoryID,
                         category_name = s.sCategoryName,
-                        code = s.sPOCode,
+                        po_number = s.sPOCode,
                         company_contract = new CompanyContract{
                             first_name = s.sContractFirstName,
                             last_name = s.sContractLastName,
@@ -595,9 +595,7 @@ namespace VendorPortal.Application.Services.v1
                         order_date = s.dOrderDate,
                         payment_condition = s.sPaymentCondition,
                         purchase_type_name = s.sProcurementTypeName,
-                        quotation = new QuotationData{
-                            code = s.sQuotationCode
-                        },
+                        quotation_number = s.sQuotationCode,
                         remark = s.sRemark,
                         require_date = s.dRequireDate,
                         ship_to = s.sShipTo,
@@ -668,7 +666,7 @@ namespace VendorPortal.Application.Services.v1
                             cancel_description = _temp.sCancelDesc,
                             cancel_reason = _temp.sCancelReason,
                             category_name = _temp.sCategoryName,
-                            code = _temp.sPOCode,
+                            number = _temp.sPOCode,
                             company_address = new CompanyAddress()
                             {
                                 address_1 = _temp.sAddress1,
@@ -695,10 +693,9 @@ namespace VendorPortal.Application.Services.v1
                             order_date = _temp.dOrderDate,
                             request_date = _temp.dRequireDate,
                             payment_condition = _temp.sPaymentCondition,
-                            quotation = new QuotationData()
-                            {
-                                code = _temp.sQuotationCode
-                            },
+
+                            quotation_number = _temp.sQuotationCode,
+
                             remark = _temp.sRemark,
                             status = _temp.sStatusName,
                             sub_totoal = _temp.dSubtotal,
@@ -830,7 +827,7 @@ namespace VendorPortal.Application.Services.v1
                     var data = dataList.Select(s => new RFQDataItem()
                     {
                         category_name = s.sCategoryName,
-                        code = s.sRFQNumber,
+                        number = s.sRFQNumber,
                         description = s.sProjectDesc,
                         company_contract = new CompanyContract
                         {

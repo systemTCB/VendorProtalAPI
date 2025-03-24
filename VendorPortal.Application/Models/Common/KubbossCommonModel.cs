@@ -48,10 +48,10 @@ namespace VendorPortal.Application.Models.Common
             public string code { get; set; }
             public DateTime purchase_date { get; set; }
         }
-        public class QuotationData
-        {
-            public string code { get; set; }
-        }
+        // public class QuotationData
+        // {
+        //     public string quotation_number { get; set; }
+        // }
 
     }
 }

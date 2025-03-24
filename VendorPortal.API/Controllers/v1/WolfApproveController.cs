@@ -228,9 +228,18 @@ namespace VendorPortal.API.Controllers.v1
             {
                 response = await _wolfApproveService.GetClaimList(supplier_id, company_id, status, from_date, to_date, page, per_page, order_direction, order_by);
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
-                throw;
+                Logger.LogError(ex, "GetClaimList");
+                response = new BaseResponse<List<ClaimResponse>>()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
             }
             return Ok(response);
         }

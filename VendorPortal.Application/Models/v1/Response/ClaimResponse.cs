@@ -8,7 +8,7 @@ namespace VendorPortal.Application.Models.v1.Response
     {
         // Add properties and methods here
         public string id { get; set; }
-        public string code { get; set; }
+        public string claim_number { get; set; }
         public string create_date { get; set; }
         public string company_name { get; set; }
         public ClaimPurchaseOrderData purchase_order { get; set; }
