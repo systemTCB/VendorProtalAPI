@@ -1,3 +1,4 @@
+using System;
 using Microsoft.Extensions.Configuration;
 
 namespace VendorPortal.Application.Models.Common
@@ -45,7 +46,7 @@ namespace VendorPortal.Application.Models.Common
         public class ClaimPurchaseOrderData
         {
             public string code { get; set; }
-            public string purchase_date { get; set; }
+            public DateTime purchase_date { get; set; }
         }
         public class QuotationData
         {

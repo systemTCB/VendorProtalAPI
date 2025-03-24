@@ -44,6 +44,7 @@ namespace VendorPortal.Application.Services.v1
                             address_1 = data.sAddress1,
                             address_2 = data.sAddress2,
                             district = data.sDistrict,
+                            sub_district = data.sSubDistrict,
                             province = data.sProvince,
                             zip_code = data.sZipCode,
                             branch = data.sBranch,
@@ -116,6 +117,7 @@ namespace VendorPortal.Application.Services.v1
                         address_1 = s.sAddress1,
                         address_2 = s.sAddress2,
                         district = s.sDistrict,
+                        sub_district = s.sSubDistrict,
                         province = s.sProvince,
                         zip_code = s.sZipCode,
                         branch = s.sBranch,
@@ -125,10 +127,10 @@ namespace VendorPortal.Application.Services.v1
                         contract_email = s.sContractEmail,
                         contract_phone = s.sContractPhone,
                         IsActive = s.isActive,
-                        CreatedBy = s.CreatedBy,
-                        CreatedDate = s.CreatedDate,
-                        ModifiedBy = s.ModifiedBy,
-                        ModifiedDate = s.ModifiedDate
+                        createdBy = s.CreatedBy,
+                        createddate = s.CreatedDate,
+                        modifiedBy = s.ModifiedBy,
+                        modifieddate = s.ModifiedDate
                     }).ToList()];
                     response.status = new Status()
                     {

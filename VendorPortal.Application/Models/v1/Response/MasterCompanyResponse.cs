@@ -18,6 +18,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string address_1 { get; set; }
         public string address_2 { get; set; }
         public string district { get; set; }
+        public string sub_district { get; set; }
         public string province { get; set; }
         public string zip_code { get; set; }
         public string branch { get; set; }
@@ -27,9 +28,9 @@ namespace VendorPortal.Application.Models.v1.Response
         public string contract_email { get; set; }
         public string contract_phone { get; set; }
         public bool IsActive { get; set; }
-        public string CreatedBy { get; set; }
-        public string ModifiedBy { get; set; }
-        public DateTime? CreatedDate { get; set; }
-        public DateTime? ModifiedDate { get; set; }
+        public string createdBy { get; set; }
+        public string modifiedBy { get; set; }
+        public DateTime? createddate { get; set; }
+        public DateTime? modifieddate { get; set; }
     }
 }

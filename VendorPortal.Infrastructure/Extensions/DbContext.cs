@@ -81,7 +81,7 @@ namespace VendorPortal.Infrastructure.Extensions
                     {
                         if (!object.Equals(dr[prop.Name], DBNull.Value))
                         {
-                            prop.SetValue(obj, Convert.ChangeType(dr[prop.Name], prop.PropertyType), null);
+                            prop.SetValue(obj, Convert.ChangeType(dr[prop.Name], prop?.PropertyType), null);
                         }
                     }
                     list.Add(obj);

@@ -15,6 +15,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string address_1 { get; set; }
         public string address_2 { get; set; }
         public string district { get; set; }
+        public string sub_district { get; set; }
         public string province { get; set; }
         public string zip_code { get; set; }
         public string branch { get; set; }

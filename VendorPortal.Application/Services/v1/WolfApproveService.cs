@@ -210,36 +210,52 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<BaseResponse<List<ClaimResponse>>> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by)
         {
-            BaseResponse<List<ClaimResponse>> result = new();
+            BaseResponse<List<ClaimResponse>> response = new();
             try
             {
                 var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id, company_id, from_date, to_date);
                 if (store.Count != 0)
                 {
-                    result.data = [.. store.Select(s => new ClaimResponse{
-                        id = s.Id,
-                        claim_date = s.Claim_date,
-                        claim_description = s.Claim_description,
-                        claim_option = s.Claim_option,
-                        claim_reason = s.Claim_reason,
-                        claim_return_address = s.Claim_return_address,
-                        code = s.Code,
-                        company_name = s.Company_name,
-                        create_date = s.Create_date,
+                    //kick out if company_id is empty
+                    if (string.IsNullOrEmpty(company_id))
+                    {
+                        response = Utility.PagingCalculator<List<ClaimResponse>>(int.Parse(page), int.Parse(per_page), store.Count, _baseUrl);
+                        response.status = new Status()
+                        {
+                            code = ResponseCode.BadRequest.Text(),
+                            message = ResponseCode.BadRequest.Description()
+                        };
+                        response.data = null;
+                        return response;
+                    }
+                    else
+                    {
+                        store = store.Where(e => e.nCompanyID == Convert.ToInt16(company_id)).ToList();
+                        response.data = [.. store.Select(s => new ClaimResponse{
+                        id = s.nClaimID,
+                        claim_date = s.dClaimDate,
+                        claim_description = s.sClaimDescription,
+                        claim_option = s.sClaimOption,
+                        claim_reason = s.sClaimReason,
+                        claim_return_address = s.sClaimReturnAddress,
+                        code = s.sClaimCode,
+                        company_name = s.sCompanyName,
+                        create_date = s.nCreatedDate,
                         purchase_order = new ClaimPurchaseOrderData{
-                            code = s.Purchase_order.Code,
-                            purchase_date = s.Purchase_order.Purchase_date
+                            code = s.sPOCode,
+                            purchase_date = s.dPurchaseDate
                         }
                     })];
-                    result.status = new Status()
-                    {
-                        code = ResponseCode.Success.Text(),
-                        message = ResponseCode.Success.Description()
-                    };
+                        response.status = new Status()
+                        {
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
+                        };
+                    }
                 }
                 else
                 {
-                    result = new BaseResponse<List<ClaimResponse>>()
+                    response = new BaseResponse<List<ClaimResponse>>()
                     {
                         status = new Status()
                         {
@@ -248,11 +264,12 @@ namespace VendorPortal.Application.Services.v1
                         }
                     };
                 }
+
             }
             catch (ApplicationException ex)
             {
                 Logger.LogError(ex, "GetClaimList");
-                result = new BaseResponse<List<ClaimResponse>>()
+                response = new BaseResponse<List<ClaimResponse>>()
                 {
                     status = new Status()
                     {
@@ -264,7 +281,7 @@ namespace VendorPortal.Application.Services.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "GetClaimList");
-                result = new BaseResponse<List<ClaimResponse>>()
+                response = new BaseResponse<List<ClaimResponse>>()
                 {
                     status = new Status()
                     {
@@ -273,7 +290,7 @@ namespace VendorPortal.Application.Services.v1
                     }
                 };
             }
-            return result;
+            return response;
         }
 
         public async Task<ClaimDetailResponse> GetClaimDetail(string claim_id, string supplier_id)
@@ -318,7 +335,7 @@ namespace VendorPortal.Application.Services.v1
                         purchase_order = new ClaimPurchaseOrderData()
                         {
                             code = store.Purchase_order.Code,
-                            purchase_date = store.Purchase_order.Purchase_date.ToString()
+                            purchase_date = store.Purchase_order.Purchase_date
                         }
                     };
                     result = new ClaimDetailResponse()

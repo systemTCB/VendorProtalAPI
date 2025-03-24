@@ -35,5 +35,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sContractPhone { get; set; }
         public string sCompanyName { get; set; }
         public int nCompanyID { get; set; }
+        public string sQuotationCode { get; set; }
     }
 }

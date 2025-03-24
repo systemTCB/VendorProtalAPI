@@ -37,40 +37,5 @@ namespace VendorPortal.Application.Services.v1
             }
 
         }
-        public async Task<PurchaseOrderResponse> GetPurchaseOrder(PurchaseOrderRequest request)
-        {
-            var response = new PurchaseOrderResponse();
-            try
-            {
-                // var result = await _vendotPortalRepository.GetPurchaseOrder(request.orderNo);
-                // if (result.status.code == ResponseCode.Success.Text())
-                // {
-                //     response.Data = result.data.Select(e => new PurchaseOrderData
-                //     {
-                //         // OrderNo = e.orderNo,
-                //         // OrderSendDate = e.orderSendDate,
-                //         // OrderItem = e.orderItem.Select(s => new PurchaseItem
-                //         // {
-                //         //     OrderItem = s.orderItem,
-                //         //     ItemName = s.itemName,
-                //         //     ItemValue = s.itemValue,
-                //         //     ItemUnit = s.itemUnit,
-                //         // }).ToList()
-                //     }).ToList();
-                // }
-            }
-            catch (Exception ex)
-            {
-                // response.status = new Status()
-                // {
-                //     code = ResponseCode.InternalServerError.Text(),
-                //     message = ex.Message,
-                // };
-            }
-
-            return response;
-        }
-
-        
     }
 }
