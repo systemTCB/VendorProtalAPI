@@ -101,7 +101,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id, string company_id, string from_date, string to_date)
+        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(int? supplier_id, int? company_id, string from_date, string to_date, int? status_id)
         {
             var mock = new List<SP_GET_CLAIM_LIST>();
             try

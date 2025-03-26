@@ -132,7 +132,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             throw new System.NotImplementedException();
         }
 
-        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(string supplier_id, string company_id, string from_date, string to_date)
+        public async Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(int? supplier_id, int? company_id, string from_date, string to_date, int? status_id)
         {
             List<SP_GET_CLAIM_LIST> result = new List<SP_GET_CLAIM_LIST>();
             try
@@ -143,10 +143,11 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     var sql = "SP_GET_CLAIM_LIST";
                     var param = new SqlParameter[]
                     {
-                        new SqlParameter("@SupplierID", supplier_id),
-                        new SqlParameter("@CompanyID", company_id),
-                        new SqlParameter("@FromDate", from_date),
-                        new SqlParameter("@ToDate", to_date)
+                        new SqlParameter("@supplier_id", supplier_id),
+                        new SqlParameter("@company_id", company_id),
+                        new SqlParameter("@status", status_id ),
+                        new SqlParameter("@from_date", from_date),
+                        new SqlParameter("@to_date", to_date)
                     };
                     result = await _context.ExcuteStoreQueryListAsync<SP_GET_CLAIM_LIST>(sql, param);
                 }

@@ -7,5 +7,6 @@ namespace VendorPortal.Application.Interfaces.v1
     {
         // Define your method signatures here
         Task<AuthenticationResponse> AuthenticateToken(string token, string channel);
+        Task<bool> CheckConnection();
     }
 }

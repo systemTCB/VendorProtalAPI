@@ -208,50 +208,75 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
-        public async Task<BaseResponse<List<ClaimResponse>>> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by)
+        public async Task<BaseResponse<List<ClaimResponse>>> GetClaimList(
+            string supplier_id,
+            string company_id,
+            string status,
+            string from_date,
+            string to_date,
+            string page,
+            string per_page,
+            string order_direction,
+            string order_by)
         {
             BaseResponse<List<ClaimResponse>> response = new();
+            page = page ?? "1";
+            per_page = per_page ?? "10";
             try
             {
-                var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id, company_id, from_date, to_date);
+                //kick out if company_id is empty
+                if (string.IsNullOrEmpty(company_id))
+                {
+                    response = Utility.PagingCalculator<List<ClaimResponse>>(int.Parse(page), int.Parse(per_page), 0, _baseUrl);
+                    response.status = new Status()
+                    {
+                        code = ResponseCode.BadRequest.Text(),
+                        message = ResponseCode.BadRequest.Description()
+                    };
+                    response.data = null;
+                    return response;
+                }
+                var store = await _wolfApproveRepository.SP_GET_CLAIM_LIST(supplier_id: string.IsNullOrWhiteSpace(supplier_id) ? null : Convert.ToInt16(supplier_id),
+                                                                           company_id: string.IsNullOrWhiteSpace(company_id) ? null : Convert.ToInt16(company_id),
+                                                                           status_id: string.IsNullOrWhiteSpace(status) ? null : Convert.ToInt16(status),
+                                                                           from_date: from_date ?? null,
+                                                                           to_date: to_date ?? null);
                 if (store.Count != 0)
                 {
-                    //kick out if company_id is empty
-                    if (string.IsNullOrEmpty(company_id))
+                    // if(!string.IsNullOrWhiteSpace(company_id))
+                    //     store = [.. store.Where(e => e.nCompanyID == Convert.ToInt16(company_id))];
+                    // if(!string.IsNullOrWhiteSpace(status))
+                    //     store = [.. store.Where(e => e.sStatusName == status)];
+                    // if(!striubng)
+                    // store = [.. store.Where(e => e.dClaimDate >= DateTime.Parse(from_date))];
+                    // store = [.. store.Where(e => e.dClaimDate <= DateTime.Parse(to_date))];
+                    // store = [.. store.Where(e => e.nSupplierID == Convert.ToInt16(supplier_id))];
+                    var data = new List<ClaimResponse>();
+                    data = [.. store.Select(s => new ClaimResponse{
+                            id = s.nClaimID,
+                            claim_date = s.dClaimDate,
+                            claim_description = s.sClaimDescription,
+                            claim_option = s.sClaimOption,
+                            claim_reason = s.sClaimReason,
+                            claim_return_address = s.sClaimReturnAddress,
+                            claim_number = s.sClaimCode,
+                            company_id = s.nCompanyID,
+                            company_name = s.sCompanyName,
+                            create_date = s.dClaimDate,
+                            po_number = s.sPOCode,
+                            status_id = s.nStatusID,
+                            status = s.sStatusName,
+                            purchase_date = s.dPOCreatedDate,
+                            supplier_id = s.nSupplierID
+                        })];
+                    response = Utility.PagingCalculator<List<ClaimResponse>>(int.Parse(page), int.Parse(per_page), store.Count, _baseUrl);
+                    response.data = data;
+                    response.status = new Status()
                     {
-                        response = Utility.PagingCalculator<List<ClaimResponse>>(int.Parse(page), int.Parse(per_page), store.Count, _baseUrl);
-                        response.status = new Status()
-                        {
-                            code = ResponseCode.BadRequest.Text(),
-                            message = ResponseCode.BadRequest.Description()
-                        };
-                        response.data = null;
-                        return response;
-                    }
-                    else
-                    {
-                        store = store.Where(e => e.nCompanyID == Convert.ToInt16(company_id)).ToList();
-                        response.data = [.. store.Select(s => new ClaimResponse{
-                        id = s.nClaimID,
-                        claim_date = s.dClaimDate,
-                        claim_description = s.sClaimDescription,
-                        claim_option = s.sClaimOption,
-                        claim_reason = s.sClaimReason,
-                        claim_return_address = s.sClaimReturnAddress,
-                        claim_number = s.sClaimCode,
-                        company_name = s.sCompanyName,
-                        create_date = s.nCreatedDate,
-                        purchase_order = new ClaimPurchaseOrderData{
-                            code = s.sPOCode,
-                            purchase_date = s.dPurchaseDate
-                        }
-                    })];
-                        response.status = new Status()
-                        {
-                            code = ResponseCode.Success.Text(),
-                            message = ResponseCode.Success.Description()
-                        };
-                    }
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
+                    };
+
                 }
                 else
                 {

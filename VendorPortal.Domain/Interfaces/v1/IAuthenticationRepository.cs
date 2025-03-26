@@ -7,5 +7,7 @@ namespace VendorPortal.Domain.Interfaces.v1
     {
         // Define method signatures for authentication repository
         Task<SP_AUTHENTICATE_CHANNEL> SP_AUTHENTICATE_CHANNEL(string token, string channel);
+        Task<bool> CHECK_CONNECTION();
+
     }
 }

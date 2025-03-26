@@ -1,3 +1,5 @@
+using System;
+using System.Data;
 using System.Threading.Tasks;
 using Dapper;
 using Microsoft.Data.SqlClient;
@@ -19,7 +21,31 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             _dbContext = dbContext;
         }
 
-        public async Task<SP_AUTHENTICATE_CHANNEL> SP_AUTHENTICATE_CHANNEL(string token , string channel)
+        public async Task<bool> CHECK_CONNECTION()
+        {
+            using var connection = _dbContext.CreateConnectionRead();
+            bool isSuccess = false;
+            try
+            {
+                connection.Open();
+                await Task.Run(async () =>
+                {
+                    isSuccess = connection.State == ConnectionState.Open ? true : false;
+                });
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "CHECK_CONNECTION");
+            }
+            finally
+            {
+                connection.Close();
+            }
+            return isSuccess;
+        }
+
+        public async Task<SP_AUTHENTICATE_CHANNEL> SP_AUTHENTICATE_CHANNEL(string token, string channel)
         {
             SP_AUTHENTICATE_CHANNEL response = new SP_AUTHENTICATE_CHANNEL();
             try

@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using VendorPortal.Application.Helpers;
@@ -97,6 +98,19 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "AuthenticateToken");
             }
             return response;
+        }
+
+        public async Task<bool> CheckConnection()
+        {
+            try
+            {
+                return await _authenticationRepository.CHECK_CONNECTION();
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CheckConnection");
+                return false;
+            }
         }
     }
 }
