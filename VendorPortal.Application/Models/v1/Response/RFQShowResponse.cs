@@ -13,7 +13,7 @@ namespace VendorPortal.Application.Models.v1.Response
     public class RFQShowData
     {
         public string id { get; set; }
-        public string number { get; set; }
+        public string rfq_number { get; set; }
         public int company_id { get; set; }
         public string company_name { get; set; }
         public string project_name { get; set; }
@@ -36,5 +36,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public string payment_condition { get; set; }
         public string remark { get; set; }
         public List<Document> documents { get; set; }
+
+        public List<Questionnaire> questionnaire { get; set; }
     }
+
 }

@@ -81,6 +81,27 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             return result;
         }
 
+        public async Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id)
+        {
+            List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID> result = new List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID";
+                    var param = new SqlParameter[] { new SqlParameter("@RFQID", id) };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID");
+                return result;
+            }
+            return result;
+        }
+
         public async Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST()
         {
             List<SP_GET_PURCHASE_ORDER> result = new List<SP_GET_PURCHASE_ORDER>();

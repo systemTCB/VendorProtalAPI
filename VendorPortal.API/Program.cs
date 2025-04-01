@@ -11,6 +11,8 @@ using VendorPortal.Infrastructure.IoC.Middleware;
 using Serilog;
 using Serilog.Extensions;
 using VendorPortal.API.Middleware;
+using VendorPortal.Application.Services.v1;
+using VendorPortal.Application.Services.SyncExternalData;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,11 +41,13 @@ builder.Services.AddServices(builder.Configuration);
 // builder.Services.AddHealthChecks()
 //     .AddCheck<HealthCheckDisburseDataService>("hc", failureStatus: HealthStatus.Unhealthy);
 
+
 builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 {
     options.Delay = TimeSpan.FromSeconds(2);
     options.Period = TimeSpan.FromSeconds(3600);
 });
+// builder.Services.AddHostedService<KubbossService>();
 
 // builder.Services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();
 // builder.Services.AddHostedService<RetryReceiverService>();

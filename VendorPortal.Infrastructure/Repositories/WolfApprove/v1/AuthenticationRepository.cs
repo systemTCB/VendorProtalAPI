@@ -28,7 +28,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             try
             {
                 connection.Open();
-                await Task.Run(async () =>
+                await Task.Run(() =>
                 {
                     isSuccess = connection.State == ConnectionState.Open ? true : false;
                 });

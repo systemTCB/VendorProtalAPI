@@ -10,6 +10,7 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST();
         Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id);
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
+        Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id);
 
         // Purchase Order
         Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST();

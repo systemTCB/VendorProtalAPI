@@ -229,5 +229,21 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             }
             return mock;
         }
+
+        public async Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id)
+        {
+            var mock = new List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>();
+            try
+            {
+                string filename = "SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
+            return mock;
+        }
     }
 }

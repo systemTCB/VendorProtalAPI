@@ -12,7 +12,7 @@ namespace VendorPortal.Application.Models.v1.Response
             company_contract = new CompanyContract();
         }
         public string id { get; set; }
-        public string number { get; set; }
+        public string rfq_number { get; set; }
         public string company_name { get; set; }
         public string project_name { get; set; }
         public string description { get; set; }

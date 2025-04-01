@@ -243,14 +243,6 @@ namespace VendorPortal.Application.Services.v1
                                                                            to_date: to_date ?? null);
                 if (store.Count != 0)
                 {
-                    // if(!string.IsNullOrWhiteSpace(company_id))
-                    //     store = [.. store.Where(e => e.nCompanyID == Convert.ToInt16(company_id))];
-                    // if(!string.IsNullOrWhiteSpace(status))
-                    //     store = [.. store.Where(e => e.sStatusName == status)];
-                    // if(!striubng)
-                    // store = [.. store.Where(e => e.dClaimDate >= DateTime.Parse(from_date))];
-                    // store = [.. store.Where(e => e.dClaimDate <= DateTime.Parse(to_date))];
-                    // store = [.. store.Where(e => e.nSupplierID == Convert.ToInt16(supplier_id))];
                     var data = new List<ClaimResponse>();
                     data = [.. store.Select(s => new ClaimResponse{
                             id = s.nClaimID,
@@ -685,77 +677,92 @@ namespace VendorPortal.Application.Services.v1
                     if (result != null)
                     {
                         var _temp = result.FirstOrDefault();
-                        response.Data = new PurchaseOrderDetailData()
+                        if (_temp != null)
                         {
-                            id = _temp.nPOID,
-                            cancel_description = _temp.sCancelDesc,
-                            cancel_reason = _temp.sCancelReason,
-                            category_name = _temp.sCategoryName,
-                            number = _temp.sPOCode,
-                            company_address = new CompanyAddress()
+                            response.Data = new PurchaseOrderDetailData()
                             {
-                                address_1 = _temp.sAddress1,
-                                address_2 = _temp.sAddress2,
-                                branch = _temp.sBranch,
-                                district = _temp.sDistrict,
-                                province = _temp.sProvince,
-                                sub_district = _temp.sSubDistrict,
-                                tax_number = _temp.sTaxNumber,
-                                zip_code = _temp.sZipCode
-                            },
-                            company_contract = new CompanyContract()
+                                id = _temp.nPOID,
+                                cancel_description = _temp.sCancelDesc,
+                                cancel_reason = _temp.sCancelReason,
+                                category_name = _temp.sCategoryName,
+                                po_number = _temp.sPOCode,
+                                company_address = new CompanyAddress()
+                                {
+                                    address_1 = _temp.sAddress1,
+                                    address_2 = _temp.sAddress2,
+                                    branch = _temp.sBranch,
+                                    district = _temp.sDistrict,
+                                    province = _temp.sProvince,
+                                    sub_district = _temp.sSubDistrict,
+                                    tax_number = _temp.sTaxNumber,
+                                    zip_code = _temp.sZipCode
+                                },
+                                company_contract = new CompanyContract()
+                                {
+                                    email = _temp.sContractEmail,
+                                    first_name = _temp.sContractFirstName,
+                                    last_name = _temp.sContractLastName,
+                                    phone = _temp.sContractPhone
+                                },
+                                company_id = _temp.nCompanyID,
+                                company_name = _temp.sCompanyName,
+                                project_name = _temp.sProjectName,
+                                description = _temp.sProjectDesc,
+                                discount = _temp.dDiscount,
+                                order_date = _temp.dOrderDate,
+                                request_date = _temp.dRequireDate,
+                                payment_condition = _temp.sPaymentCondition,
+
+                                quotation_number = _temp.sQuotationCode,
+
+                                remark = _temp.sRemark,
+                                status = _temp.sStatusName,
+                                sub_totoal = _temp.dSubtotal,
+                                ship_to = _temp.sShipTo,
+                                lines = new List<Line>()
+                                // net_amount = _temp.dNetAmount,
+                                // total_amount = _temp.dTotalAmount,
+                                // vat_amount = _temp.dVatAmount
+
+                            };
+                            // ItemLine
+                            var i = 1;
+                            foreach (var item in result)
                             {
-                                email = _temp.sContractEmail,
-                                first_name = _temp.sContractFirstName,
-                                last_name = _temp.sContractLastName,
-                                phone = _temp.sContractPhone
-                            },
-                            company_id = _temp.nCompanyID,
-                            company_name = _temp.sCompanyName,
-                            project_name = _temp.sProjectName,
-                            description = _temp.sProjectDesc,
-                            discount = _temp.dDiscount,
-                            order_date = _temp.dOrderDate,
-                            request_date = _temp.dRequireDate,
-                            payment_condition = _temp.sPaymentCondition,
-
-                            quotation_number = _temp.sQuotationCode,
-
-                            remark = _temp.sRemark,
-                            status = _temp.sStatusName,
-                            sub_totoal = _temp.dSubtotal,
-                            ship_to = _temp.sShipTo,
-                            lines = new List<Line>()
-                            // net_amount = _temp.dNetAmount,
-                            // total_amount = _temp.dTotalAmount,
-                            // vat_amount = _temp.dVatAmount
-
-                        };
-                        // ItemLine
-                        var i = 1;
-                        foreach (var item in result)
-                        {
-                            response.Data.lines.Add(new Line()
+                                response.Data.lines.Add(new Line()
+                                {
+                                    id = item.nLineID,
+                                    description = item.sItemDescption,
+                                    item_code = item.sItemCode,
+                                    item_name = item.sItemName,
+                                    line_number = i.ToString(),
+                                    quantity = item.nQuantity,
+                                    uom_name = item.sItemUomName,
+                                    unit_price = item.dUnitPrice
+                                });
+                                i++;
+                            }
+                            // Document
+                            // var _documnet = xxx 
+                            // for 
+                            response.status = new Status()
                             {
-                                id = item.nLineID,
-                                description = item.sItemDescption,
-                                item_code = item.sItemCode,
-                                item_name = item.sItemName,
-                                line_number = i.ToString(),
-                                quantity = item.nQuantity,
-                                uom_name = item.sItemUomName,
-                                unit_price = item.dUnitPrice
-                            });
-                            i++;
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            };
                         }
-                        // Document
-                        // var _documnet = xxx 
-                        // for 
-                        response.status = new Status()
+                        else
                         {
-                            code = ResponseCode.Success.Text(),
-                            message = ResponseCode.Success.Description()
-                        };
+                            response = new PurchaseOrderDetailResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = ResponseCode.NotFound.Text(),
+                                    message = ResponseCode.NotFound.Description()
+                                },
+                                Data = null
+                            };
+                        }
                     }
                     else
                     {
@@ -852,7 +859,7 @@ namespace VendorPortal.Application.Services.v1
                     var data = dataList.Select(s => new RFQDataItem()
                     {
                         category_name = s.sCategoryName,
-                        number = s.sRFQNumber,
+                        rfq_number = s.sRFQNumber,
                         description = s.sProjectDesc,
                         company_contract = new CompanyContract
                         {
@@ -961,7 +968,7 @@ namespace VendorPortal.Application.Services.v1
                         discount = _companyInfo.dDiscount,
                         end_date = _companyInfo.dEndDate,
                         net_amount = _companyInfo.dNetAmount,
-                        number = _companyInfo.sRFQNumber,
+                        rfq_number = _companyInfo.sRFQNumber,
                         payment_condition = _companyInfo.sPaymentCondition,
                         project_name = _companyInfo.sProjectName,
                         purchase_type_name = _companyInfo.sProcurementTypeName,
@@ -973,7 +980,8 @@ namespace VendorPortal.Application.Services.v1
                         total_amount = _companyInfo.dTotalAmount,
                         vat_amount = _companyInfo.dVatAmount,
                         lines = new List<Line>(),
-                        documents = new List<Document>()
+                        documents = new List<Document>(),
+                        questionnaire = new List<Questionnaire>()
                     };
                     int i = 1;
                     foreach (var item in sp_result.OrderBy(s => s.nLineID))
@@ -1004,6 +1012,21 @@ namespace VendorPortal.Application.Services.v1
                             {
                                 fileUrl = item.sFilePath,
                                 name = item.sFileName
+                            });
+                        }
+                    }
+
+                    var questionnaire = await _wolfApproveRepository.SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(rfq_id);
+                    if(questionnaire.Any())
+                    {
+                        foreach (var item in questionnaire)
+                        {
+                            tempList.questionnaire.Add(new Questionnaire
+                            {
+                                question_id = item.nQuestion_ID,
+                                question = item.sQuestion,
+                                question_number = item.nQuestionNumber,
+                                answer = item.sAnswer
                             });
                         }
                     }
