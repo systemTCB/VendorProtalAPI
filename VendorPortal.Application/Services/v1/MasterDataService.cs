@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Diagnostics;
@@ -162,6 +163,128 @@ namespace VendorPortal.Application.Services.v1
                         message = ResponseCode.InternalServerError.Description()
                     },
                     Data = null
+                };
+            }
+            return response;
+        }
+
+        public async Task<MasterCompanySyncUpdateResponse> GetCompanySyncUpdate(DateTime lastSyncDate)
+        {
+            MasterCompanySyncUpdateResponse response = new MasterCompanySyncUpdateResponse();
+            try
+            {
+                // if (string.IsNullOrEmpty(lastSyncDate))
+                if(lastSyncDate == DateTime.MinValue)
+                {
+                    response = new MasterCompanySyncUpdateResponse()
+                    {
+                        status = new Application.Models.Common.Status()
+                        {
+                            code = ResponseCode.BadRequest.Text(),
+                            message = ResponseCode.BadRequest.Description()
+                        },
+                        data = null
+                    };
+                    return response;
+                }
+                else if (lastSyncDate == DateTime.MaxValue)
+                {
+                    response = new MasterCompanySyncUpdateResponse()
+                    {
+                        status = new Application.Models.Common.Status()
+                        {
+                            code = ResponseCode.BadRequest.Text(),
+                            message = ResponseCode.BadRequest.Description()
+                        },
+                        data = null
+                    };
+                    return response;
+                }
+                else
+                {
+                    // bool isDate = DateTime.TryParseExact(lastSyncDate, "yyyy-MM-ddTHH:mm:sss", null, System.Globalization.DateTimeStyles.None, out DateTime lastSyncDateTime);
+                    if (true)
+                    {
+                        var result = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
+                        if (result.Count != 0 && result.Any())
+                        {
+                            var data = result.Where(e => e.ModifiedDate >= lastSyncDate).ToList();
+                            if (data.Count != 0 && data.Any())
+                            {
+                                response.data = [.. data.Select(s => new MasterCompanyData
+                                {
+                                    company_id = s.nCompanyID,
+                                    company_name = s.sCompanyName,
+                                    address_1 = s.sAddress1,
+                                    address_2 = s.sAddress2,
+                                    district = s.sDistrict,
+                                    sub_district = s.sSubDistrict,
+                                    province = s.sProvince,
+                                    zip_code = s.sZipCode,
+                                    branch = s.sBranch,
+                                    tax_number = s.sTaxNumber,
+                                    contract_first_name = s.sContractFirstName,
+                                    contract_last_name = s.sContractLastName,
+                                    contract_email = s.sContractEmail,
+                                    contract_phone = s.sContractPhone,
+                                    IsActive = s.isActive,
+                                    createdBy = s.CreatedBy,
+                                    createddate = s.CreatedDate,
+                                    modifiedBy = s.ModifiedBy,
+                                    modifieddate = s.ModifiedDate
+                                }).ToList()];
+                                response.status = new Status()
+                                {
+                                    code = ResponseCode.Success.Text(),
+                                    message = ResponseCode.Success.Description()
+                                };
+                            }
+                            else
+                            {
+                                response.data.Clear();
+                                response.status = new Status()
+                                {
+                                    code = ResponseCode.NotFound.Text(),
+                                    message = ResponseCode.NotFound.Description()
+                                };
+                            }
+                        }
+                        else
+                        {
+                            response.data.Clear();
+                            response.status = new Status()
+                            {
+                                code = ResponseCode.NotFound.Text(),
+                                message = ResponseCode.NotFound.Description()
+                            };
+                        }
+
+                    }
+                    else
+                    {
+                        response = new MasterCompanySyncUpdateResponse()
+                        {
+                            status = new Application.Models.Common.Status()
+                            {
+                                code = ResponseCode.BadRequest.Text(),
+                                message = ResponseCode.BadRequest.Description()
+                            },
+                            data = null
+                        };
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetCompanySyncUpdate");
+                response = new MasterCompanySyncUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
                 };
             }
             return response;

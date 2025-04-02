@@ -81,7 +81,9 @@ namespace VendorPortal.Infrastructure.Extensions
                     {
                         if (!object.Equals(dr[prop.Name], DBNull.Value))
                         {
-                            prop.SetValue(obj, Convert.ChangeType(dr[prop.Name], prop?.PropertyType), null);
+                            var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                            var safeValue = dr[prop.Name] == DBNull.Value ? null : Convert.ChangeType(dr[prop.Name], targetType);
+                            prop.SetValue(obj, safeValue, null);
                         }
                     }
                     list.Add(obj);

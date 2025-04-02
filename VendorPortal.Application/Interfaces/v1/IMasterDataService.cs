@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Core.Pipeline;
@@ -9,5 +10,6 @@ namespace VendorPortal.Application.Interfaces.v1
     {
         Task<MasterCompanyResponse> GetCompanyList(bool isShowAll);
         Task<MasterCompanyByIdResponse> GetCompanyById(string companyId);
+        Task<MasterCompanySyncUpdateResponse> GetCompanySyncUpdate(DateTime lastSyncDate);
     }
 }
