@@ -11,7 +11,9 @@ namespace VendorPortal.API.Middleware
     using System.Linq;
     using System.Threading.Tasks;
     using VendorPortal.Application.Helpers;
+    using VendorPortal.Application.Models.Common;
     using VendorPortal.Application.Models.v1.Response;
+    using static VendorPortal.Application.Models.Common.AppEnum;
 
     public class TokenVerificationMiddleware
     {
@@ -28,7 +30,15 @@ namespace VendorPortal.API.Middleware
         /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            if (!context.Request.Path.Value.Contains("api/v1/wolf-approve/auth"))
+            var path = context.Request.Path.Value;
+            // Excelude paths that do not require token verification
+            // You can add more paths to this list as needed
+            string[] pathArrayList ={
+                "api/v1/wolf-approve/auth",
+                "alive",
+                "/",
+            };
+            if (pathArrayList.All(x => !path.Contains(x)))
             {
                 if (context.Request.Headers.ContainsKey("Authorization"))
                 {
@@ -51,7 +61,15 @@ namespace VendorPortal.API.Middleware
                             if (ExipreDate < DateTime.Now)
                             {
                                 context.Response.StatusCode = 401;
-                                await context.Response.WriteAsync("Token has expired");
+                                BaseResponse response = new BaseResponse()
+                                {
+                                    status = new Status()
+                                    {
+                                        code = ResponseCode.Unauthorized.Text(),
+                                        message = ResponseCode.Unauthorized.Description()
+                                    }
+                                };
+                                await context.Response.WriteAsync(JsonConvert.SerializeObject(response));
                                 return;
                             }
                             else

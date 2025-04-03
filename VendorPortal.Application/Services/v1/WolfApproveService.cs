@@ -1067,6 +1067,28 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
+
+        public async Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request)
+        {
+            BaseResponse  response = new BaseResponse();
+            try
+            {
+                var result = await _wolfApproveRepository.SP_PUT_QUOTATION(rfq_id, request.quo_number ,request.status , request.reason);
+            }
+            catch (System.Exception ex)
+            {
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+                Logger.LogError(ex, "PutQuotation", $"rfq_id: {rfq_id}");
+            }
+            return response;
+        }
     }
 
 }

@@ -24,7 +24,7 @@ namespace VendorPortal.Infrastructure.Extensions
         public IDbConnection CreateConnectionRead() => new SqlConnection(_configuration.GetConnectionString("WolfApprove"));
         public IDbConnection CreateConnectionWrite() => new SqlConnection(_configuration.GetConnectionString("WolfApprove"));
 
-        public async Task<bool> ExecuteStoreNonQueryAsync(string store, SqlParameter[] sqlParameter = null)
+        public async Task<(bool isSuccess, string message)> ExecuteStoreNonQueryAsync(string store, SqlParameter[] sqlParameter = null)
         {
             SqlConnection sqlConnection = new SqlConnection(_connection);
             try
@@ -43,25 +43,25 @@ namespace VendorPortal.Infrastructure.Extensions
                 {
                     var isSuccess = (bool)dr["result"];
                     var msg = (string)dr["Message"];
-                    return isSuccess;
+                    return (isSuccess, msg);
                 }
                 else
                 {
-                    return false;
+                    return (false, "No data returned from stored procedure.");
                 }
             }
             catch (Exception ex)
             {
                 sqlConnection.Close();
                 Logger.LogError(ex, "ExecuteStoreNonQueryAsync");
-                return false;
+                return (false , "Insternal Server Error.");  
             }
             finally { sqlConnection.Close(); }
         }
         public async Task<List<T>> ExcuteStoreQueryListAsync<T>(string store, SqlParameter[] sqlParameter = null)
         {
             SqlConnection sqlConnection = new SqlConnection(_connection);
-            
+
             try
             {
                 sqlConnection.Open();
@@ -120,7 +120,9 @@ namespace VendorPortal.Infrastructure.Extensions
                     {
                         if (!object.Equals(dr[prop.Name], DBNull.Value))
                         {
-                            prop.SetValue(obj, Convert.ChangeType(dr[prop.Name], prop.PropertyType), null);
+                            var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                            var safeValue = dr[prop.Name] == DBNull.Value ? null : Convert.ChangeType(dr[prop.Name], targetType);
+                            prop.SetValue(obj, safeValue, null);
                         }
                     }
                 }

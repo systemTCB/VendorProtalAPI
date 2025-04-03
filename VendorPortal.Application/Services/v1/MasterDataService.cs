@@ -174,7 +174,7 @@ namespace VendorPortal.Application.Services.v1
             try
             {
                 // if (string.IsNullOrEmpty(lastSyncDate))
-                if(lastSyncDate == DateTime.MinValue)
+                if (lastSyncDate == DateTime.MinValue)
                 {
                     response = new MasterCompanySyncUpdateResponse()
                     {
@@ -202,16 +202,13 @@ namespace VendorPortal.Application.Services.v1
                 }
                 else
                 {
-                    // bool isDate = DateTime.TryParseExact(lastSyncDate, "yyyy-MM-ddTHH:mm:sss", null, System.Globalization.DateTimeStyles.None, out DateTime lastSyncDateTime);
-                    if (true)
+                    var result = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
+                    if (result.Count != 0 && result.Any())
                     {
-                        var result = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
-                        if (result.Count != 0 && result.Any())
+                        var data = result.Where(e => e.ModifiedDate >= lastSyncDate).ToList();
+                        if (data.Count != 0 && data.Any())
                         {
-                            var data = result.Where(e => e.ModifiedDate >= lastSyncDate).ToList();
-                            if (data.Count != 0 && data.Any())
-                            {
-                                response.data = [.. data.Select(s => new MasterCompanyData
+                            response.data = [.. data.Select(s => new MasterCompanyData
                                 {
                                     company_id = s.nCompanyID,
                                     company_name = s.sCompanyName,
@@ -233,21 +230,11 @@ namespace VendorPortal.Application.Services.v1
                                     modifiedBy = s.ModifiedBy,
                                     modifieddate = s.ModifiedDate
                                 }).ToList()];
-                                response.status = new Status()
-                                {
-                                    code = ResponseCode.Success.Text(),
-                                    message = ResponseCode.Success.Description()
-                                };
-                            }
-                            else
+                            response.status = new Status()
                             {
-                                response.data.Clear();
-                                response.status = new Status()
-                                {
-                                    code = ResponseCode.NotFound.Text(),
-                                    message = ResponseCode.NotFound.Description()
-                                };
-                            }
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            };
                         }
                         else
                         {
@@ -258,20 +245,17 @@ namespace VendorPortal.Application.Services.v1
                                 message = ResponseCode.NotFound.Description()
                             };
                         }
-
                     }
                     else
                     {
-                        response = new MasterCompanySyncUpdateResponse()
+                        response.data.Clear();
+                        response.status = new Status()
                         {
-                            status = new Application.Models.Common.Status()
-                            {
-                                code = ResponseCode.BadRequest.Text(),
-                                message = ResponseCode.BadRequest.Description()
-                            },
-                            data = null
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
                         };
                     }
+
                 }
             }
             catch (System.Exception ex)

@@ -8,6 +8,9 @@ using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Infrastructure.Repositories.WolfApprove.v1;
 using Serilog;
 using Microsoft.Extensions.Logging;
+using FluentValidation.AspNetCore;
+using Namespace.Application.Models.v1.ValidationRequest;
+using FluentValidation;
 namespace VendorPortal.Infrastructure.IoC
 {
     public static class DependencyRegistration
@@ -24,22 +27,10 @@ namespace VendorPortal.Infrastructure.IoC
             services.AddScoped<IMasterDataService, MasterDataService>();
 
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
-        //     services.AddFluentValidation(options =>
-        //    {
-        //        // v1
-        //        options.RegisterValidatorsFromAssemblyContaining<GetTxnInitiateRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<InsertTxnConfirmRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<InsertTxnInitialRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateTransactionPendingRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateAccountRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateTransactionInformationRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateHoldTransactionRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<InsertTransactionHistoryHoldRequestValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateLockTxnValidator>();
-        //        options.RegisterValidatorsFromAssemblyContaining<UpdateTransactionStatusRequestValidator>();
-        //        // v2
-        //        options.RegisterValidatorsFromAssemblyContaining<InsertTxnInitialSapiRequestValidator>();
-        //    });
+            services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+            
+            // add your validators here
+            services.AddValidatorsFromAssemblyContaining<CancelQuotationValidation>();
 
             // services.AddSingleton<SensitiveDataHelper>();
             services.AddSingleton<DbContext>();

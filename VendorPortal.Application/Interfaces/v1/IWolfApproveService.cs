@@ -50,5 +50,8 @@ namespace VendorPortal.Application.Interfaces.v1
         //Count
         Task<CountResponse> GetCountClaimPo(string supplier_id);
 
+        //Quotation
+        Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request);
+
     }
 }

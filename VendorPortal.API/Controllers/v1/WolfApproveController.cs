@@ -418,5 +418,35 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
         #endregion
+    
+        #region [Quatation]
+        [HttpPut]
+        [Route("api/v1/wolf-approve/quotation/noti/{rfq_id}")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API สำหรับ Cancelled Quatation")]
+        public async Task<IActionResult> PutCancelQuotation(string rfq_id, [FromBody] CancelQuotationRequest request)
+        {
+            BaseResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.PutCancelQuotation(rfq_id, request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "PutQuotation", $"rfq_id:{rfq_id} , request:{JsonConvert.SerializeObject(request)}");
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
+        
+        #endregion
+    
     }
 }

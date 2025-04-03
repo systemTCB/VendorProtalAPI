@@ -1,0 +1,9 @@
+namespace VendorPortal.Application.Models.v1.Request
+{
+    public class CancelQuotationRequest
+    {
+        public string quo_number { get; set; } = string.Empty;
+        public string reason { get; set; } = string.Empty;
+        public string status { get; set; } = string.Empty;
+    }
+}

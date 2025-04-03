@@ -29,5 +29,8 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         //Count
         Task<SP_GET_COUNT_PO_CLAIM> SP_GET_COUNT_PO_CLAIM();
+
+        //Quotation
+        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id,string quo_number, string status, string reason);
     }
 }

@@ -210,6 +210,34 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             throw new System.NotImplementedException();
         }
 
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string status, string reason)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_PUT_QUOTATION";
+                    var param = new SqlParameter[]
+                    {
+                        new("@RFQID", rfq_id),
+                        new("@QuotationNumber", quo_number),
+                        new("@Status", status),
+                        new("@Reason", reason)
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    return new SP_PUT_QUOTATION
+                    {
+                        result = sp_response.isSuccess,
+                        message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception)
+            {
 
+                throw;
+            }
+        }
     }
 }

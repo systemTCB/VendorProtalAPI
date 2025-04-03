@@ -16,7 +16,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
         private readonly ILogger<KubbossService> _logger;
         private readonly DbContext _dbContext;
         
-        private Timer? _timer = null;
+        private Timer _timer = null;
         private int executionCount = 0;
         public KubbossService(ILogger<KubbossService> logger , DbContext dbContext)
         {
@@ -40,7 +40,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
             return Task.CompletedTask;
         }
 
-        private void DoWork(object? state)
+        private void DoWork(object state)
         {
             _logger.LogInformation("Timed Hosted Service is working.");
             var count = Interlocked.Increment(ref executionCount);

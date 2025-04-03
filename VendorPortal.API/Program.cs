@@ -36,7 +36,8 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger); // Register Serilog.ILogger
-builder.Services.AddServices(builder.Configuration);
+builder.Services.AddServices(builder.Configuration); 
+builder.Services.AddControllersWithViews();
 
 // builder.Services.AddHealthChecks()
 //     .AddCheck<HealthCheckDisburseDataService>("hc", failureStatus: HealthStatus.Unhealthy);
@@ -55,8 +56,14 @@ builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 builder.Services.AddResponseCompression();
 
 var app = builder.Build();
+app.UseDefaultFiles();
+
+app.UseStaticFiles();
+
 app.UseSwagger();
 app.UseResponseCompression();
+app.MapControllers();
+app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Configure the HTTP request pipeline.
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
