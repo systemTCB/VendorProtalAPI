@@ -48,7 +48,7 @@ builder.Services.Configure<HealthCheckPublisherOptions>(options =>
     options.Delay = TimeSpan.FromSeconds(2);
     options.Period = TimeSpan.FromSeconds(3600);
 });
-// builder.Services.AddHostedService<KubbossService>();
+//builder.Services.AddHostedService<KubbossService>();
 
 // builder.Services.AddSingleton<IHealthCheckPublisher, HealthCheckPublisher>();
 // builder.Services.AddHostedService<RetryReceiverService>();

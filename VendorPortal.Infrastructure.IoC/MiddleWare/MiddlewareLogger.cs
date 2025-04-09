@@ -21,14 +21,12 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly Serilog.ILogger _log;
-        // private readonly SensitiveDataHelper _sensitiveDataHelper;
         private readonly RecyclableMemoryStreamManager _memory;
         public MiddlewareLogger(RequestDelegate next, Serilog.ILogger log)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _log = log ?? throw new ArgumentNullException(nameof(log));
             _memory = new RecyclableMemoryStreamManager();
-            // _sensitiveDataHelper = sensitiveDataHelper;
         }
 
         public async Task Invoke(HttpContext context)
@@ -41,7 +39,7 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
             await context.Request.Body.CopyToAsync(requestStream);
             var requestData = ReadStreamInChunks(requestStream);
             context.Request.Body.Position = 0;
-            // requestData = _sensitiveDataHelper.SetSensitiveData(requestData);
+            
             //Response
             var originalBodyStream = context.Response.Body;
             await using var responseBody = _memory.GetStream();
@@ -52,7 +50,7 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
             context.Response.Body.Seek(0, SeekOrigin.Begin);
 
             var responseData = await new StreamReader(context.Response.Body).ReadToEndAsync();
-            // responseData = _sensitiveDataHelper.SetSensitiveData(responseData);
+            
             context.Response.Body.Seek(0, SeekOrigin.Begin);
 
             try
@@ -87,9 +85,6 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
                         ? MappingResponseMessage(response.StatusCode.ToString()) 
                         : MappingResponseMessage(baseResponse?.status?.code));
                 }
-
-                // var routeData = context.GetRouteData();
-                // var apiName = routeData.Values["action"]?.ToString();
 
                 var ip = context.Connection.RemoteIpAddress;
                 var port = context.Connection.RemotePort;

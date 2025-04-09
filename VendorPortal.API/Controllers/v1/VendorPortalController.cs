@@ -19,6 +19,9 @@ namespace VendorPortal.API.Controllers.v1
     {
         public VendorPortalController()
         {
+
         }
+
+        
     }
 }

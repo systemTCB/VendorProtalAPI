@@ -11,6 +11,9 @@ using Microsoft.Extensions.Logging;
 using FluentValidation.AspNetCore;
 using Namespace.Application.Models.v1.ValidationRequest;
 using FluentValidation;
+using VendorPortal.Application.Interfaces.SyncExternalData;
+using VendorPortal.Application.Services.SyncExternalData;
+using VendorPortal.Domain.Interfaces.SyncExternalData;
 namespace VendorPortal.Infrastructure.IoC
 {
     public static class DependencyRegistration
@@ -18,27 +21,33 @@ namespace VendorPortal.Infrastructure.IoC
         public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
         {
             // //Application
-            // services.AddSingleton<RabbitMQService>();
             services.AddSingleton<AppConfigHelper>();
-            // services.AddSingleton<RabbitConfigHelper>();
+
             /* --------Service v1--------*/
             services.AddScoped<IWolfApproveService, WolfApproveService>();
-            services.AddScoped<IAuthenticationService , AuthenticationService>();
+            services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IMasterDataService, MasterDataService>();
 
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
             services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
+
+            
+            // services.AddSingleton<SensitiveDataHelper>();
+            services.AddSingleton<DbContext>();
+
+            //Infrastructure
+            services.AddHttpClient();
+            services.AddScoped<IWolfApproveRepository, WolfApproveRepository>();
+            services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+            services.AddScoped<IMasterDataRepository, MasterDataRepository>();
+            
             
             // add your validators here
             services.AddValidatorsFromAssemblyContaining<CancelQuotationValidation>();
-
-            // services.AddSingleton<SensitiveDataHelper>();
-            services.AddSingleton<DbContext>();
-            //Infrastructure
-            services.AddHttpClient();
-            services.AddScoped<IWolfApproveRepository , WolfApproveRepository>();
-            services.AddScoped<IAuthenticationRepository , AuthenticationRepository>();
-            services.AddScoped<IMasterDataRepository, MasterDataRepository>();
+            
+            // External Service (Third Party)
+            services.AddScoped<IKubbossService, KubbossService>();
+            services.AddScoped<IKubbossRepository, IKubbossRepository>();
             return services;
         }
     }
