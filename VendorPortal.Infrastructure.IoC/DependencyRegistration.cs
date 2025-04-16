@@ -6,14 +6,11 @@ using VendorPortal.Application.Services.v1;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Infrastructure.Repositories.WolfApprove.v1;
-using Serilog;
-using Microsoft.Extensions.Logging;
 using FluentValidation.AspNetCore;
 using Namespace.Application.Models.v1.ValidationRequest;
 using FluentValidation;
 using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Services.SyncExternalData;
-using VendorPortal.Domain.Interfaces.SyncExternalData;
 namespace VendorPortal.Infrastructure.IoC
 {
     public static class DependencyRegistration
@@ -31,6 +28,9 @@ namespace VendorPortal.Infrastructure.IoC
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
             services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();
 
+                        // External Service (Third Party)
+            services.AddScoped<IKubbossService, KubbossService>();
+
             
             // services.AddSingleton<SensitiveDataHelper>();
             services.AddSingleton<DbContext>();
@@ -45,9 +45,7 @@ namespace VendorPortal.Infrastructure.IoC
             // add your validators here
             services.AddValidatorsFromAssemblyContaining<CancelQuotationValidation>();
             
-            // External Service (Third Party)
-            services.AddScoped<IKubbossService, KubbossService>();
-            services.AddScoped<IKubbossRepository, IKubbossRepository>();
+
             return services;
         }
     }

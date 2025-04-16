@@ -1,19 +1,18 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
+using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Services.SyncExternalData;
 
 namespace VendorPortal.API.Controllers.v1
 {
+    [ApiController]
     public class SyncDataController : ControllerBase
     {
-        private readonly ILogger<SyncDataController> _logger;
-        private readonly KubbossService _kubbossService;
+        private readonly IKubbossService _kubbossService;
 
-        public SyncDataController(ILogger<SyncDataController> logger, KubbossService kubbossService)
+        public SyncDataController(IKubbossService kubbossService)
         {
-            _logger = logger;
             _kubbossService = kubbossService;
         }
 
@@ -27,7 +26,6 @@ namespace VendorPortal.API.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while syncing data.");
                 return StatusCode(500, "Internal server error.");
             }
         }

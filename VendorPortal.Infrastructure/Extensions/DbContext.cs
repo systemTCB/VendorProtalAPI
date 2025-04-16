@@ -79,7 +79,7 @@ namespace VendorPortal.Infrastructure.Extensions
                     obj = Activator.CreateInstance<T>();
                     foreach (PropertyInfo prop in obj.GetType().GetProperties())
                     {
-                        if (!dr.GetColumnSchema().Any(c => c.ColumnName == prop.Name))
+                        if (dr.GetColumnSchema().Any(c => c.ColumnName == prop.Name))
                         {
                             if (!object.Equals(dr[prop.Name], DBNull.Value))
                             {
@@ -121,11 +121,14 @@ namespace VendorPortal.Infrastructure.Extensions
                     obj = Activator.CreateInstance<T>();
                     foreach (PropertyInfo prop in obj.GetType().GetProperties())
                     {
-                        if (!object.Equals(dr[prop.Name], DBNull.Value))
+                        if (dr.GetColumnSchema().Any(c => c.ColumnName == prop.Name))
                         {
-                            var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
-                            var safeValue = dr[prop.Name] == DBNull.Value ? null : Convert.ChangeType(dr[prop.Name], targetType);
-                            prop.SetValue(obj, safeValue, null);
+                            if (!object.Equals(dr[prop.Name], DBNull.Value))
+                            {
+                                var targetType = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                                var safeValue = dr[prop.Name] == DBNull.Value ? null : Convert.ChangeType(dr[prop.Name], targetType);
+                                prop.SetValue(obj, safeValue, null);
+                            }
                         }
                     }
                 }

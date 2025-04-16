@@ -1017,7 +1017,7 @@ namespace VendorPortal.Application.Services.v1
                     }
 
                     var questionnaire = await _wolfApproveRepository.SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(rfq_id);
-                    if(questionnaire.Any())
+                    if (questionnaire.Any())
                     {
                         foreach (var item in questionnaire)
                         {
@@ -1070,10 +1070,48 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request)
         {
-            BaseResponse  response = new BaseResponse();
+            BaseResponse response = new BaseResponse();
             try
             {
-                var result = await _wolfApproveRepository.SP_PUT_QUOTATION(rfq_id, request.quo_number ,request.status , request.reason);
+                var verify = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(rfq_id);
+                if (verify == null || !verify.Any())
+                {
+                    response = new BaseResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                    return response;
+                }
+                else
+                {
+                    var result = await _wolfApproveRepository.SP_PUT_QUOTATION(rfq_id, request.quo_number, request.status, request.reason);
+                    if (result.result)
+                    {
+                        response = new BaseResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            }
+                        };
+                    }
+                    else
+                    {
+                        response = new BaseResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.NotImplement.Text(),
+                                message = result.message
+                            }
+                        };
+                    }
+                }
             }
             catch (System.Exception ex)
             {
