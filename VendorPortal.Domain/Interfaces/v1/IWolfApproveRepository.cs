@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
@@ -10,6 +11,32 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST();
         Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id);
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
+
+        Task<SP_CREATE_RFQ> SP_CREATE_RFQ(
+            string rfq_number, 
+            int company_id,
+            string company_name,
+            string rfq_status,
+            decimal sub_total, 
+            decimal discount,
+            decimal total_amount,
+            decimal net_amount,
+            string payment_condition,
+            string project_name,
+            string project_description,
+            int procurement_tyepe_id,
+            string procurement_type_name,
+            int catagory_id,
+            string category_name,
+            DateTime start_date,
+            DateTime end_date,
+            DateTime required_date,
+            int status_id,
+            string status_name,
+            decimal contract_value,
+            string remark,
+            string created_by
+        );
         Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id);
 
         // Purchase Order

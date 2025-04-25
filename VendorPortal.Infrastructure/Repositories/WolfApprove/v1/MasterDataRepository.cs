@@ -18,6 +18,26 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             _dbContext = dbContext;
         }
 
+        public async Task<List<SP_GET_MASTER_CATAGORY>> SP_GET_MASTER_CATAGORY(bool isShowAll)
+        {
+            List<SP_GET_MASTER_CATAGORY> data = new List<SP_GET_MASTER_CATAGORY>();
+            try
+            {
+                using (var connection = _dbContext.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_MASTER_CATAGORY";
+                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll ? 1 : 0) };
+                    data = await _dbContext.ExcuteStoreQueryListAsync<SP_GET_MASTER_CATAGORY>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_MASTER_COMPANY");
+            }
+            return data;
+        }
+
         public async Task<List<SP_GET_MASTER_COMPANY>> SP_GET_MASTER_COMPANY(bool isShowAll)
         {
             List<SP_GET_MASTER_COMPANY> data = new List<SP_GET_MASTER_COMPANY>();
@@ -27,8 +47,28 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 {
                     connection.Open();
                     var sql = "SP_GET_MASTER_COMPANY";
-                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll ? "1" : "0") };
+                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll ? 1 : 0) };
                     data = await _dbContext.ExcuteStoreQueryListAsync<SP_GET_MASTER_COMPANY>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_MASTER_COMPANY");
+            }
+            return data;
+        }
+
+        public async Task<List<SP_GET_PROCUREMENT_TYPE>> SP_GET_MASTER_PROCUREMENTTYPE(bool isShowAll)
+        {
+            List<SP_GET_PROCUREMENT_TYPE> data = new List<SP_GET_PROCUREMENT_TYPE>();
+            try
+            {
+                using (var connection = _dbContext.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_MASTER_PROCUREMENTTYPE";
+                    var param = new SqlParameter[] { new SqlParameter("@isShowAll", isShowAll ? 1 : 0) };
+                    data = await _dbContext.ExcuteStoreQueryListAsync<SP_GET_PROCUREMENT_TYPE>(sql, param);
                 }
             }
             catch (System.Exception ex)

@@ -233,10 +233,69 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     };
                 }
             }
-            catch (System.Exception)
+            catch (System.Exception ex)
             {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_PUT_QUOTATION
+                {
+                    result = false,
+                    message = ex.Message,
+                };
+            }
+        }
 
-                throw;
+        public async Task<SP_CREATE_RFQ> SP_CREATE_RFQ(
+            string rfq_number, 
+            int company_id,
+            string company_name,
+            string rfq_status,
+            decimal sub_total, 
+            decimal discount,
+            decimal total_amount,
+            decimal net_amount,
+            string payment_condition,
+            string project_name,
+            string project_description,
+            int procurement_tyepe_id,
+            string procurement_type_name,
+            int catagory_id,
+            string procurement_category_name,
+            DateTime start_date,
+            DateTime end_date,
+            DateTime required_date,
+            int status_id,
+            string status_name,
+            decimal contract_value,
+            string remark,
+            string created_by
+        )
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_CREATE_RFQ";
+                    var param = new SqlParameter[]
+                    {
+                        
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    return new SP_CREATE_RFQ
+                    {
+                        result = sp_response.isSuccess,
+                        message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_CREATE_RFQ
+                {
+                    result = false,
+                    message = ex.Message,
+                };
             }
         }
     }

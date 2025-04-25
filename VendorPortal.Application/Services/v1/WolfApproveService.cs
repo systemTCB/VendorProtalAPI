@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,6 +10,7 @@ using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
@@ -25,11 +27,13 @@ namespace VendorPortal.Application.Services.v1
     public class WolfApproveService : IWolfApproveService
     {
         private readonly IWolfApproveRepository _wolfApproveRepository;
+        private readonly IMasterDataRepository _masterDataRepository;
         private readonly AppConfigHelper _appConfigHelper;
         private readonly IHttpContextAccessor _httpContext;
         private readonly string _baseUrl = string.Empty;
         public WolfApproveService(IHttpContextAccessor httpContext,
             IWolfApproveRepository wolfApproveRepository,
+            IMasterDataRepository masterDataRepository,
             AppConfigHelper appConfigHelper
             )
         {
@@ -45,6 +49,7 @@ namespace VendorPortal.Application.Services.v1
             else
             {
                 _wolfApproveRepository = wolfApproveRepository;
+                _masterDataRepository = masterDataRepository;
             }
         }
 
@@ -881,7 +886,7 @@ namespace VendorPortal.Application.Services.v1
                         start_date = s.dStartDate,
                         status = s.sStatusName
                     }).ToList();
-                    result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, data.Count, _baseUrl);
+                    result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, item.Count, _baseUrl);
                     result.data = data;
                     result.status = new Status()
                     {
@@ -1068,6 +1073,66 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<RFQCreateResponse> CreateRFQ(RFQCreateRequest request)
+        {
+            RFQCreateResponse response = new();
+            try
+            {
+                var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
+                var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
+                var _catagory = await _masterDataRepository.SP_GET_MASTER_CATAGORY(isShowAll: true);
+
+                var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
+                var procurementData = _pocurement_type.Where(e => e.nProcurementTypeID == request.procurement_tyepe_id).FirstOrDefault();
+                var catagotyData = _catagory.Where(e => e.nCatagoryID == request.procurement_category_id).FirstOrDefault();
+                if (companyData != null)
+                {
+
+                    var result = await _wolfApproveRepository.SP_CREATE_RFQ(
+                    request.rfq_number,
+                        company_id: companyData.nCompanyID,
+                        company_name: companyData.sCompanyName,
+                        request.rfq_status,
+                        request.sub_total,
+                        request.discount,
+                        request.total_amount,
+                        request.net_amount,
+                        request.payment_condition,
+                        request.project_name,
+                        request.project_description,
+                        request.procurement_tyepe_id ?? 0,
+                        procurement_type_name: procurementData.sProcurementTypeName,
+                        catagory_id: request.procurement_category_id ?? 0,
+                        category_name: catagotyData.sCatagotyName,
+                        start_date: DateTime.ParseExact(request.start_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
+                        end_date: DateTime.ParseExact(request.end_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
+                        required_date: DateTime.ParseExact(request.required_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
+                        status_id: 0,
+                        status_name: "Pending",
+                        request.contract_value,
+                        request.remark,
+                        request.created_by
+                    );
+                }
+                else
+                {
+                    response = new RFQCreateResponse
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Unauthorized.Text(),
+                            message = "ไม่พบข้อมูล Company ที่ระบุ"
+                        }
+                    };
+
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
         public async Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request)
         {
             BaseResponse response = new BaseResponse();
@@ -1127,6 +1192,8 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
+
+
     }
 
 }

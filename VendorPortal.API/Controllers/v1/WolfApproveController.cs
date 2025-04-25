@@ -106,6 +106,35 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/rfqs/create")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "ใช้สำหรับสร้าง RFQ ใหม่")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQCreateResponse))]
+        public async Task<IActionResult> CreateRFQ([FromBody] RFQCreateRequest request)
+        {
+            RFQCreateResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.CreateRFQ(request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new RFQCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
         #endregion
 
         #region [Puchase Order]
