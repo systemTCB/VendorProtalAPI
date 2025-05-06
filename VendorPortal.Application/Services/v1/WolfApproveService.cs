@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using VendorPortal.Application.Helpers;
@@ -17,6 +18,7 @@ using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
+using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
@@ -1080,19 +1082,56 @@ namespace VendorPortal.Application.Services.v1
             {
                 var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
                 var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
-                var _catagory = await _masterDataRepository.SP_GET_MASTER_CATAGORY(isShowAll: true);
+                var _catagory = await _masterDataRepository.SP_GET_MASTER_CATEGORY(isShowAll: true);
 
                 var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
-                var procurementData = _pocurement_type.Where(e => e.nProcurementTypeID == request.procurement_tyepe_id).FirstOrDefault();
-                var catagotyData = _catagory.Where(e => e.nCatagoryID == request.procurement_category_id).FirstOrDefault();
-                if (companyData != null)
+                if (companyData == null)
                 {
+                    response = new RFQCreateResponse
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Unprocessable.Text(),
+                            message = "ไม่พบข้อมูล Company ที่ระบุ"
+                        },
+                        data = null
+                    };
+                    return response;
+                }
+                var procurementData = _pocurement_type.Where(e => e.nProcurementTypeID == request.procurement_type_id).FirstOrDefault();
+                if (procurementData == null)
+                {
+                    response = new RFQCreateResponse
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Unprocessable.Text(),
+                            message = "ไม่พบข้อมูล Procurement Type ที่ระบุ"
+                        },
+                        data = null
+                    };
+                    return response;
+                }
+                var catagotyData = _catagory.Where(e => e.nCategoryID == request.procurement_category_id).FirstOrDefault();
+                if (catagotyData == null)
+                {
+                    response = new RFQCreateResponse
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Unprocessable.Text(),
+                            message = "ไม่พบข้อมูล Catagory ที่ระบุ"
+                        },
+                        data = null
+                    };
+                    return response;
+                }
 
-                    var result = await _wolfApproveRepository.SP_CREATE_RFQ(
-                    request.rfq_number,
+                var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
+                        request.rfq_number,
                         company_id: companyData.nCompanyID,
                         company_name: companyData.sCompanyName,
-                        request.rfq_status,
+                        rfq_status: "Pending",
                         request.sub_total,
                         request.discount,
                         request.total_amount,
@@ -1100,32 +1139,61 @@ namespace VendorPortal.Application.Services.v1
                         request.payment_condition,
                         request.project_name,
                         request.project_description,
-                        request.procurement_tyepe_id ?? 0,
+                        request.procurement_type_id ?? 0,
                         procurement_type_name: procurementData.sProcurementTypeName,
                         catagory_id: request.procurement_category_id ?? 0,
-                        category_name: catagotyData.sCatagotyName,
-                        start_date: DateTime.ParseExact(request.start_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
-                        end_date: DateTime.ParseExact(request.end_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
-                        required_date: DateTime.ParseExact(request.required_date.ToString(), "yyyy-MM-ddT00:00:00.000", CultureInfo.InvariantCulture),
+                        category_name: catagotyData.sCategoryName,
+                        start_date: request.start_date,
+                        end_date: request.end_date,
+                        required_date: request.required_date,
                         status_id: 0,
                         status_name: "Pending",
                         request.contract_value,
                         request.remark,
                         request.created_by
                     );
+                if (result.Result == true)
+                {
+                    // Store Insert Item
+                    List<TEMP_RFQ_ITEM> itemList = new();
+                    foreach (var item in request.items)
+                    {
+                        itemList.Add(new TEMP_RFQ_ITEM()
+                        {
+                            sRFQID = result.RFQID?.ToString(),
+                            nLineID = item.line_id,
+                            sItemCode = item.item_code,
+                            sItemName = item.item_name,
+                            sItemUomName = item.item_uom_name,
+                            sItemDescption = item.item_descption,
+                            nQuantity = item.quantity,
+                            dUnitPrice = item.unit_price,
+                            dVatRate = item.vat_rate,
+                            dVatAmount = item.vat_amount,
+                            dTotalAmount = item.total_amount,
+                            IsActive = true,
+                            CreatedBy = request.created_by,
+                        });
+                        await _wolfApproveRepository.SP_INSERT_NEWREQ_ITEMLINES(itemList);
+                    }
+
+                    // Store Insert Document if not null
+
                 }
                 else
                 {
-                    response = new RFQCreateResponse
+                    response = new RFQCreateResponse()
                     {
                         status = new Status()
                         {
-                            code = ResponseCode.Unauthorized.Text(),
-                            message = "ไม่พบข้อมูล Company ที่ระบุ"
-                        }
+                            code = ResponseCode.Unprocessable.Text(),
+                            message = result.Message
+                        },
+                        data = null
                     };
-
+                    Logger.LogError(new Exception(result.Message), "CreateRFQ", $"request: {JsonConvert.SerializeObject(request)}");
                 }
+
             }
             catch (System.Exception ex)
             {

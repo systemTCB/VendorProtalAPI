@@ -41,7 +41,7 @@ namespace VendorPortal.Infrastructure.Extensions
                 SqlDataReader dr = await command.ExecuteReaderAsync();
                 if (dr.Read())
                 {
-                    var isSuccess = (bool)dr["result"];
+                    var isSuccess = (bool)dr["Result"];
                     var msg = (string)dr["Message"];
                     return (isSuccess, msg);
                 }

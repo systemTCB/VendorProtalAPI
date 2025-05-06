@@ -12,7 +12,7 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id);
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
 
-        Task<SP_CREATE_RFQ> SP_CREATE_RFQ(
+        Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(
             string rfq_number, 
             int company_id,
             string company_name,
@@ -37,6 +37,8 @@ namespace VendorPortal.Domain.Interfaces.v1
             string remark,
             string created_by
         );
+
+        Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);
         Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id);
 
         // Purchase Order

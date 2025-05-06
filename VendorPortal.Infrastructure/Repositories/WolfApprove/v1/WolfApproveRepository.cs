@@ -244,12 +244,12 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_CREATE_RFQ> SP_CREATE_RFQ(
-            string rfq_number, 
+        public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(
+            string rfq_number,
             int company_id,
             string company_name,
             string rfq_status,
-            decimal sub_total, 
+            decimal sub_total,
             decimal discount,
             decimal total_amount,
             decimal net_amount,
@@ -258,7 +258,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string project_description,
             int procurement_tyepe_id,
             string procurement_type_name,
-            int catagory_id,
+            int category_id,
             string procurement_category_name,
             DateTime start_date,
             DateTime end_date,
@@ -275,16 +275,39 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 using (var connection = _context.CreateConnectionRead())
                 {
                     connection.Open();
-                    var sql = "SP_CREATE_RFQ";
+                    var sql = "SP_INSERT_NEWRFQ";
                     var param = new SqlParameter[]
                     {
-                        
+                        new SqlParameter("@sRFQNUMBER", rfq_number),
+                        new SqlParameter("@nCompanyID", company_id),
+                        new SqlParameter("@sCompanyName", company_name),
+                        new SqlParameter("@sRFQStatus", rfq_status),
+                        new SqlParameter("@dSubTotal", sub_total),
+                        new SqlParameter("@dDiscount", discount),
+                        new SqlParameter("@dTotalAmount", total_amount),
+                        new SqlParameter("@dNetAmount", net_amount),
+                        new SqlParameter("@sPaymentCondition", payment_condition),
+                        new SqlParameter("@sProjectName", project_name),
+                        new SqlParameter("@sProjectDescption", project_description),
+                        new SqlParameter("@nProcurementTypeID", procurement_tyepe_id),
+                        new SqlParameter("@sProcurementTypeName", procurement_type_name),
+                        new SqlParameter("@nCategoryID", category_id),
+                        new SqlParameter("@sCategoryName", procurement_category_name),
+                        new SqlParameter("@dStartDate", start_date),
+                        new SqlParameter("@dEndDate", end_date),
+                        new SqlParameter("@dRequireDate", required_date),
+                        new SqlParameter("@nStatusID", status_id),
+                        new SqlParameter("@sStatusName", status_name),
+                        new SqlParameter("@sContractValue", contract_value),
+                        new SqlParameter("@sRemark", remark),
+                        new SqlParameter("@sCreatedBy", created_by),
                     };
-                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ
                     {
-                        result = sp_response.isSuccess,
-                        message = sp_response.message,
+                        Result = sp_response.Result,
+                        Message = sp_response.Message,
+                        RFQID = sp_response.RFQID,
                     };
                 }
             }
@@ -293,8 +316,41 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 Logger.LogError(ex, "WolfApproveRepository");
                 return new SP_CREATE_RFQ
                 {
-                    result = false,
-                    message = ex.Message,
+                    Result = false,
+                    Message = ex.Message,
+                };
+            }
+        }
+
+        public async Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_INSERT_NEWREQ_ITEMLINES";
+
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@RFQItems", rfq_items.ConvertToDataTable())
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    
+                    return new SP_CREATE_ITEM
+                    {
+                        Result = sp_response.isSuccess,
+                        Message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_CREATE_ITEM
+                {
+                    Result = false,
+                    Message = ex.Message,
                 };
             }
         }

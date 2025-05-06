@@ -9,6 +9,6 @@ namespace VendorPortal.Domain.Interfaces.v1
         // Define your method signatures here
         Task<List<SP_GET_MASTER_COMPANY>> SP_GET_MASTER_COMPANY(bool isShowAll);
         Task<List<SP_GET_PROCUREMENT_TYPE>> SP_GET_MASTER_PROCUREMENTTYPE (bool isShowAll);
-        Task<List<SP_GET_MASTER_CATAGORY>> SP_GET_MASTER_CATAGORY(bool isShowAll);
+        Task<List<SP_GET_MASTER_CATAGORY>> SP_GET_MASTER_CATEGORY(bool isShowAll);
     }
 }
