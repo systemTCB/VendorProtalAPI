@@ -39,6 +39,8 @@ namespace VendorPortal.Domain.Interfaces.v1
         );
 
         Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);
+        Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires);
+        Task<SP_CREATE_DOCUMENT> SP_INSERT_NEWRFQ_DOCUMENT(List<TEMP_RFQ_DOCUMENT> rfq_documents);
         Task<List<SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID>> SP_GET_RFQ_QUESTIONNAIRE_BY_RFQID(string id);
 
         // Purchase Order

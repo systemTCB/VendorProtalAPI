@@ -295,5 +295,36 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
+        public async Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires)
+        {
+            var mock = new SP_CREATE_QUESTIONNAIRE();
+            try
+            {
+                string filename = "SP_INSERT_NEWRFQ_QUESTIONNAIRE.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<SP_CREATE_QUESTIONNAIRE>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
+            return mock;
+        }
+
+        public async Task<SP_CREATE_DOCUMENT> SP_INSERT_NEWRFQ_DOCUMENT(List<TEMP_RFQ_DOCUMENT> rfq_documents)
+        {
+            var mock = new SP_CREATE_DOCUMENT();
+            try
+            {
+                string filename = "SP_INSERT_NEWRFQ_QUESTIONNAIRE.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<SP_CREATE_DOCUMENT>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
+            return mock;
+        }
     }
 }

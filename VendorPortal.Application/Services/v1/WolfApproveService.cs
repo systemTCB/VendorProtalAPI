@@ -988,7 +988,7 @@ namespace VendorPortal.Application.Services.v1
                         vat_amount = _companyInfo.dVatAmount,
                         lines = new List<Line>(),
                         documents = new List<Document>(),
-                        questionnaire = new List<Questionnaire>()
+                        questionnaire = new List<KubbossCommonModel.Questionnaire>()
                     };
                     int i = 1;
                     foreach (var item in sp_result.OrderBy(s => s.nLineID))
@@ -1028,7 +1028,7 @@ namespace VendorPortal.Application.Services.v1
                     {
                         foreach (var item in questionnaire)
                         {
-                            tempList.questionnaire.Add(new Questionnaire
+                            tempList.questionnaire.Add(new KubbossCommonModel.Questionnaire
                             {
                                 question_id = item.nQuestion_ID,
                                 question = item.sQuestion,
@@ -1078,6 +1078,7 @@ namespace VendorPortal.Application.Services.v1
         public async Task<RFQCreateResponse> CreateRFQ(RFQCreateRequest request)
         {
             RFQCreateResponse response = new();
+            DateTime createdDate = DateTime.Now;
             try
             {
                 var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
@@ -1152,36 +1153,91 @@ namespace VendorPortal.Application.Services.v1
                         request.remark,
                         request.created_by
                     );
+                // Check if the RFQ was created successfully
                 if (result.Result == true)
                 {
                     // Store Insert Item
-                    List<TEMP_RFQ_ITEM> itemList = new();
-                    foreach (var item in request.items)
+                    if (request.items != null && request.items.Any())
                     {
-                        itemList.Add(new TEMP_RFQ_ITEM()
+                        List<TEMP_RFQ_ITEM> itemList = new();
+                        foreach (var item in request.items)
                         {
-                            sRFQID = result.RFQID?.ToString(),
-                            nLineID = item.line_id,
-                            sItemCode = item.item_code,
-                            sItemName = item.item_name,
-                            sItemUomName = item.item_uom_name,
-                            sItemDescption = item.item_descption,
-                            nQuantity = item.quantity,
-                            dUnitPrice = item.unit_price,
-                            dVatRate = item.vat_rate,
-                            dVatAmount = item.vat_amount,
-                            dTotalAmount = item.total_amount,
-                            IsActive = true,
-                            CreatedBy = request.created_by,
-                        });
-                        await _wolfApproveRepository.SP_INSERT_NEWREQ_ITEMLINES(itemList);
+                            itemList.Add(new TEMP_RFQ_ITEM()
+                            {
+                                sRFQID = result.RFQID?.ToString(),
+                                nLineID = item.line_id,
+                                sItemCode = item.item_code,
+                                sItemName = item.item_name,
+                                sItemUomName = item.item_uom_name,
+                                sItemDescption = item.item_descption,
+                                nQuantity = item.quantity,
+                                dUnitPrice = item.unit_price,
+                                dVatRate = item.vat_rate,
+                                dVatAmount = item.vat_amount,
+                                dTotalAmount = item.total_amount,
+                                IsActive = true,
+                                CreatedBy = request.created_by,
+                            });
+                        }
+                        var res = await _wolfApproveRepository.SP_INSERT_NEWREQ_ITEMLINES(itemList);
+                        Logger.LogInfo("Insert Item", "CreateRFQ", $"result: {res.Message}");
+
                     }
+                    if (request.questionaires != null && request.questionaires.Any())
+                    {
+                        List<TEMP_RFQ_QUESTIONNAIRE> questionnaireList = new();
 
-                    // Store Insert Document if not null
+                        foreach (var item in request.questionaires)
+                        {
+                            questionnaireList.Add(new TEMP_RFQ_QUESTIONNAIRE()
+                            {
+                                nRFQID = result.RFQID?.ToString(),
+                                sQuestionNumber = item.questionnaire_number,
+                                sQuestion = item.questionnaire_detail,
+                                sAnswer = null,
+                            });
+                        }
+                        var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_QUESTIONNAIRE(questionnaireList);
+                        Logger.LogInfo("Insert Questionnaire", "CreateRFQ", $"result: {res.Message}");
 
+                    }
+                    if (request.attachments != null && request.attachments.Any())
+                    {
+                        List<TEMP_RFQ_DOCUMENT> documents = new();
+                        foreach (var item in request.attachments)
+                        {
+                            documents.Add(new TEMP_RFQ_DOCUMENT()
+                            {
+                                nRFQID = result.RFQID?.ToString(),
+                                sFileName = item.file_name,
+                                sFilePath = item.file_path,
+                                sFileSeq = item.file_seq,
+                                CreatedBy = request.created_by,
+                            });
+                        }
+                        var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                        Logger.LogInfo("Insert Document", "CreateRFQ", $"result: {res.Message}");
+                    }
+                    response = new RFQCreateResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Description()
+                        },
+                        data = new RFQCreateData()
+                        {
+                            rfq_id = result.RFQID.ToString(),
+                            rfq_number = request.rfq_number,
+                            company_id = companyData.nCompanyID,
+                            company_name = companyData.sCompanyName,
+                            created_date = DateTime.Now,
+                        }
+                    };
                 }
                 else
                 {
+                    Logger.LogError(new Exception(result.Message), "CreateRFQ", $"request: {JsonConvert.SerializeObject(request)}");
                     response = new RFQCreateResponse()
                     {
                         status = new Status()
@@ -1191,13 +1247,22 @@ namespace VendorPortal.Application.Services.v1
                         },
                         data = null
                     };
-                    Logger.LogError(new Exception(result.Message), "CreateRFQ", $"request: {JsonConvert.SerializeObject(request)}");
+
                 }
 
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "CreateRFQ", $"request: {JsonConvert.SerializeObject(request)}");
+                response = new RFQCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
             }
             return response;
         }

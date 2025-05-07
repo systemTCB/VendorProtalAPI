@@ -336,7 +336,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@RFQItems", rfq_items.ConvertToDataTable())
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
-                    
+
                     return new SP_CREATE_ITEM
                     {
                         Result = sp_response.isSuccess,
@@ -348,6 +348,72 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             {
                 Logger.LogError(ex, "WolfApproveRepository");
                 return new SP_CREATE_ITEM
+                {
+                    Result = false,
+                    Message = ex.Message,
+                };
+            }
+        }
+
+        public async Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_INSERT_NEWRFQ_QUESTIONNAIRE";
+
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@RFQQuestions", rfq_questionnaires.ConvertToDataTable())
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+
+                    return new SP_CREATE_QUESTIONNAIRE
+                    {
+                        Result = sp_response.isSuccess,
+                        Message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_CREATE_QUESTIONNAIRE
+                {
+                    Result = false,
+                    Message = ex.Message,
+                };
+            }
+        }
+
+        public async Task<SP_CREATE_DOCUMENT> SP_INSERT_NEWRFQ_DOCUMENT(List<TEMP_RFQ_DOCUMENT> rfq_documents)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_INSERT_NEWRFQ_DOCUMENT";
+
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@Documents", rfq_documents.ConvertToDataTable())
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+
+                    return new SP_CREATE_DOCUMENT
+                    {
+                        Result = sp_response.isSuccess,
+                        Message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_CREATE_DOCUMENT
                 {
                     Result = false,
                     Message = ex.Message,

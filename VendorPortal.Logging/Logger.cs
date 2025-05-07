@@ -50,5 +50,37 @@ namespace VendorPortal.Logging
             catch{ }
 
         }
+        public async static void LogInfo(string message, string name, string? request = null)
+        {
+            var configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+
+            string _LogFile = configuration["Logging:Path:Directory"] ?? "";
+            if (string.IsNullOrEmpty(_LogFile))
+            {
+                throw new InvalidOperationException("LogFile path is not configured.");
+            }
+            string basePath = $"{_LogFile}/{DateTime.Now.Date:yyyyMMdd}";
+            try
+            {
+                if (!Directory.Exists($"{basePath}"))
+                    Directory.CreateDirectory(basePath);
+                using (StreamWriter sw = new StreamWriter($"{basePath}/{name}_InfoLog.txt", true))
+                {
+                    await sw.WriteLineAsync($"{message}");
+                    await sw.WriteLineAsync($"");
+                    await sw.WriteLineAsync($"Date of Info : {DateTime.Now}");
+                    if (!string.IsNullOrEmpty(request))
+                    {
+                        await sw.WriteLineAsync($"{request}");
+                    }
+                }
+
+            }
+            catch { }
+
+        }
     }
 }

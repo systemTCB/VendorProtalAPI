@@ -12,7 +12,8 @@ namespace VendorPortal.Application.Models.v1.Response
     {
         public string rfq_id { get; set; } = string.Empty;
         public string rfq_number { get; set; } = string.Empty;
-        public string rfq_status { get; set; } = string.Empty;
-        public DateTime CreatedDate { get; set; }
+        public int company_id { get; set; } 
+        public string company_name { get; set; } = string.Empty;
+        public DateTime created_date { get; set; }
     }
 }

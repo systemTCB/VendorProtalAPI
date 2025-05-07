@@ -24,7 +24,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public string remark { get; set; }
         public string rfq_status { get; set; }
         public string created_by { get; set; }
-        public List<Questionaire> questionaires { get; set; } = new List<Questionaire>();
+        public List<Questionnaire> questionaires { get; set; } = new List<Questionnaire>();
         public List<RFQCreateDocument> attachments { get; set; } = new List<RFQCreateDocument>();
     }
 
@@ -43,16 +43,16 @@ namespace VendorPortal.Application.Models.v1.Request
     }
 
 
-    public class Questionaire
+    public class Questionnaire
     {
-        public int questionaire_id { get; set; }
-        public string questionaire_name { get; set; }
+        public int questionnaire_number { get; set; }
+        public string questionnaire_detail { get; set; }
     }
 
     public class RFQCreateDocument
     {
         public string file_name { get; set; }
         public string file_path { get; set; }
-        public string file_seq { get; set; }
+        public int file_seq { get; set; }
     }
 }
