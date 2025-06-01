@@ -23,8 +23,10 @@ namespace VendorPortal.API.Controllers.v1
         {
             _kubbossService = kubbossService;
         }
-
-        [HttpGet("sync-data/kub-boss/v1/vendor-portal/{dateSync?}")]
+        [HttpGet]
+        [Route("sync-data/kub-boss/v1/vendor-portal/{dateSync?}")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "SyncData" }, Summary = "", Description = "API สำหรับ Sync Vendor Data")]
         public async Task<IActionResult> SyncData(DateTime? dateSync = null)
         {
             BaseResponse response = new BaseResponse();
@@ -55,7 +57,7 @@ namespace VendorPortal.API.Controllers.v1
         [HttpGet]
         [Route("sync-data/kub-boss/v1/quotation/{supplier_id}/{rfq_id}")]
         [Description("Create By Peetisook")]
-        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API สำหรับ Get Quotation")]
+        [SwaggerOperation(Tags = new[] { "SyncData" }, Summary = "", Description = "API สำหรับ Get Quotation")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(QuotationResponse))]
         public async Task<IActionResult> GetQuotation(string supplier_id, string rfq_id)
         {

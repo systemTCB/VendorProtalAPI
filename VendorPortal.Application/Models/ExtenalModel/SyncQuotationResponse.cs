@@ -62,7 +62,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string question_id { get; set; }
         public string question_number { get; set; }
         public string question { get; set; }
-        public int answer { get; set; }
+        public string answer { get; set; }
         public string description { get; set; }
         public DateTime created_at { get; set; }
     }
