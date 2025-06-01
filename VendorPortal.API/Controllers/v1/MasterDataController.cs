@@ -78,6 +78,34 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        // [HttpGet]
+        // [Route("api/v1/wolf-approve/master/company/suplier/{id}")]
+        // [Description("Create By Peetisook")]
+        // [SwaggerOperation(Tags = new[] { "MasterData" }, Summary = "", Description = "ใช้สำหรับขอข้อมูลของบริษัททั้งหมด")]
+        // [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(MasterCompanyResponse))]
+        // public async Task<IActionResult> GetCompanyBySupplierId(string id)
+        // {
+        //     var response = new MasterCompanyResponse();
+        //     try
+        //     {
+        //         response = 
+        //     }
+        //     catch (System.Exception ex)
+        //     {
+        //         Logger.LogError(ex, "GetCompanyBySupplierId");
+        //         response = new MasterCompanyResponse()
+        //         {
+        //             status = new Application.Models.Common.Status()
+        //             {
+        //                 code = ResponseCode.InternalServerError.Text(),
+        //                 message = ResponseCode.InternalServerError.Description()
+        //             },
+        //             Data = null
+        //         };
+        //     }
+        //     return Ok(response);
+        // }
+
         [HttpGet]
         [Route("api/v1/wolf-approve/master/company/sync-update")]
         [Description("Create By Peetisook")]

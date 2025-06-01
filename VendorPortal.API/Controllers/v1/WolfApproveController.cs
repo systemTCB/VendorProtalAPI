@@ -447,18 +447,18 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
         #endregion
-    
+
         #region [Quatation]
         [HttpPut]
         [Route("api/v1/wolf-approve/quotation/noti/{rfq_id}")]
         [Description("Create By Peetisook")]
-        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API สำหรับ Cancelled Quatation")]
-        public async Task<IActionResult> PutCancelQuotation(string rfq_id, [FromBody] CancelQuotationRequest request)
+        [SwaggerOperation(Tags = new[] { "VendorPortal V1" }, Summary = "", Description = "API สำหรับ Put Quatation")]
+        public async Task<IActionResult> PutQuotation(string rfq_id, [FromBody] PutQuotationRequest request)
         {
             BaseResponse response = new();
             try
             {
-                response = await _wolfApproveService.PutCancelQuotation(rfq_id, request);
+                response = await _wolfApproveService.PutQuotation(rfq_id, request);
             }
             catch (System.Exception ex)
             {
@@ -475,7 +475,9 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
         
+        
+
         #endregion
-    
+
     }
 }

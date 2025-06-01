@@ -13,11 +13,11 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
 
         Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(
-            string rfq_number, 
+            string rfq_number,
             int company_id,
             string company_name,
             string rfq_status,
-            decimal sub_total, 
+            decimal sub_total,
             decimal discount,
             decimal total_amount,
             decimal net_amount,
@@ -62,6 +62,7 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<SP_GET_COUNT_PO_CLAIM> SP_GET_COUNT_PO_CLAIM();
 
         //Quotation
-        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id,string quo_number, string status, string reason);
+        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string quo_id, string status, string reason);
+        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string status, string reason);
     }
 }

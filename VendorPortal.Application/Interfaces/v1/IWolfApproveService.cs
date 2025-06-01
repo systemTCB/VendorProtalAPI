@@ -53,7 +53,7 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<CountResponse> GetCountClaimPo(string supplier_id);
 
         //Quotation
-        Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request);
-
+        Task<BaseResponse> PutQuotation(string rfq_id, PutQuotationRequest request);
+        Task<QuotationResponse> GetQuotation(string supplier_id, string rfq_id);
     }
 }

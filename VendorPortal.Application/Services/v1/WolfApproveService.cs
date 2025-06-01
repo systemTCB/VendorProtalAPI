@@ -881,6 +881,7 @@ namespace VendorPortal.Application.Services.v1
                         id = s.nRFQID.ToString(),
                         net_amount = s.dNetAmount,
                         payment_condition = s.sPaymentCondition,
+                        procurement_type_id = s.nProcurementTypeID,
                         procurement_type_name = s.sProcurementTypeName,
                         project_name = s.sProjectName,
                         remark = s.sRemark,
@@ -1266,7 +1267,7 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
-        public async Task<BaseResponse> PutCancelQuotation(string rfq_id, CancelQuotationRequest request)
+        public async Task<BaseResponse> PutQuotation(string rfq_id, PutQuotationRequest request)
         {
             BaseResponse response = new BaseResponse();
             try
@@ -1286,29 +1287,59 @@ namespace VendorPortal.Application.Services.v1
                 }
                 else
                 {
-                    var result = await _wolfApproveRepository.SP_PUT_QUOTATION(rfq_id, request.quo_number, request.status, request.reason);
-                    if (result.result)
+                    if (request.status.ToLower() == "create")
                     {
-                        response = new BaseResponse()
+                        var result = await _wolfApproveRepository.SP_PUT_QUOTATION_CREATE(rfq_id, request.quo_number, request.quo_id, request.status, request.reason);
+                        if (result.result)
                         {
-                            status = new Status()
+                            response = new BaseResponse()
                             {
-                                code = ResponseCode.Success.Text(),
-                                message = ResponseCode.Success.Description()
-                            }
-                        };
+                                status = new Status()
+                                {
+                                    code = ResponseCode.Success.Text(),
+                                    message = ResponseCode.Success.Description()
+                                }
+                            };
+                        }
+                        else
+                        {
+                            response = new BaseResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = ResponseCode.NotImplement.Text(),
+                                    message = result.message
+                                }
+                            };
+                        }
                     }
                     else
                     {
-                        response = new BaseResponse()
+                        var result = await _wolfApproveRepository.SP_PUT_QUOTATION(rfq_id, request.quo_number, request.quo_id, request.status, request.reason);
+                        if (result.result)
                         {
-                            status = new Status()
+                            response = new BaseResponse()
                             {
-                                code = ResponseCode.NotImplement.Text(),
-                                message = result.message
-                            }
-                        };
+                                status = new Status()
+                                {
+                                    code = ResponseCode.Success.Text(),
+                                    message = ResponseCode.Success.Description()
+                                }
+                            };
+                        }
+                        else
+                        {
+                            response = new BaseResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = ResponseCode.NotImplement.Text(),
+                                    message = result.message
+                                }
+                            };
+                        }
                     }
+
                 }
             }
             catch (System.Exception ex)
@@ -1326,7 +1357,27 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-
+        public async Task<QuotationResponse> GetQuotation(string supplier_id, string rfq_id)
+        {
+            QuotationResponse response = new QuotationResponse();
+            try
+            {
+                var _client = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(rfq_id);
+            }
+            catch (System.Exception ex)
+            {
+                response = new QuotationResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetRFQ_Show");
+            }
+            return response;
+        }
     }
 
 }

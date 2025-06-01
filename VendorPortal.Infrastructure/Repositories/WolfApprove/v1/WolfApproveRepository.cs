@@ -210,7 +210,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             throw new System.NotImplementedException();
         }
 
-        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string status, string reason)
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string quo_id, string status, string reason)
         {
             try
             {
@@ -222,6 +222,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     {
                         new("@RFQID", rfq_id),
                         new("@QuotationNumber", quo_number),
+                        new("@QuotationID", quo_id),
                         new("@Status", status),
                         new("@Reason", reason)
                     };
@@ -244,6 +245,38 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string status, string reason)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_PUT_QUOTATION_CREATE";
+                    var param = new SqlParameter[]
+                    {
+                        new("@RFQID", rfq_id),
+                        new("@QuotationNumber", quo_number),
+                        new("@QuotationId", quo_id)
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    return new SP_PUT_QUOTATION
+                    {
+                        result = sp_response.isSuccess,
+                        message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_PUT_QUOTATION
+                {
+                    result = false,
+                    message = ex.Message,
+                };
+            }
+        }
         public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(
             string rfq_number,
             int company_id,
@@ -420,5 +453,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 };
             }
         }
+
+
     }
 }

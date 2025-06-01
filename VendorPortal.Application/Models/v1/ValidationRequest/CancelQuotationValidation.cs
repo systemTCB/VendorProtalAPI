@@ -3,7 +3,7 @@ using VendorPortal.Application.Models.v1.Request;
 
 namespace Namespace.Application.Models.v1.ValidationRequest
 {
-    public class CancelQuotationValidation : AbstractValidator<CancelQuotationRequest>
+    public class CancelQuotationValidation : AbstractValidator<PutQuotationRequest>
     {
         public CancelQuotationValidation()
         {

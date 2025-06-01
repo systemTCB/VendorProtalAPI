@@ -247,7 +247,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string status, string reason)
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number,string quo_id, string status, string reason)
         {
             var mock = new SP_PUT_QUOTATION();
             try
@@ -324,6 +324,23 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             {
                 Logger.LogError(ex, "MockWolfApproveRepository");
             }
+            return mock;
+        }
+
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string status, string reason)
+        {
+            var mock = new SP_PUT_QUOTATION();
+            try
+            {
+                string filename = "SP_INSERT_NEWRFQ_QUESTIONNAIRE.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<SP_PUT_QUOTATION>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
+            
             return mock;
         }
     }

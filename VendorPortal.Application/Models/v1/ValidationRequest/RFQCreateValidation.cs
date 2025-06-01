@@ -14,10 +14,10 @@ namespace VendorPortal.Application.Models.v1.ValidationRequest
             RuleFor(x => x).NotEmpty().WithMessage("Request cannot be empty.");
             RuleFor(x => x.rfq_number).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา");
             RuleFor(x => x.company_id).GreaterThan(0).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา");
-            RuleFor(x => x.sub_total).GreaterThan(0).WithMessage("กรุณาระบุยอดเงิน");
+            //RuleFor(x => x.sub_total).GreaterThan(0).WithMessage("กรุณาระบุยอดเงิน");
             RuleFor(x => x.discount).GreaterThanOrEqualTo(0).WithMessage("กรุณาระบุส่วนลด");
-            RuleFor(x => x.total_amount).GreaterThan(0).WithMessage("กรุณาระบุยอดเงินรวม");
-            RuleFor(x => x.net_amount).GreaterThan(0).WithMessage("กรุณาระบุยอดเงินสุทธิ");
+            //RuleFor(x => x.total_amount).GreaterThan(0).WithMessage("กรุณาระบุยอดเงินรวม");
+            //RuleFor(x => x.net_amount).GreaterThan(0).WithMessage("กรุณาระบุยอดเงินสุทธิ");
             RuleFor(x => x.payment_condition).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เงื่อนไขการชำระเงิน");
             RuleFor(x => x.project_name).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่ชื่อโครงการ");
             RuleFor(x => x.project_description).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่รายละเอียดโครงการ");
@@ -26,13 +26,13 @@ namespace VendorPortal.Application.Models.v1.ValidationRequest
             RuleFor(x => x.start_date).NotEmpty().WithMessage("กรุณาใส่วันที่เริ่มต้น");
             RuleFor(x => x.end_date).NotEmpty().WithMessage("กรุณาใส่วันที่สิ้นสุด");
             RuleFor(x => x.required_date).NotEmpty().WithMessage("กรุณาใส่วันที่ต้องการ");
-            RuleFor(x => x.contract_value).GreaterThan(0).WithMessage("กรุณาระบุมูลค่าสัญญา");
+            //RuleFor(x => x.contract_value).GreaterThan(0).WithMessage("กรุณาระบุมูลค่าสัญญา");
             RuleFor(x => x.items).Must(x => x?.Count > 0).WithMessage("กรุณาใส่รายการสินค้า");
-            When(x => x.items != null && x.items.Count > 0, () =>
-            {
+            //When(x => x.items != null && x.items.Count > 0, () =>
+            //{
                 //RuleFor(x => x.items).Must(x => x.Count > 0).WithMessage("กรุณาใส่รายการสินค้า");
                 //RuleForEach(x => x.items).SetValidator(new RFQItemCreateValidation());
-            });
+            //});
             ///When(x => x.attachments != null && x.attachments.Count > 0, () =>
             //{
                 //RuleFor(x => x.attachments).Must(x => x.Count > 0).WithMessage("กรุณาใส่ไฟล์แนบ");

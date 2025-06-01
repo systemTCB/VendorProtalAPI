@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,8 @@ using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.ExtenalModel;
+using VendorPortal.Application.Models.v1.Response;
+using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
@@ -21,11 +24,128 @@ namespace VendorPortal.Application.Services.SyncExternalData
     {
         private readonly DbContext _dbContext;
         private readonly AppConfigHelper _appConfigHelper;
-        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper)
+        private readonly IWolfApproveRepository _wolfApproveRepository;
+        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper, IWolfApproveRepository wolfApproveRepository)
         {
+            _wolfApproveRepository = wolfApproveRepository;
             _appConfigHelper = appConfigHelper;
             _dbContext = dbContext;
         }
+
+        public async Task<QuotationResponse> SyncQuotationFromKubboss(string supplierId, string rfqId)
+        {
+            var response = new QuotationResponse();
+            try
+            {
+                var verify = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(rfqId);
+                if (verify == null || !verify.Any())
+                {
+                    response = new QuotationResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
+                        }
+                    };
+                    return response;
+                }
+                else
+                {
+                    var sqlParameter1 = new SqlParameter[]
+                    {
+                        new SqlParameter("@RFQID", rfqId),
+                    };
+
+                    var quo_id = await _dbContext.ExcuteStoreQuerySingleAsync<int>("SP_GET_QUOTATION_ID_BY_RFQID", sqlParameter1);
+                    var sqlParameter = new SqlParameter[]
+                    {
+                        new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel").ToString()),
+                    };
+
+                    var spResult = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                    HttpClient client = new HttpClient();
+                    client.BaseAddress = new Uri(spResult.sEndPoint);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {spResult.sToken}");
+                    var result = await client.GetAsync($"api/quotations/{quo_id}");
+                    var quo_content = await result.Content.ReadAsStringAsync();
+                    if (result.IsSuccessStatusCode)
+                    {
+                        var quotationResponse = JsonConvert.DeserializeObject<SyncQuotationResponse>(quo_content);
+
+                        if (quotationResponse.status.code == "200")
+                        {
+                            response = new QuotationResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = ResponseCode.Success.Text(),
+                                    message = ResponseCode.Success.Description()
+                                },
+                                data = new SyncQuotationData()
+                                {
+                                    id = quotationResponse.data.id,
+                                    quotation_number = quotationResponse.data.quotation_number,
+                                    rfq_number = quotationResponse.data.rfq_number,
+                                    supplier_id = quotationResponse.data.supplier_id,
+                                    company_id = quotationResponse.data.company_id,
+                                    status = quotationResponse.data.status,
+                                    transfer_date = quotationResponse.data.transfer_date,
+                                    net_amount = quotationResponse.data.net_amount,
+                                    discount = quotationResponse.data.discount,
+                                    sub_total = quotationResponse.data.sub_total,
+                                    total_amount = quotationResponse.data.total_amount,
+                                    vat_rate = quotationResponse.data.vat_rate,
+                                    vat_amount = quotationResponse.data.vat_amount,
+                                    supplier = quotationResponse.data.supplier,
+                                    created_at = quotationResponse.data.created_at,
+                                    updated_at = quotationResponse.data.updated_at,
+                                    lines = quotationResponse.data.lines,
+                                    documents = quotationResponse.data.documents,
+                                    questions = quotationResponse.data.questions
+                                }
+                            };
+                            return response;
+                        }
+                        else
+                        {
+                            response = new QuotationResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = result.StatusCode.ToString(),
+                                    message = "Failed to sync quotation from Kubboss."
+                                }
+                            };
+                            Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status code: {result.StatusCode} , {JsonConvert.SerializeObject(quotationResponse)}"), "SyncQuotationFromKubboss");
+                            return response;
+                        }
+                    }
+                    else
+                    {
+                        response = new QuotationResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = result.StatusCode.ToString(),
+                                message = "Failed to sync quotation from Kubboss."
+                            }
+                        };
+                        Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status code: {result.StatusCode}"), "SyncQuotationFromKubboss");
+                        return response;
+                    }
+                }
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SyncQuotationFromKubboss");
+            }
+            return response;
+        }
+
         public async Task<BaseResponse> SyncVendorFromKubboss(DateTime dateTime)
         {
             BaseResponse response = new BaseResponse();
@@ -123,7 +243,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                 await _dbContext.ExecuteStoreNonQueryAsync("SP_INSERT_VENDOR_ADDRESS_FROM_KUBBOSS", sqlParameterAddress);
                             }
 
-                            
+
                         }
                     }
                     else
