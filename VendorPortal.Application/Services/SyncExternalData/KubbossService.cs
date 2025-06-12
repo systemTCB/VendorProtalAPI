@@ -56,8 +56,8 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     {
                         new SqlParameter("@nRFQID", rfqId),
                     };
-                    var quoData = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_QUOTATION_ID_BY_RFQID>("SP_GET_QUOTATION_ID_BY_RFQID", sqlParameter1);
-                    if (quoData == null || string.IsNullOrEmpty(quoData.nQuotationID))
+                    var quoData = await _dbContext.ExcuteStoreQueryListAsync<SP_GET_QUOTATION_ID_BY_RFQID>("SP_GET_QUOTATION_ID_BY_RFQID", sqlParameter1);
+                    if (quoData == null || quoData.Count == 0)
                     {
                         response = new QuotationResponse()
                         {
@@ -82,22 +82,17 @@ namespace VendorPortal.Application.Services.SyncExternalData
                         client.DefaultRequestHeaders.Accept.Clear();
                         client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {configToken.sToken}");
-                        var result = await client.GetAsync($"api/quotations/{quoData.nQuotationID}");
-                        var quo_content = await result.Content.ReadAsStringAsync();
-                        if (result.IsSuccessStatusCode)
+                        var data = new List<SyncQuotationData>();
+                        foreach (var item in quoData)
                         {
-                            var quotationResponse = JsonConvert.DeserializeObject<SyncQuotationResponse>(quo_content);
-
-                            if (quotationResponse.status.code == ResponseCode.Success.Text())
+                            var result = await client.GetAsync($"api/quotations/{item.nQuotationID}");
+                            if (result.IsSuccessStatusCode)
                             {
-                                response = new QuotationResponse()
+                                var quo_content = await result.Content.ReadAsStringAsync();
+                                var quotationResponse = JsonConvert.DeserializeObject<SyncQuotationResponse>(quo_content);
+                                if (quotationResponse.status.code == ResponseCode.Success.Text() && quotationResponse.data != null)
                                 {
-                                    status = new Status()
-                                    {
-                                        code = ResponseCode.Success.Text(),
-                                        message = ResponseCode.Success.Description()
-                                    },
-                                    data = new SyncQuotationData()
+                                    data.Add(new SyncQuotationData()
                                     {
                                         id = quotationResponse.data.id,
                                         quotation_number = quotationResponse.data.quotation_number,
@@ -118,37 +113,38 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                         lines = quotationResponse.data.lines,
                                         documents = quotationResponse.data.documents,
                                         questions = quotationResponse.data.questions
-                                    }
-                                };
-                                return response;
+                                    });
+                                }
+                                else
+                                {
+                                    Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status code: {result.StatusCode} , Data {JsonConvert.SerializeObject(quotationResponse.data)}"), "SyncQuotationFromKubboss");
+                                }
                             }
                             else
                             {
-                                response = new QuotationResponse()
-                                {
-                                    status = new Status()
-                                    {
-                                        code = result.StatusCode.ToString(),
-                                        message = "Failed to sync quotation from Kubboss."
-                                    }
-                                };
-                                Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status code: {result.StatusCode} , {JsonConvert.SerializeObject(quotationResponse)}"), "SyncQuotationFromKubboss");
-                                return response;
+                                Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status Header : {result.IsSuccessStatusCode}"), "SyncQuotationFromKubboss");
                             }
+                        }
+                        if (data.Count > 0)
+                        {
+
+                            response.data = data;
+                            response.status = new Status()
+                            {
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            };
                         }
                         else
                         {
-                            response = new QuotationResponse()
+                            response.data = null;
+                            response.status = new Status()
                             {
-                                status = new Status()
-                                {
-                                    code = result.StatusCode.ToString(),
-                                    message = "Failed to sync quotation from Kubboss."
-                                }
+                                code = ResponseCode.NotFound.Text(),
+                                message = ResponseCode.NotFound.Description()
                             };
-                            Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status code: {result.StatusCode}"), "SyncQuotationFromKubboss");
-                            return response;
                         }
+                        return response;
                     }
                 }
 
@@ -209,7 +205,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                 new SqlParameter("@sKeyContactPosition", vendor.key_contact?.position),
                             };
                             var result_insert = await _dbContext.ExecuteStoreNonQueryAsync("SP_INSERT_VENDOR_FROM_KUBBOSS", sqlParameterVendor);
-                            // ระบบจะไม่เก็บ quotations ที่ได้จาก kubboss ให้เก็บเฉพาะ quotations ที่ได้จาก vendor portal เท่านั้น
+
 
 
                             // other documents

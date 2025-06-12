@@ -6,6 +6,6 @@ namespace VendorPortal.Application.Models.v1.Response
 {
     public class QuotationResponse : BaseResponse
     {
-        public SyncQuotationData data { get; set; }
+        public List<SyncQuotationData> data { get; set; }
     }
 }

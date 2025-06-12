@@ -28,6 +28,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public decimal net_amount { get; set; }
         public string payment_condition { get; set; }
         public string remark { get; set; }
+        public string is_specific { get; set; }
     }
 
 }

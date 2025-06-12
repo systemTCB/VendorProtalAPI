@@ -279,7 +279,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(string rfq_number, int company_id, string company_name, string rfq_status, decimal sub_total, decimal discount, decimal total_amount, decimal net_amount, string payment_condition, string project_name, string project_description, int procurement_tyepe_id, string procurement_type_name, int catagory_id, string category_name, DateTime start_date, DateTime end_date, DateTime required_date, int status_id, string status_name, decimal contract_value, string remark, string created_by)
+        public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(string rfq_number, int company_id, string company_name, string rfq_status, decimal sub_total, decimal discount, decimal total_amount, decimal net_amount, string payment_condition, string project_name, string project_description, int procurement_tyepe_id, string procurement_type_name, int catagory_id, string category_name, DateTime start_date, DateTime end_date, DateTime required_date, int status_id, string status_name, decimal contract_value, string remark, string created_by , string is_specific)
         {
             var mock = new SP_CREATE_RFQ();
             try

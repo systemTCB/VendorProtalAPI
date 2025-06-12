@@ -35,7 +35,8 @@ namespace VendorPortal.Domain.Interfaces.v1
             string status_name,
             decimal contract_value,
             string remark,
-            string created_by
+            string created_by,
+            string is_specific
         );
 
         Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);

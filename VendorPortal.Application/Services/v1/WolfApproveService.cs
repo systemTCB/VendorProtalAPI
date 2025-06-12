@@ -887,7 +887,8 @@ namespace VendorPortal.Application.Services.v1
                         remark = s.sRemark,
                         require_date = s.dRequireDate,
                         start_date = s.dStartDate,
-                        status = s.sStatusName
+                        status = s.sStatusName,
+                        is_specific = s.bIsSpecific == true ? "Y" : "N",
                     }).ToList();
                     result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, item.Count, _baseUrl);
                     result.data = data;
@@ -1014,7 +1015,7 @@ namespace VendorPortal.Application.Services.v1
                     var _documnet = await _wolfApproveRepository.SP_GET_RFQ_DOCUMENT(rfq_id);
                     if (_documnet.Any())
                     {
-                        foreach (var item in _documnet.Where(e => e.isActive == true))
+                        foreach (var item in _documnet)
                         {
                             tempList.documents.Add(new Document
                             {
@@ -1129,11 +1130,16 @@ namespace VendorPortal.Application.Services.v1
                     return response;
                 }
 
+                string statusName = "Pending";
+                if (request.start_date <= DateTime.Now)
+                {
+                    statusName = "Open";
+                }
                 var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
                         request.rfq_number,
                         company_id: companyData.nCompanyID,
                         company_name: companyData.sCompanyName,
-                        rfq_status: "Pending",
+                        rfq_status: statusName,
                         request.sub_total,
                         request.discount,
                         request.total_amount,
@@ -1149,10 +1155,11 @@ namespace VendorPortal.Application.Services.v1
                         end_date: request.end_date,
                         required_date: request.required_date,
                         status_id: 0,
-                        status_name: "Pending",
+                        status_name: statusName,
                         request.contract_value,
                         request.remark,
-                        request.created_by
+                        request.created_by,
+                        string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)

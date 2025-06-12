@@ -300,7 +300,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string status_name,
             decimal contract_value,
             string remark,
-            string created_by
+            string created_by,
+            string is_specific
         )
         {
             try
@@ -334,6 +335,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sContractValue", contract_value),
                         new SqlParameter("@sRemark", remark),
                         new SqlParameter("@sCreatedBy", created_by),
+                        new SqlParameter("@bIsSpecific", is_specific == "Y" ? true : false)
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ

@@ -11,7 +11,7 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sCategoryName { get; set; }
         public string sProjectName { get; set; }
         public string sProjectDesc { get; set; }
-        public short nProcurementTypeID {get;set;}
+        public short nProcurementTypeID { get; set; }
         public string sProcurementTypeName { get; set; }
         public DateTime dStartDate { get; set; }
         public DateTime dEndDate { get; set; }
@@ -36,5 +36,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sCompanyName { get; set; }
         public int nCompanyID { get; set; }
         public string sQuotationCode { get; set; }
+        public bool? bIsSpecific { get; set; }
     }
 }
