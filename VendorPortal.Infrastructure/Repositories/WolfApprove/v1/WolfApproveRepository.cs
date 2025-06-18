@@ -300,6 +300,10 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string status_name,
             decimal contract_value,
             string remark,
+            string requesterName,
+            string requesterLastName,
+            string requesterEmail,
+            string requesterTel,
             string created_by,
             string is_specific
         )
@@ -335,7 +339,12 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sContractValue", contract_value),
                         new SqlParameter("@sRemark", remark),
                         new SqlParameter("@sCreatedBy", created_by),
-                        new SqlParameter("@bIsSpecific", is_specific == "Y" ? true : false)
+                        new SqlParameter("@bIsSpecific", is_specific == "Y" ? true : false),
+                        new SqlParameter("@sRequesterName" , requesterName),
+                        new SqlParameter("@sRequesterLastname" , requesterLastName),
+                        new SqlParameter("@sRequesterEmail" , requesterEmail),
+                        new SqlParameter("@sRequesterTel" , requesterTel),
+
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ
@@ -457,5 +466,38 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
         }
 
 
+        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_UPDATE_RFQ";
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@Documents", document.ConvertToDataTable()),
+                        new SqlParameter("@dStartDate", startDate),
+                        new SqlParameter("@dEndDate", endDate),
+                        new SqlParameter("@nRFQID", nRFQID),
+                    };
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                    return new SP_UPDATE_RFQ
+                    {
+                        result = sp_response.isSuccess,
+                        message = sp_response.message,
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return new SP_UPDATE_RFQ
+                {
+                    result = false,
+                    message = ex.Message,
+                };
+            }
+        }
     }
 }

@@ -279,7 +279,11 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(string rfq_number, int company_id, string company_name, string rfq_status, decimal sub_total, decimal discount, decimal total_amount, decimal net_amount, string payment_condition, string project_name, string project_description, int procurement_tyepe_id, string procurement_type_name, int catagory_id, string category_name, DateTime start_date, DateTime end_date, DateTime required_date, int status_id, string status_name, decimal contract_value, string remark, string created_by , string is_specific)
+        public async Task<SP_CREATE_RFQ> SP_INSERT_NEWRFQ(string rfq_number, int company_id, string company_name, string rfq_status, decimal sub_total, decimal discount, decimal total_amount, decimal net_amount, string payment_condition, string project_name, string project_description, int procurement_tyepe_id, string procurement_type_name, int catagory_id,
+            string category_name, DateTime start_date, DateTime end_date, DateTime required_date, int status_id, string status_name,
+            decimal contract_value, string requesterName, string requesterLastName,
+            string requesterEmail,
+            string requesterTel,string remark, string created_by , string is_specific)
         {
             var mock = new SP_CREATE_RFQ();
             try
@@ -341,6 +345,22 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
                 Logger.LogError(ex, "MockWolfApproveRepository");
             }
             
+            return mock;
+        }
+
+        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate)
+        {
+            var mock = new SP_UPDATE_RFQ();
+            try
+            {
+                string filename = "SP_UPDATE_RFQ.json";
+                string json = await File.ReadAllTextAsync(basePath + filename);
+                mock = JsonConvert.DeserializeObject<SP_UPDATE_RFQ>(json);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MockWolfApproveRepository");
+            }
             return mock;
         }
     }

@@ -34,10 +34,10 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sZipCode { get; set; }
         public string sBranch { get; set; }
         public string sTaxNumber { get; set; }
-        public string sContractFirstName { get; set; }
-        public string sContractLastName { get; set; }
-        public string sContractPhone { get; set; }
-        public string sContractEmail { get; set; }
+        public string sRequesterName { get; set; }
+        public string sRequesterLastName { get; set; }
+        public string sRequesterEmail { get; set; }
+        public string sRequesterTel { get; set; }
         public int nLineID { get; set; }
         public string sItemCode { get; set; }
         public string sItemName { get; set; }

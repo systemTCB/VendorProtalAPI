@@ -964,10 +964,10 @@ namespace VendorPortal.Application.Services.v1
                         },
                         company_contract = new CompanyContract
                         {
-                            email = _companyInfo.sContractEmail,
-                            first_name = _companyInfo.sContractFirstName,
-                            last_name = _companyInfo.sContractLastName,
-                            phone = _companyInfo.sContractPhone,
+                            email = _companyInfo.sRequesterEmail,
+                            first_name = _companyInfo.sRequesterName,
+                            last_name = _companyInfo.sRequesterLastName,
+                            phone = _companyInfo.sRequesterTel,
                         },
                         category_name = _companyInfo.sCategoryName,
                         company_id = _companyInfo.nCompanyID,
@@ -1158,6 +1158,10 @@ namespace VendorPortal.Application.Services.v1
                         status_name: statusName,
                         request.contract_value,
                         request.remark,
+                        requesterName: request.requester?.requesterName,
+                        requesterLastName: request.requester?.requesterLastName,
+                        requesterEmail: request.requester?.requesterEmail,
+                        requesterTel: request.requester?.requesterTel,
                         request.created_by,
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific
                     );
@@ -1274,6 +1278,87 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
+
+        public async Task<RFQUpdateResponse> UpdateRFQ(RFQUpdateRequest request)
+        {
+            RFQUpdateResponse response = new RFQUpdateResponse();
+            try
+            {
+                var verify = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(request.rfq_id);
+                if (verify == null)
+                {
+                    response = new RFQUpdateResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Description()
+                        },
+                        data = null
+                    };
+                    return response;
+                }
+                else
+                {
+                    var doc = new List<TEMP_RFQ_DOCUMENT>();
+                    foreach (var item in request.documents)
+                    {
+                        doc.Add(new TEMP_RFQ_DOCUMENT
+                        {
+                            nRFQID = request.rfq_id,
+                            sFileName = item.file_name,
+                            sFilePath = item.file_path,
+                            sFileSeq = item.file_seq
+                        });
+                    }
+
+                    var result = await _wolfApproveRepository.SP_UPDATE_RFQ(doc ,request.rfq_id, request.start_date, request.end_date);
+                    if (result.result)
+                    {
+                        response = new RFQUpdateResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            },
+                            data = new RFQUpdateData()
+                            {
+                                rfq_id = request.rfq_id,
+                                update_response = "Successful"
+                            }
+                        };
+                    }
+                    else
+                    {
+                        response = new RFQUpdateResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.Unprocessable.Text(),
+                                message = ResponseCode.Unprocessable.Description(),
+                            },
+                            data = null
+                        };
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                response = new RFQUpdateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+                Logger.LogError(ex, "UpdateRFQ");
+            }
+            return response;
+        }
+
         public async Task<BaseResponse> PutQuotation(string rfq_id, PutQuotationRequest request)
         {
             BaseResponse response = new BaseResponse();
@@ -1363,7 +1448,6 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
-
         public async Task<QuotationResponse> GetQuotation(string supplier_id, string rfq_id)
         {
             QuotationResponse response = new QuotationResponse();
@@ -1385,6 +1469,8 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
+
+
     }
 
 }

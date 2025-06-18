@@ -135,7 +135,34 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        [HttpPost]
+        [Route("api/v1/wolf-approve/rfqs/update")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้สำหรับสร้าง Update RFQ")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQUpdateResponse))]
         #endregion
+        public async Task<IActionResult> UpdateRFQ([FromBody] RFQUpdateRequest request)
+        {
+            RFQUpdateResponse response = new();
+            try
+            {
+                response = new RFQUpdateResponse();
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new RFQUpdateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
 
         #region [Puchase Order]
 
