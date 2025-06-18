@@ -1312,7 +1312,7 @@ namespace VendorPortal.Application.Services.v1
                         });
                     }
 
-                    var result = await _wolfApproveRepository.SP_UPDATE_RFQ(doc ,request.rfq_id, request.start_date, request.end_date);
+                    var result = await _wolfApproveRepository.SP_UPDATE_RFQ(doc, request.rfq_id, request.start_date, request.end_date, request.modified_by);
                     if (result.result)
                     {
                         response = new RFQUpdateResponse()

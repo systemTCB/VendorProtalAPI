@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Xml;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using VendorPortal.Logging;
@@ -39,10 +40,22 @@ namespace VendorPortal.Infrastructure.Extensions
                 }
 
                 SqlDataReader dr = await command.ExecuteReaderAsync();
-                if (dr.Read())
+                if (await dr.ReadAsync() && dr.HasRows)
                 {
-                    var isSuccess = (bool)dr["Result"];
-                    var msg = (string)dr["Message"];
+                    var isSuccessDB = dr["Result"].ToString();
+                    var msgDB = dr["Message"].ToString();
+                    bool isSuccess;
+                    string msg = string.Empty;
+                    if (!string.IsNullOrEmpty(isSuccessDB))
+                    {
+                        isSuccess = true;
+                        msg = msgDB;
+                    }
+                    else
+                    {
+                        isSuccess = false;
+                        msg = msgDB;
+                    }
                     return (isSuccess, msg);
                 }
                 else

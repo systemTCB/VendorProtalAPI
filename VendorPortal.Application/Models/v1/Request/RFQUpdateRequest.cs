@@ -9,6 +9,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public DateTime? start_date { get; set; }
         public DateTime? end_date { get; set; }
         public List<RFQUpdateDocument> documents { get; set; }
+        public string modified_by { get; set; }
     }
 
     public class RFQUpdateDocument

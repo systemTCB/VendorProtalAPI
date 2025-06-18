@@ -348,7 +348,7 @@ namespace VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository
             return mock;
         }
 
-        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate)
+        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate, string modified_by)
         {
             var mock = new SP_UPDATE_RFQ();
             try

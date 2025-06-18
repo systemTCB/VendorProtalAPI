@@ -146,7 +146,7 @@ namespace VendorPortal.API.Controllers.v1
             RFQUpdateResponse response = new();
             try
             {
-                response = new RFQUpdateResponse();
+                response = await _wolfApproveService.UpdateRFQ(request);
             }
             catch (System.Exception ex)
             {

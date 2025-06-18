@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Server;
@@ -410,7 +411,11 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 
                     var param = new SqlParameter[]
                     {
-                        new SqlParameter("@RFQQuestions", rfq_questionnaires.ConvertToDataTable())
+                        new SqlParameter("@RFQQuestions", SqlDbType.Structured)
+                        {
+                            TypeName = "dbo.TEMP_RFQ_QUESTIONNARE",
+                            Value = rfq_questionnaires?.ConvertToDataTable() ?? new DataTable()
+                        }
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
 
@@ -443,7 +448,11 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 
                     var param = new SqlParameter[]
                     {
-                        new SqlParameter("@Documents", rfq_documents.ConvertToDataTable())
+                        new SqlParameter("@Documents", SqlDbType.Structured)
+                        {
+                            TypeName = "dbo.TEMP_RFQ_DOCUMENT",
+                            Value = rfq_documents?.ConvertToDataTable() ?? new DataTable()
+                        }
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
 
@@ -466,7 +475,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
         }
 
 
-        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate)
+        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate, string modified_by)
         {
             try
             {
@@ -476,10 +485,15 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     var sql = "SP_UPDATE_RFQ";
                     var param = new SqlParameter[]
                     {
-                        new SqlParameter("@Documents", document.ConvertToDataTable()),
-                        new SqlParameter("@dStartDate", startDate),
-                        new SqlParameter("@dEndDate", endDate),
+                        new SqlParameter("@Documents", SqlDbType.Structured)
+                        {
+                            TypeName = "dbo.TEMP_RFQ_DOCUMENT",
+                            Value = document?.ConvertToDataTable() ?? new DataTable() // ป้องกัน null
+                        },
+                        new SqlParameter("@dStartDate", startDate ?? (object)DBNull.Value),
+                        new SqlParameter("@dEndDate", endDate ?? (object)DBNull.Value),
                         new SqlParameter("@nRFQID", nRFQID),
+                        new SqlParameter("@ModifiedBy" , modified_by)
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
                     return new SP_UPDATE_RFQ

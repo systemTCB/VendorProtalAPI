@@ -42,7 +42,7 @@ namespace VendorPortal.Domain.Interfaces.v1
             string created_by,
             string is_specific
         );
-        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate);
+        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by);
 
         Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);
         Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires);
