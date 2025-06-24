@@ -341,10 +341,10 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sRemark", remark),
                         new SqlParameter("@sCreatedBy", created_by),
                         new SqlParameter("@bIsSpecific", is_specific == "Y" ? true : false),
-                        new SqlParameter("@sRequesterName" , requesterName),
-                        new SqlParameter("@sRequesterLastname" , requesterLastName),
-                        new SqlParameter("@sRequesterEmail" , requesterEmail),
-                        new SqlParameter("@sRequesterTel" , requesterTel),
+                        new SqlParameter("@sRequesterName" , string.IsNullOrEmpty(requesterName) ? DBNull.Value : requesterName ),
+                        new SqlParameter("@sRequesterLastname" , string.IsNullOrEmpty(requesterLastName) ? DBNull.Value : requesterLastName),
+                        new SqlParameter("@sRequesterEmail" , string.IsNullOrEmpty(requesterEmail) ? DBNull.Value : requesterEmail),
+                        new SqlParameter("@sRequesterTel" , string.IsNullOrEmpty(requesterTel) ? DBNull.Value : requesterTel),
 
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
