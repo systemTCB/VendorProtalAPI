@@ -30,6 +30,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public List<ExSyncQuotationLine> lines { get; set; }
         public List<ExSyncQuotationDocument> documents { get; set; }
         public List<ExSyncQuotationQuestion> questions { get; set; }
+        public ExSyncQuotationAddress address { get; set; }
     }
     public class ExSyncSupplier
     {
@@ -66,4 +67,16 @@ namespace VendorPortal.Application.Models.v1.Response
         public string description { get; set; }
         public DateTime created_at { get; set; }
     }
+
+    public class ExSyncQuotationAddress
+    {
+        public string name { get; set; }
+        public string address_1 { get; set; }
+        public string address_2 { get; set; }
+        public string province_name { get; set; }
+        public string district_name { get; set; }
+        public string sub_district_name { get; set; }
+        public string postal_code { get; set; }
+    }
+
 }

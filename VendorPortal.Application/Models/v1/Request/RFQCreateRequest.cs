@@ -5,6 +5,7 @@ namespace VendorPortal.Application.Models.v1.Request
 {
     public class RFQCreateRequest
     {
+        public string rfq_id { get; set; }
         public string rfq_number { get; set; }
         public int company_id { get; set; }
         public decimal sub_total { get; set; }

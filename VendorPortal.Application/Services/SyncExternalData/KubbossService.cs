@@ -112,7 +112,8 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                         updated_at = quotationResponse.data.updated_at,
                                         lines = quotationResponse.data.lines,
                                         documents = quotationResponse.data.documents,
-                                        questions = quotationResponse.data.questions
+                                        questions = quotationResponse.data.questions,
+                                        address = quotationResponse.data.address
                                     });
                                 }
                                 else

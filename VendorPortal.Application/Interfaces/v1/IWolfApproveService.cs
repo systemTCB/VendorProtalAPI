@@ -21,7 +21,7 @@ namespace VendorPortal.Application.Interfaces.v1
                     string q);
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
 
-        Task<RFQCreateResponse> CreateRFQ(RFQCreateRequest request);
+        Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request);
         Task<RFQUpdateResponse> UpdateRFQ(RFQUpdateRequest request);
 
         // Purchase Order

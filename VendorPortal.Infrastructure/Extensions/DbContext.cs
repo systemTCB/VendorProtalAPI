@@ -46,7 +46,7 @@ namespace VendorPortal.Infrastructure.Extensions
                     var msgDB = dr["Message"].ToString();
                     bool isSuccess;
                     string msg = string.Empty;
-                    if (!string.IsNullOrEmpty(isSuccessDB))
+                    if (!string.IsNullOrEmpty(isSuccessDB) && isSuccessDB == "True")
                     {
                         isSuccess = true;
                         msg = msgDB;

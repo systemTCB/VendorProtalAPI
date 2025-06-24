@@ -891,7 +891,7 @@ namespace VendorPortal.Application.Services.v1
                         is_specific = s.bIsSpecific == true ? "Y" : "N",
                     }).ToList();
                     result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, item.Count, _baseUrl);
-                    result.data = data;
+                    result.data = [.. data.OrderByDescending(o => o.rfq_number)];
                     result.status = new Status()
                     {
                         code = ResponseCode.Success.Text(),
@@ -1077,17 +1077,59 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<RFQCreateResponse> CreateRFQ(RFQCreateRequest request)
+        public async Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request)
         {
             RFQCreateResponse response = new();
             DateTime createdDate = DateTime.Now;
             try
             {
                 var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
+                var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
+                if (!string.IsNullOrEmpty(request.rfq_id))
+                {
+                    List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
+                    if (request.attachments != null && request.attachments.Any())
+                    {
+                        foreach (var attach in request.attachments.OrderBy(o => o.file_seq))
+                        {
+                            document.Add(new RFQUpdateDocument
+                            {
+                                file_seq = attach.file_seq,
+                                file_name = attach.file_name,
+                                file_path = attach.file_path
+                            });
+                        }
+                    }
+                    var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
+                    {
+                        rfq_id = request.rfq_id,
+                        end_date = request.end_date,
+                        start_date = request.start_date,
+                        documents = document,
+                        modified_by = request.created_by
+                    });
+                    response = new RFQCreateResponse()
+                    {
+                        status = update_rfq_response.status,
+                    };
+                    if (update_rfq_response.data != null)
+                    {
+                        response.data = new RFQCreateData
+                        {
+                            rfq_id = update_rfq_response.data.rfq_id,
+                            company_id = companyData.nCompanyID,
+                            company_name = companyData.sCompanyName,
+                            created_date = DateTime.Now,
+                            rfq_number = request.rfq_number
+                        };
+                    }
+                    return response;
+                }
+                
                 var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
                 var _catagory = await _masterDataRepository.SP_GET_MASTER_CATEGORY(isShowAll: true);
 
-                var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
+                
                 if (companyData == null)
                 {
                     response = new RFQCreateResponse
@@ -1281,7 +1323,7 @@ namespace VendorPortal.Application.Services.v1
 
         public async Task<RFQUpdateResponse> UpdateRFQ(RFQUpdateRequest request)
         {
-            RFQUpdateResponse response = new RFQUpdateResponse();
+            RFQUpdateResponse response = new();
             try
             {
                 var verify = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(request.rfq_id);
@@ -1399,7 +1441,7 @@ namespace VendorPortal.Application.Services.v1
                             {
                                 status = new Status()
                                 {
-                                    code = ResponseCode.NotImplement.Text(),
+                                    code = ResponseCode.Unprocessable.Text(),
                                     message = result.message
                                 }
                             };
