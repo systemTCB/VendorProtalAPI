@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
@@ -82,7 +83,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                         client.DefaultRequestHeaders.Accept.Clear();
                         client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
                         client.DefaultRequestHeaders.Add("Authorization", $"Bearer {configToken.sToken}");
-                        var data = new List<SyncQuotationData>();
+                        var data = new List<QuotationData>();
                         foreach (var item in quoData)
                         {
                             var result = await client.GetAsync($"api/quotations/{item.nQuotationID}");
@@ -92,7 +93,13 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                 var quotationResponse = JsonConvert.DeserializeObject<SyncQuotationResponse>(quo_content);
                                 if (quotationResponse.status.code == ResponseCode.Success.Text() && quotationResponse.data != null)
                                 {
-                                    data.Add(new SyncQuotationData()
+                                    var _net_amount = quotationResponse.data.net_amount?.Replace(",", "") ?? "0";
+                                    var _discount = quotationResponse.data.discount.Replace(",", "");
+                                    var _sub_total = quotationResponse.data.sub_total.Replace(",", "");
+                                    var _total_amount = quotationResponse.data.total_amount.Replace(",", "");
+                                    var _vat_amount = quotationResponse.data.vat_amount.Replace(",", "");
+
+                                    data.Add(new QuotationData()
                                     {
                                         id = quotationResponse.data.id,
                                         quotation_number = quotationResponse.data.quotation_number,
@@ -101,19 +108,57 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                         company_id = quotationResponse.data.company_id,
                                         status = quotationResponse.data.status,
                                         transfer_date = quotationResponse.data.transfer_date,
-                                        net_amount = quotationResponse.data.net_amount,
-                                        discount = quotationResponse.data.discount,
-                                        sub_total = quotationResponse.data.sub_total,
-                                        total_amount = quotationResponse.data.total_amount,
+                                        net_amount = _net_amount != "0" ? Decimal.Parse(_net_amount) : 0.00m,
+                                        discount = _discount != "0" ? Decimal.Parse(_discount) : 0.00m,
+                                        sub_total = _sub_total != "0" ? Decimal.Parse(_sub_total) : 0.00m,
+                                        total_amount =  _total_amount != "0" ? Decimal.Parse(_total_amount) : 0.00m,
+                                        vat_amount = _vat_amount != "0" ? Decimal.Parse(_vat_amount) : 0.00m,
                                         vat_rate = quotationResponse.data.vat_rate,
-                                        vat_amount = quotationResponse.data.vat_amount,
-                                        supplier = quotationResponse.data.supplier,
+                                        supplier = new SupplierData
+                                        {
+                                            id = quotationResponse.data.supplier.id,
+                                            name = quotationResponse.data.supplier.name,
+                                            tax_id = quotationResponse.data.supplier.tax_id
+                                        },
                                         created_at = quotationResponse.data.created_at,
                                         updated_at = quotationResponse.data.updated_at,
-                                        lines = quotationResponse.data.lines,
-                                        documents = quotationResponse.data.documents,
-                                        questions = quotationResponse.data.questions,
-                                        address = quotationResponse.data.address
+                                        lines = quotationResponse.data.lines.Select(s => new QuotationLineData
+                                        {
+                                            id = s.id,
+                                            quantity = s.quantity,
+                                            rfq_description = s.rfq_description,
+                                            rfq_item_code = s.rfq_item_code,
+                                            rfq_item_name = s.rfq_item_name,
+                                            rfq_line_number = s.rfq_line_number,
+                                            rfq_uom_name = s.rfq_uom_name,
+                                            unit_price = s.unit_price
+                                        }).ToList(),
+                                        documents = quotationResponse.data.documents.Select(s=> new QuotationDocumentData
+                                        {
+                                            uuid = s.uuid,
+                                            file_name = s.file_name,
+                                            file_url = s.file_url,
+                                        }).ToList(),
+                                        questions = quotationResponse.data.questions.Select(s=> new QuotationQuestionData
+                                        {
+                                            id = s.id,
+                                            answer = s.answer,
+                                            created_at = s.created_at,
+                                            description = s.description,
+                                            question = s.question,
+                                            question_id = s.question_id,
+                                            question_number = s.question_number
+                                        }).ToList(),
+                                        address = new QuotationAddressData()
+                                        {
+                                            address_1 = quotationResponse.data.address?.address_1,
+                                            address_2 = quotationResponse.data.address?.address_2,
+                                            district_name = quotationResponse.data.address?.district_name,
+                                            name = quotationResponse.data.address?.name,
+                                            postal_code = quotationResponse.data.address?.postal_code,
+                                            province_name = quotationResponse.data.address?.province_name,
+                                            sub_district_name = quotationResponse.data.address?.sub_district_name
+                                        }
                                     });
                                 }
                                 else
