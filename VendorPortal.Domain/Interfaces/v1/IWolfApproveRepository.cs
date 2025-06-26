@@ -9,6 +9,7 @@ namespace VendorPortal.Domain.Interfaces.v1
     {
         // RFQ
         Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST();
+        Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST_SPECIFIC_BY_SUP_ID(string supplier_id);
         Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id);
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
 

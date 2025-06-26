@@ -9,7 +9,7 @@ namespace VendorPortal.Application.Interfaces.v1
     public interface IWolfApproveService
     {
         // RFQ
-        Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string company_id,
+        Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id,
                     string number,
                     string start_date,
                     string end_date,
