@@ -26,6 +26,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public string rfq_status { get; set; }
         public string created_by { get; set; }
         public string is_specific { get; set; }
+        public List<string> supplier_id { get; set; }
         public RFQRequester requester { get; set; }
         public List<RFQCreateQuestionnaire> questionaires { get; set; } = new List<RFQCreateQuestionnaire>();
         public List<RFQCreateDocument> attachments { get; set; } = new List<RFQCreateDocument>();

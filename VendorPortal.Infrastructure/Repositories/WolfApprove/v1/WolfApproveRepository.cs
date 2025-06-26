@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.SqlServer.Server;
@@ -306,7 +307,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string requesterEmail,
             string requesterTel,
             string created_by,
-            string is_specific
+            string is_specific,
+            string supplier_id
         )
         {
             try
@@ -345,7 +347,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sRequesterLastname" , string.IsNullOrEmpty(requesterLastName) ? DBNull.Value : requesterLastName),
                         new SqlParameter("@sRequesterEmail" , string.IsNullOrEmpty(requesterEmail) ? DBNull.Value : requesterEmail),
                         new SqlParameter("@sRequesterTel" , string.IsNullOrEmpty(requesterTel) ? DBNull.Value : requesterTel),
-
+                        new SqlParameter("@Supplier_id" , string.IsNullOrEmpty(supplier_id) ? DBNull.Value : supplier_id)
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ

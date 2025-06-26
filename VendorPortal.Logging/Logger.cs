@@ -12,7 +12,7 @@ namespace VendorPortal.Logging
         /// ใช้สำหรับเขียน Log ของการเรียกใช้งาน API ที่เกิด Exception เท่านั้น
         /// </summary>
         /// <param name="ex">Exception</param>
-        /// <param name="name">ให้ใชช้ชื่อของ Function มีการเรียกเข้ามา</param>
+        /// <param name="name">ให้ใช้ชื่อของ Function มีการเรียกเข้ามา</param>
         /// <param name="request">request คือ Parametor ที่ส่งเข้ามาทำงานที่ Function นี้ แต่ถ้าไม่มีก็ไม่จำเป็นต้องส่งเข้ามา</param>
         public async static void LogError(Exception ex, string name, string? request = null)
         {

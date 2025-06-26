@@ -36,7 +36,7 @@ namespace VendorPortal.API.Middleware
             string[] pathArrayList ={
                 "api/v1/wolf-approve/auth",
                 "alive",
-                "/",
+                "/"
             };
             if (pathArrayList.All(x => !path.Contains(x)))
             {

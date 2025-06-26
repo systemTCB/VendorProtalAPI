@@ -40,7 +40,8 @@ namespace VendorPortal.Domain.Interfaces.v1
             string requesterEmail,
             string requesterTel,
             string created_by,
-            string is_specific
+            string is_specific,
+            string supplier_id
         );
         Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by);
 

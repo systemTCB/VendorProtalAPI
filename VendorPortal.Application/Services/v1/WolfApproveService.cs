@@ -19,7 +19,6 @@ using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
-using VendorPortal.Infrastructure.Mock.WolfApprove.v1.Repository;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
 using static VendorPortal.Application.Models.Common.KubbossCommonModel;
@@ -43,16 +42,10 @@ namespace VendorPortal.Application.Services.v1
             _appConfigHelper = appConfigHelper;
             _baseUrl = $"{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}";
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var hop = _httpContext.HttpContext.Request.Headers["hop"].ToString();
-            if (hop?.ToLower() == "off" && env?.ToLower() != "production")
-            {
-                _wolfApproveRepository = new MockWolfApproveRepository();
-            }
-            else
-            {
-                _wolfApproveRepository = wolfApproveRepository;
-                _masterDataRepository = masterDataRepository;
-            }
+            
+            _wolfApproveRepository = wolfApproveRepository;
+            _masterDataRepository = masterDataRepository;
+
         }
 
         public async Task<ClaimConfirmResponse> ConfirmClaimStatus(string claim_id, ClaimConfirmRequest request)
@@ -1125,11 +1118,11 @@ namespace VendorPortal.Application.Services.v1
                     }
                     return response;
                 }
-                
+
                 var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
                 var _catagory = await _masterDataRepository.SP_GET_MASTER_CATEGORY(isShowAll: true);
 
-                
+
                 if (companyData == null)
                 {
                     response = new RFQCreateResponse
@@ -1177,6 +1170,11 @@ namespace VendorPortal.Application.Services.v1
                 {
                     statusName = "Open";
                 }
+
+                string sup_id = string.Empty;
+                if (request.supplier_id.Count != 0)
+                    sup_id = string.Join(",", request.supplier_id);
+
                 var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
                         request.rfq_number,
                         company_id: companyData.nCompanyID,
@@ -1205,7 +1203,8 @@ namespace VendorPortal.Application.Services.v1
                         requesterEmail: request.requester?.requesterEmail,
                         requesterTel: request.requester?.requesterTel,
                         request.created_by,
-                        string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific
+                        string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
+                        string.IsNullOrEmpty(sup_id) ? "" : sup_id
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)

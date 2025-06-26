@@ -7,7 +7,6 @@ using static VendorPortal.Application.Models.Common.AppEnum;
 using Microsoft.AspNetCore.Http;
 using VendorPortal.Application.Helpers;
 using System;
-using VendorPortal.Infrastructure.Mock.ThaiRedCross.v1.Repository;
 using System.ComponentModel.Design;
 using Azure;
 using System.Linq;
@@ -33,7 +32,7 @@ namespace VendorPortal.Application.Services.v1
 
             if (hop?.ToLower() == "off" && env?.ToLower() != "production")
             {
-                _vendotPortalRepository = new MockVendorPortalRepository();
+                
             }
 
         }

@@ -34,7 +34,7 @@ namespace VendorPortal.API.Controllers.v1
         [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้ค้นหาทั้ง ชื่อโครงการ, รายเอียดโครง, บริษัท")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<RFQDataItem>))]
         public async Task<IActionResult> GetRFQList(string q,
-            string company_id,
+            string supplier_id,
             string number,
             string start_date,
             string end_date,
@@ -52,7 +52,7 @@ namespace VendorPortal.API.Controllers.v1
                 response = await _wolfApproveService.GetRFQ_List(
                     pageSize: Convert.ToInt32(per_page),
                     page: Convert.ToInt32(page),
-                    company_id: company_id,
+                    company_id: supplier_id,
                     number: number,
                     start_date: start_date,
                     end_date: end_date,
