@@ -806,11 +806,18 @@ namespace VendorPortal.Application.Services.v1
             var result = new BaseResponse<List<RFQDataItem>>();
             try
             {
-                var item = await _wolfApproveRepository.SP_GET_RFQ_LIST();
+                List<SP_GET_RFQ_LIST> item = new List<SP_GET_RFQ_LIST>();
                 List<SP_GET_RFQ_LIST> itemSpecific = new List<SP_GET_RFQ_LIST>();
+
+                item = await _wolfApproveRepository.SP_GET_RFQ_LIST();
                 if (!string.IsNullOrEmpty(supplier_id))
                 {
                     itemSpecific = await _wolfApproveRepository.SP_GET_RFQ_LIST_SPECIFIC_BY_SUP_ID(supplier_id);
+                    // Add รายการ RFQ ที่มีการระบุ รายชื่อ Supplier อย่างชัดเจน
+                    if (itemSpecific.Count != 0)
+                    {
+                        item.AddRange(itemSpecific);
+                    }
                 }
                 if (item != null && item.Any())
                 {
@@ -860,11 +867,6 @@ namespace VendorPortal.Application.Services.v1
                     }
                     page = page <= 0 ? 1 : page;
                     pageSize = pageSize <= 0 ? 10 : pageSize;
-                    // Add รายการ RFQ ที่มีการระบุ รายชื่อ Supplier อย่างชัดเจน
-                    if (itemSpecific.Count != 0)
-                    {
-                        item.AddRange(itemSpecific);
-                    }
                     var dataList = Utility.ItemPerpageCalculator<Domain.Models.WolfApprove.StoreModel.SP_GET_RFQ_LIST>(item, page, pageSize);
                     var data = dataList.Select(s => new RFQDataItem()
                     {
