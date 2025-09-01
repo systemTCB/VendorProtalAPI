@@ -27,12 +27,40 @@ builder.Host.UseSerilog((context, services, configuration) => configuration
 builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true, true);
 builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(options =>
 {
-    c.EnableAnnotations();
-    c.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "VendorPortal.API", Version = "v1" });
+    options.EnableAnnotations();
+    options.OrderActionsBy((apiDesc) => $"{apiDesc.ActionDescriptor.RouteValues["controller"]}_{apiDesc.RelativePath}");
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "VendorPortal.API", Version = "v1" });
+    // Add security definition for JWT Bearer
+    // Add a security definition for JWT Bearer Authentication
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter your JWT token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+
+    // Add security requirement for the endpoints
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+            {
+                {
+                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                    {
+                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                        {
+                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        }
+                    },
+                    new string[] {}
+                }
+            });
 });
+
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddSingleton<Serilog.ILogger>(Log.Logger); // Register Serilog.ILogger

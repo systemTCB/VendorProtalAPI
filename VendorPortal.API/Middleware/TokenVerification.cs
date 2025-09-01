@@ -34,9 +34,8 @@ namespace VendorPortal.API.Middleware
             // Excelude paths that do not require token verification
             // You can add more paths to this list as needed
             string[] pathArrayList ={
-                "api/v1/wolf-approve/auth",
-                "alive",
-                "/"
+                "/api/v1/wolf-approve/auth",
+                "alive"
             };
             if (pathArrayList.All(x => !path.Contains(x)))
             {
