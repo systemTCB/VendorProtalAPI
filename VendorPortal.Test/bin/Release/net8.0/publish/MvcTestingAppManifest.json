@@ -1,8 +1,0 @@
-{
-  "ThaiRedCrossEProAPI.API, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
-  "ThaiRedCrossEProAPI.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
-  "ThaiRedCrossEProAPI.Domain, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
-  "ThaiRedCrossEProAPI.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
-  "ThaiRedCrossEProAPI.Infrastructure.IoC, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~",
-  "ThaiRedCrossEProAPI.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null": "~"
-}
