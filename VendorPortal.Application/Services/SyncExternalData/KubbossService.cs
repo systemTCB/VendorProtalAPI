@@ -114,6 +114,8 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                         total_amount =  _total_amount != "0" ? Decimal.Parse(_total_amount) : 0.00m,
                                         vat_amount = _vat_amount != "0" ? Decimal.Parse(_vat_amount) : 0.00m,
                                         vat_rate = quotationResponse.data.vat_rate,
+                                        payment_condition = quotationResponse.data.payment_condition,
+                                        remark = quotationResponse.data.remark,
                                         supplier = new SupplierData
                                         {
                                             id = quotationResponse.data.supplier.id,
