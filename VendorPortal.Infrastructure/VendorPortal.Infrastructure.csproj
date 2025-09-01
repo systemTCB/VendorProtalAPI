@@ -1,0 +1,75 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\VendorPortal.Domain\VendorPortal.Domain.csproj" />
+    <ProjectReference Include="..\VendorPortal.Logging\VendorPortal.Logging.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- <ImplicitUsings>enable</ImplicitUsings> -->
+    <!-- <Nullable>enable</Nullable>  -->
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Load Mockup file to Main csProject ,the list as below -->
+    <!-- RFQ Mockup File -->
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_LIST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_DETAIL.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_RFQ_DOCUMENT.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+  
+    <!-- Purchase Order Mockup File-->
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_PURCHASE_ORDER_DETAIL.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_PURCHASE_ORDER_LIST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_PURCHASE_ORDER_CONFIRM.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+    <!-- Claim Mockup File -->
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_CLAIM_LIST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_CLAIM_DETAIL.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_UPDATE_CLAIM_ORDER_CONFIRM.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+    <!-- Companies Mockup File -->
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANIES_LIST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COMPANIES_DETAIL.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Mock\WolfApprove\v1\Data\SP_PUT_CONNECT_COMPANIES_REQUEST.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    
+    <!-- Count Mockup File -->
+    <None Update="Mock\WolfApprove\v1\Data\SP_GET_COUNT_PO_CLAIM.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+
+  </ItemGroup>
+
+</Project>
