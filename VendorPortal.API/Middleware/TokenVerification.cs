@@ -37,6 +37,13 @@ namespace VendorPortal.API.Middleware
                 "/api/v1/wolf-approve/auth",
                 "alive"
             };
+
+            if (context.Request.Path.StartsWithSegments("/uploads"))
+            {
+                await _next(context);
+                return;
+            }
+
             if (pathArrayList.All(x => !path.Contains(x)))
             {
                 if (context.Request.Headers.ContainsKey("Authorization"))

@@ -51,5 +51,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public decimal dSubTotal { get; set; }
         public string sPaymentCondition { get; set; }
         public string sRemark { get; set; }
+        public string RequestForType { get; set; }
     }
 }

@@ -1,22 +1,31 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Core;
+using HandlebarsDotNet;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.SyncExternalData;
+using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.ExtenalModel;
 using VendorPortal.Application.Models.v1.Response;
+using VendorPortal.Application.Services.v1;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static VendorPortal.Application.Models.Common.AppEnum;
 
 namespace VendorPortal.Application.Services.SyncExternalData
@@ -26,11 +35,13 @@ namespace VendorPortal.Application.Services.SyncExternalData
         private readonly DbContext _dbContext;
         private readonly AppConfigHelper _appConfigHelper;
         private readonly IWolfApproveRepository _wolfApproveRepository;
-        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper, IWolfApproveRepository wolfApproveRepository)
+        private readonly IWolfApproveService _wolfApproveService;
+        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper, IWolfApproveRepository wolfApproveRepository, IWolfApproveService wolfApproveService)
         {
             _wolfApproveRepository = wolfApproveRepository;
             _appConfigHelper = appConfigHelper;
             _dbContext = dbContext;
+            _wolfApproveService = wolfApproveService;
         }
 
         public async Task<QuotationResponse> SyncQuotationFromKubboss(string supplierId, string rfqId)
@@ -111,7 +122,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                         net_amount = _net_amount != "0" ? Decimal.Parse(_net_amount) : 0.00m,
                                         discount = _discount != "0" ? Decimal.Parse(_discount) : 0.00m,
                                         sub_total = _sub_total != "0" ? Decimal.Parse(_sub_total) : 0.00m,
-                                        total_amount =  _total_amount != "0" ? Decimal.Parse(_total_amount) : 0.00m,
+                                        total_amount = _total_amount != "0" ? Decimal.Parse(_total_amount) : 0.00m,
                                         vat_amount = _vat_amount != "0" ? Decimal.Parse(_vat_amount) : 0.00m,
                                         vat_rate = quotationResponse.data.vat_rate,
                                         payment_condition = quotationResponse.data.payment_condition,
@@ -135,13 +146,13 @@ namespace VendorPortal.Application.Services.SyncExternalData
                                             rfq_uom_name = s.rfq_uom_name,
                                             unit_price = s.unit_price
                                         }).ToList(),
-                                        documents = quotationResponse.data.documents.Select(s=> new QuotationDocumentData
+                                        documents = quotationResponse.data.documents.Select(s => new QuotationDocumentData
                                         {
                                             uuid = s.uuid,
                                             file_name = s.file_name,
                                             file_url = s.file_url,
                                         }).ToList(),
-                                        questions = quotationResponse.data.questions.Select(s=> new QuotationQuestionData
+                                        questions = quotationResponse.data.questions.Select(s => new QuotationQuestionData
                                         {
                                             id = s.id,
                                             answer = s.answer,
@@ -335,6 +346,179 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogError(ex, "SyncVendorFromKubboss");
             }
             return response;
+        }
+
+        public async Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode)
+        {
+            try
+            {
+               
+                var questionnaires = await GetSupplierQuestionnaires(supplier_id);
+                if (questionnaires == null || !questionnaires.Any())
+                    return ActionResultResponse.Fail("Questionnaire not found");
+
+                var answerData = questionnaires.First();
+
+                var routes = await GetActiveBuyerRoute(buyerCode);
+                var buyerRoute = routes.FirstOrDefault();
+                if (buyerRoute == null)
+                    return ActionResultResponse.Fail("Buyer route not found");
+
+                var payloadObj = MapAnswerByBuyer(buyerCode, answerData);
+             
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+                return ActionResultResponse.Success("Send to buyer success");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "RegsiterSuppliersFromKubboss");
+                return ActionResultResponse.Fail("internal error");
+            }
+        }
+
+        private async Task<List<JObject>> GetSupplierQuestionnaires(string supplier_id)
+        {
+            var sqlParameter = new SqlParameter[]
+            {
+                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+            };
+
+            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+            var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+            var response = await client.GetAsync($"/api/questionnaire/supplier/{supplier_id}/answers");
+
+            if (!response.IsSuccessStatusCode) throw new Exception("Failed to fetch questionnaire list");
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            var root = JObject.Parse(content);
+            var items = root["data"] as JArray;
+            if (items == null || !items.Any()) return new List<JObject>();
+            var result = new List<JObject>();
+            foreach (var item in items)
+            {
+                var questionnaireId = item["id"]?.ToString();
+                if (string.IsNullOrEmpty(questionnaireId)) continue;
+                var answer = await GetAnswer(client, questionnaireId);
+                if (answer != null) result.Add(answer);
+            }
+            return result;
+        }
+
+        private async Task<JObject> GetAnswer(HttpClient client, string questionnaireId)
+        {
+            var res = await client.GetAsync($"/api/questionnaire/{questionnaireId}/answer");
+            if (!res.IsSuccessStatusCode) return null;
+
+            var content = await res.Content.ReadAsStringAsync();
+            return JObject.Parse(content);
+        }
+
+        public async Task<List<SP_GET_Buyer_Code>> GetActiveBuyerRoute(string buyerCode)
+        {
+            return await _wolfApproveRepository.SP_GET_Buyer_Code(buyerCode.ToUpper());
+        }
+
+        private async Task<bool> SendToBuyer(SP_GET_Buyer_Code route, string payloadJson)
+        {
+            try
+            {
+                using var client = new HttpClient
+                {
+                    BaseAddress = new Uri(route.BaseUrl)
+                };
+
+                if (route.AuthType?.ToUpper() == "BEARER")
+                {
+                    var token = await GetBearerToken(route);
+                    client.DefaultRequestHeaders.Authorization =
+                        new AuthenticationHeaderValue("Bearer", token);
+                }
+
+                var content = new StringContent(payloadJson, Encoding.UTF8, route.ContentType ?? "application/json");
+                HttpResponseMessage response = route.HttpMethod.ToUpper() switch
+                {
+                    "POST" => await client.PostAsync(route.Path, content),
+                    "PUT" => await client.PutAsync(route.Path, content),
+                    _ =>
+                    throw new NotSupportedException($"HTTP method {route.HttpMethod} not supported")
+                };
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                }
+
+                return response.IsSuccessStatusCode;
+
+            } catch (Exception ex) {
+                Logger.LogError(ex, "SendToBuyer");
+
+            }
+
+            return false;
+        }
+
+        private JObject MapAnswerByBuyer(string buyerCode, JObject answer)
+        {
+            if (answer == null) return null;
+            return buyerCode.ToUpper() switch
+            {
+                "LPN" => MapForLpn(answer),
+                "HAPPYSUPPLIER" => MapForCman(answer),
+                "MU" => MapForMu(answer),
+                _ => answer
+            };
+        }
+
+        private async Task<string> GetBearerToken(SP_GET_Buyer_Code route)
+        {
+            using var client = new HttpClient
+            {
+                BaseAddress = new Uri(route.BaseUrl+route.AuthUrlPath)
+            };
+
+            var body = new
+            {
+                username = "wolfR3@Wolfadmin.com",
+                password = "0080a2ed67539ad2be1e035d3ce5fc6c"
+            };
+
+            var response = await client.PostAsync(
+                route.AuthUrlPath,
+                new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
+            );
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Failed to get token");
+
+            var content = await response.Content.ReadAsStringAsync();
+            var json = JObject.Parse(content);
+
+            return json["Result"]?.ToString();
+        }
+
+
+        private JObject MapForLpn(JObject answer)
+        {
+            return answer;
+        }
+
+        private JObject MapForCman(JObject answer)
+        {
+            return answer;
+        }
+
+        private JObject MapForMu(JObject answer)
+        {
+            return answer;
         }
 
     }

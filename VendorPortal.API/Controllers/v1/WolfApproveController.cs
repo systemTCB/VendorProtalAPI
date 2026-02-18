@@ -1,30 +1,40 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Azure;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Serilog;
 using Swashbuckle.AspNetCore.Annotations;
+using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Interfaces.v1;
+using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
+using VendorPortal.Application.Services.SyncExternalData;
 using VendorPortal.Domain.Interfaces.v1;
-using static VendorPortal.Application.Models.Common.AppEnum;
 using VendorPortal.Logging;
-using Newtonsoft.Json;
-using Serilog;
-using System;
-using VendorPortal.Application.Models.Common;
-using System.Collections.Generic;
+using static VendorPortal.Application.Models.Common.AppEnum;
 namespace VendorPortal.API.Controllers.v1
 {
     [ApiController]
     public class WolfApproveController : ControllerBase
     {
         private readonly IWolfApproveService _wolfApproveService;
-        public WolfApproveController(IWolfApproveService wolfApproveService)
+        private readonly IKubbossService _kubBossService;
+        public WolfApproveController(IWolfApproveService wolfApproveService,IKubbossService kubBossService)
         {
             _wolfApproveService = wolfApproveService;
+            _kubBossService = kubBossService;
         }
         #region [RFQ]
 
@@ -40,6 +50,7 @@ namespace VendorPortal.API.Controllers.v1
             string start_date,
             string end_date,
             string purchase_type_id,
+            string request_for_type,
             string status_id,
             string category_id,
             string page,
@@ -59,6 +70,7 @@ namespace VendorPortal.API.Controllers.v1
                     start_date: start_date,
                     end_date: end_date,
                     purchase_type_id: purchase_type_id,
+                    request_for_type: request_for_type,
                     status_id: status_id,
                     category_id: category_id,
                     order_direction: order_direction,
@@ -142,7 +154,6 @@ namespace VendorPortal.API.Controllers.v1
         [Description("Create By Peetisook")]
         [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้สำหรับสร้าง Update RFQ")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQUpdateResponse))]
-        #endregion
         public async Task<IActionResult> UpdateRFQ([FromBody] RFQUpdateRequest request)
         {
             RFQUpdateResponse response = new();
@@ -165,6 +176,8 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(response);
         }
+
+        #endregion
 
         #region [Puchase Order]
 
@@ -503,10 +516,165 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(response);
         }
-        
-        
 
         #endregion
 
+        #region [Vendor Register]
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/register")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+            Tags = new[] { "Vendor Register V1" },
+            Summary = "Register Vendor",
+            Description = "Vendor Register by supplier_id"
+        )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SupplierRegistrationResponse))]
+        public async Task<IActionResult> VendorRegister([FromBody] VendorRegisterRequest request)
+        {
+
+            if (string.IsNullOrEmpty(request.buyerCode) || string.IsNullOrEmpty(request.supplier_id))
+                return BadRequest("buyerCode or supplier id is required");
+
+            RegisterResponse responseSuppliers = new();
+
+            try
+            {
+                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id,request.buyerCode);
+                
+                return result.success
+                    ? Ok(result)
+                    : BadRequest(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "VendorRegister ERROR", $"supplier_id: {request.supplier_id}");
+
+                responseSuppliers = new RegisterResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseSuppliers);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/VendorRegisterUpdateStatus")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+            Tags = new[] { "Vendor Register V1" },
+            Summary = "Update Status Register Vendor",
+            Description = "Update Status Vendor Register by supplier_id"
+        )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SupplierRegistrationResponse))]
+        public async Task<IActionResult> VendorRegisterUpdateStatus([FromBody] VendorRegisterRequest request)
+        {
+
+            if (string.IsNullOrEmpty(request.buyerCode) || string.IsNullOrEmpty(request.supplier_id))
+                return BadRequest("buyerCode or supplier id is required");
+
+            RegisterResponse responseSuppliers = new();
+
+            try
+            {
+                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode);
+
+                return result.success
+                    ? Ok(result)
+                    : BadRequest(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "VendorRegister ERROR", $"supplier_id: {request.supplier_id}");
+
+                responseSuppliers = new RegisterResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseSuppliers);
+        }
+
+        #endregion
+
+        #region RFP
+        [HttpPost]
+        [Route("api/v1/wolf-approve/rfp/create/{DocumentNo}/{company_id}")]
+        [Consumes("multipart/form-data")]
+        [SwaggerOperation(Tags = new[] { "RFP V1" }, Summary = "", Description = "ใช้สำหรับสร้าง create RFP")]
+        public async Task<IActionResult> CreateRFP([FromRoute] string DocumentNo, [FromForm] RFPCreateRequest requestData, [FromRoute] int company_id, [FromForm] List<IFormFile> files)
+        {
+            RFPCreateResponse response = new();
+
+            try
+            {
+                var request = HttpContext.Request;
+                string domain = $"{request.Scheme}://{request.Host}";
+
+                Logger.LogInfo("CreateRFP", $"domain: {domain}");
+
+                response = await _wolfApproveService.CreateRFP(DocumentNo, requestData, company_id, files, domain);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFP");
+                response = new RFPCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = ex.Message
+                    }
+                };
+            }
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/document-acknowledge")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Vendor Register V1" }, Summary = "", Description = "ใช้สำหรับบอกว่าได้รับเอกสารหรือเปิดเอกสารอ่านแล้ว")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQCreateResponse))]
+        public async Task<IActionResult> acknowledgeDocument([FromBody] AcknowledgeDocumentRequest request)
+        {
+            AcknowledgeDocumentResponse response = new();
+
+            try
+            {
+                response = await _wolfApproveService.AcknowledgeDocument(request);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new AcknowledgeDocumentResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
+        #endregion
     }
 }

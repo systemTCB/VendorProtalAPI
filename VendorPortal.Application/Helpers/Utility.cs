@@ -112,19 +112,28 @@ namespace VendorPortal.Application.Helpers
         {
             try
             {
-                if (list == null || list.Count == 0) return list;
-                if (page <= 0 || pageSize <= 0)
-                    return list;
+                if (list == null || list.Count == 0)
+                    return new List<T>();
+
+                page = page <= 0 ? 1 : page;
+                pageSize = pageSize <= 0 ? 10 : pageSize;
+
                 int skip = (page - 1) * pageSize;
-                int take = pageSize;
+
+                if (skip >= list.Count)
+                    return new List<T>();
+
+                int take = Math.Min(pageSize, list.Count - skip);
+
                 return list.GetRange(skip, take);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "PageCalculator");
-                return list;
+                return new List<T>();
             }
         }
+
         public static BaseResponse<T> PagingCalculator<T>(int page, int pageSize, int item, string _baseUrl)
         {
             try

@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Text.RegularExpressions;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
-using Azure;
+using Azure.Core;
+using HandlebarsDotNet;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
+using VendorPortal.Application.Models.ExtenalModel;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
+using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
 using static VendorPortal.Application.Models.Common.KubbossCommonModel;
@@ -32,19 +34,26 @@ namespace VendorPortal.Application.Services.v1
         private readonly AppConfigHelper _appConfigHelper;
         private readonly IHttpContextAccessor _httpContext;
         private readonly string _baseUrl = string.Empty;
+        private readonly IConfiguration _config;
+        private readonly DbContext _dbContext;
+
         public WolfApproveService(IHttpContextAccessor httpContext,
             IWolfApproveRepository wolfApproveRepository,
             IMasterDataRepository masterDataRepository,
-            AppConfigHelper appConfigHelper
+            AppConfigHelper appConfigHelper,
+            IConfiguration config,
+            DbContext dbContext
             )
         {
             _httpContext = httpContext;
             _appConfigHelper = appConfigHelper;
             _baseUrl = $"{_httpContext.HttpContext.Request.Scheme}://{_httpContext.HttpContext.Request.Host}{_httpContext.HttpContext.Request.Path}";
             var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            
+
             _wolfApproveRepository = wolfApproveRepository;
             _masterDataRepository = masterDataRepository;
+            _config = config;
+            _dbContext = dbContext;
 
         }
 
@@ -801,7 +810,7 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id, string number, string start_date, string end_date, string purchase_type_id, string status_id, string category_id, string order_direction, string order_by, string q)
+        public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id, string number, string start_date, string end_date, string purchase_type_id, string request_for_type, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new BaseResponse<List<RFQDataItem>>();
             try
@@ -813,7 +822,7 @@ namespace VendorPortal.Application.Services.v1
                 if (!string.IsNullOrEmpty(supplier_id))
                 {
                     itemSpecific = await _wolfApproveRepository.SP_GET_RFQ_LIST_SPECIFIC_BY_SUP_ID(supplier_id);
-                    // Add รายการ RFQ ที่มีการระบุ รายชื่อ Supplier อย่างชัดเจน
+
                     if (itemSpecific.Count != 0)
                     {
                         item.AddRange(itemSpecific);
@@ -829,14 +838,16 @@ namespace VendorPortal.Application.Services.v1
                     if (!string.IsNullOrEmpty(number))
                     {
                         item = [.. item.Where(s => s.sRFQNumber.Contains(number))];
-                    }
-                    if (!string.IsNullOrEmpty(start_date))
+                    }                  
+                    if (DateTime.TryParse(start_date, out var filterStart) && DateTime.TryParse(end_date, out var filterEnd))
                     {
-                        item = [.. item.Where(s => s.dStartDate >= DateTime.Parse(start_date))];
-                    }
-                    if (!string.IsNullOrEmpty(end_date))
-                    {
-                        item = [.. item.Where(s => s.dEndDate <= DateTime.Parse(end_date))];
+                        filterStart = filterStart.Date;
+                        filterEnd = filterEnd.Date;
+                        
+                        item = [.. item.Where(s =>
+                            s.dStartDate.Date <= filterEnd &&
+                            s.dEndDate.Date >= filterStart
+                        )];
                     }
                     if (!string.IsNullOrEmpty(purchase_type_id))
                     {
@@ -856,14 +867,11 @@ namespace VendorPortal.Application.Services.v1
                     }
                     if (!string.IsNullOrEmpty(order_direction))
                     {
-                        if (order_direction == "asc")
-                        {
-                            item = item.OrderBy(s => s.sRFQNumber).ToList();
-                        }
-                        else
-                        {
-                            item = item.OrderByDescending(s => s.sRFQNumber).ToList();
-                        }
+                        item = order_direction.ToLower() == "asc" ? item.OrderBy(s => GetRFQRunningNo(s.sRFQNumber)).ToList() : item.OrderByDescending(s => GetRFQRunningNo(s.sRFQNumber)).ToList();
+                    }
+                    if (!string.IsNullOrEmpty(request_for_type))
+                    {   
+                        item = item.Where(s => !string.IsNullOrEmpty(s.RequestForType) && s.RequestForType.Equals(request_for_type, StringComparison.OrdinalIgnoreCase)).ToList();
                     }
                     page = page <= 0 ? 1 : page;
                     pageSize = pageSize <= 0 ? 10 : pageSize;
@@ -894,9 +902,11 @@ namespace VendorPortal.Application.Services.v1
                         start_date = s.dStartDate,
                         status = s.sStatusName,
                         is_specific = s.bIsSpecific == true ? "Y" : "N",
+                        request_for_type = s.RequestForType
                     }).ToList();
                     result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, item.Count, _baseUrl);
-                    result.data = [.. data.OrderByDescending(o => o.rfq_number)];
+                    //result.data = [.. data.OrderByDescending(o => o.rfq_number)];
+                    result.data = data;
                     result.status = new Status()
                     {
                         code = ResponseCode.Success.Text(),
@@ -943,6 +953,18 @@ namespace VendorPortal.Application.Services.v1
             return result;
         }
 
+        private static int GetRFQRunningNo(string rfqNumber)
+        {
+            if (string.IsNullOrWhiteSpace(rfqNumber))
+                return 0;
+
+            var lastPart = rfqNumber.Split('-').LastOrDefault();
+
+            return int.TryParse(lastPart, out var no)
+                ? no
+                : 0;
+        }
+
         public async Task<RFQShowResponse> GetRFQ_Show(string rfq_id)
         {
             RFQShowResponse response = new RFQShowResponse();
@@ -956,6 +978,7 @@ namespace VendorPortal.Application.Services.v1
                     tempList = new RFQShowData
                     {
                         id = _companyInfo.nRFQID.ToString(),
+                        request_for_type = _companyInfo.RequestForType,
                         company_address = new CompanyAddress
                         {
                             address_1 = _companyInfo.sAddress1,
@@ -1092,6 +1115,7 @@ namespace VendorPortal.Application.Services.v1
                 var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
                 if (!string.IsNullOrEmpty(request.rfq_id))
                 {
+
                     List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
                     if (request.attachments != null && request.attachments.Any())
                     {
@@ -1105,6 +1129,7 @@ namespace VendorPortal.Application.Services.v1
                             });
                         }
                     }
+
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
                         rfq_id = request.rfq_id,
@@ -1113,10 +1138,12 @@ namespace VendorPortal.Application.Services.v1
                         documents = document,
                         modified_by = request.created_by
                     });
+
                     response = new RFQCreateResponse()
                     {
                         status = update_rfq_response.status,
                     };
+
                     if (update_rfq_response.data != null)
                     {
                         response.data = new RFQCreateData
@@ -1129,6 +1156,7 @@ namespace VendorPortal.Application.Services.v1
                         };
                     }
                     return response;
+
                 }
 
                 var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
@@ -1206,7 +1234,7 @@ namespace VendorPortal.Application.Services.v1
                         start_date: request.start_date,
                         end_date: request.end_date,
                         required_date: request.required_date,
-                        status_id: 0,
+                        status_id: 1,
                         status_name: statusName,
                         request.contract_value,
                         request.remark,
@@ -1216,7 +1244,9 @@ namespace VendorPortal.Application.Services.v1
                         requesterTel: request.requester?.requesterTel,
                         request.created_by,
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
-                        string.IsNullOrEmpty(sup_id) ? "" : sup_id
+                        string.IsNullOrEmpty(sup_id) ? "" : sup_id,
+                        requestForType : "RFQ"
+
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)
@@ -1434,7 +1464,7 @@ namespace VendorPortal.Application.Services.v1
                 {
                     if (request.status.ToLower() == "create")
                     {
-                        var result = await _wolfApproveRepository.SP_PUT_QUOTATION_CREATE(rfq_id, request.quo_number, request.quo_id, request.status, request.reason);
+                        var result = await _wolfApproveRepository.SP_PUT_QUOTATION_CREATE(rfq_id, request.quo_number, request.quo_id, request.supplier_id, request.status, request.reason);
                         if (result.result)
                         {
                             response = new BaseResponse()
@@ -1523,7 +1553,339 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<RFQShowResponse> GetBuyerCode(string BuyerCode)
+        {
+            RFQShowResponse response = new RFQShowResponse();
 
+            try
+            {
+                var sp_result = await _wolfApproveRepository.SP_GET_Buyer_Code(BuyerCode);
+
+            }
+            catch (System.Exception ex)
+            {
+                response = new RFQShowResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetBuyerCode");
+            }
+
+            return response;
+        }
+
+        public async Task<VendorRegisterResponse> CreateSupplierRegistration(string companyID, SupplierRegistrationResponse responseSuppliers)
+        {
+            VendorRegisterResponse response = new VendorRegisterResponse();
+
+            try
+            {
+                var _companyAPI = await _wolfApproveRepository.SP_GET_COMPANY_API(companyID);
+                var companyInfo = _companyAPI.FirstOrDefault();
+                if (companyInfo == null)
+                {
+                    response.status = new Status()
+                    {
+                        code = ResponseCode.NotFound.Text(),
+                        message = "Company API not found"
+                    };
+                    return response;
+                }
+
+                var vendorData = new VendorRegisterData
+                {
+                    CompanyID = companyInfo.CompanyID,
+                    CompanyName = companyInfo.CompanyName,
+                    EndpointAPI = companyInfo.EndpointAPI,
+                    KB_API_PATH = companyInfo.KB_API_PATH,
+                    URLCreatedDate = companyInfo.URLCreatedDate,
+                    WOLF_API_PATH = companyInfo.ApiPath,
+                    PathCreatedDate = companyInfo.PathCreatedDate,
+                    Model = companyInfo.Model,
+                };
+
+                string apiPath = companyInfo.ApiPath;
+                string url = $"{companyInfo.EndpointAPI}{apiPath}";
+                string AccessToken = "";
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(companyInfo.EndpointAPI);
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AccessToken);
+
+                    var jsonContent = JsonConvert.SerializeObject(responseSuppliers);
+                    var httpContent = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
+
+                    var result = await client.PostAsync(url, httpContent);
+
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        response.status = new Status()
+                        {
+                            code = ResponseCode.BadRequest.Text(),
+                            message = $"Failed to forward supplier data to {url}"
+                        };
+                        response.data = vendorData;
+                        return response;
+                    }
+                }
+
+                response.status = new Status()
+                {
+                    code = ResponseCode.Success.Text(),
+                    message = ResponseCode.Success.Description()
+                };
+
+                response.data = vendorData;
+            }
+            catch (System.Exception ex)
+            {
+                response = new VendorRegisterResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+
+                Logger.LogError(ex, "Vendor Register");
+            }
+
+            return response;
+        }
+
+        #region RFP
+        public async Task<RFPCreateResponse> CreateRFP(string documentNo, RFPCreateRequest request, int company_id, List<IFormFile> files, string domain)
+        {
+            RFPCreateResponse response = new();
+
+            try
+            {
+                DateTime today = DateTime.Now;
+                DateTime endDate = DateTime.Now.AddMonths(6);
+                var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
+                var companyData = _companyList.Where(e => e.nCompanyID == company_id).FirstOrDefault();
+
+                if (request != null)
+                {
+                    string sup_id = string.Empty;
+                    if (request.supplier_id.Count != 0)
+                        sup_id = string.Join(",", request.supplier_id);
+
+                    var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
+                        documentNo, 
+                        company_id: companyData.nCompanyID,
+                        company_name: companyData.sCompanyName,
+                        rfq_status: "",
+                        0,
+                        0,
+                        0,
+                        0,
+                        "",
+                        "",
+                        "",
+                         0,
+                        "",
+                        0,
+                        "",
+                        today,
+                        endDate,
+                        required_date: today,
+                        status_id: 2,
+                        status_name: "Open",
+                        0,
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "",
+                        "Y",
+                        string.IsNullOrEmpty(sup_id) ? "" : sup_id,
+                        requestForType : "RFP"
+                    );
+
+                  
+                    string rootPath = _config["FileUpload:RootPath"];
+                    string publicPath = _config["FileUpload:PublicPath"];
+                    string folderPath = Path.Combine(rootPath, "rfp", documentNo);
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    int Fileseq = 1;
+                    var savedFiles = new List<string>();
+                    foreach (var f in files)
+                    {
+                        if (f.Length == 0) continue;
+                        string shortGuid = Guid.NewGuid().ToString("N").Substring(0, 12);
+
+                        string fileName = Path.GetFileName(f.FileName);
+                        string formattedDate = today.ToString("yyyyMMdd");
+                        string newFileName = $"{shortGuid}_{formattedDate}_{fileName}";
+                        string fullPath = Path.Combine(folderPath, newFileName);
+
+                        using (var stream = new FileStream(fullPath, FileMode.Create))
+                        {
+                            await f.CopyToAsync(stream);
+                        }
+
+                        savedFiles.Add(fullPath);
+                        string fileURL = $"{domain}/uploads/rfp/{documentNo}/{newFileName}";
+
+                        documents.Add(new TEMP_RFQ_DOCUMENT()
+                        {
+                            nRFQID = result.RFQID?.ToString(),
+                            sFileName = newFileName,
+                            sFilePath = fileURL,
+                            sFileSeq = Fileseq,
+                            CreatedBy = "SYSTEM",
+                        });
+
+                        Fileseq++;
+
+                    }
+
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreateRFP", $"result: {res.Message}");
+
+                    if (!res.Result)
+                    {
+                        foreach (var path in savedFiles)
+                        {
+                            try
+                            {
+                                if (System.IO.File.Exists(path))
+                                    System.IO.File.Delete(path);
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "DeleteFileRollback");
+                            }
+                        }
+                        throw new Exception($"Insert DB failed: {res.Message}");
+                    }
+
+                }
+
+                response.data = new RFPCreateData()
+                {
+                    documentNo = documentNo
+                };
+
+                response.status = new Status()
+                {
+                    code = ResponseCode.Success.Text(),
+                    message = "Upload Success"
+                };
+
+            }
+            catch (Exception ex)
+            {
+                response = new RFPCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ex.Message
+                    },
+                    data = null
+                };
+
+                Logger.LogError(ex, "CreateRFP");
+            }
+
+            return response;
+        }
+
+        public async Task<AcknowledgeDocumentResponse> AcknowledgeDocument(AcknowledgeDocumentRequest request)
+        {
+            AcknowledgeDocumentResponse response = new();
+
+            try
+            {
+                var rfqInfo = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(request.rfq_id);
+
+                if (rfqInfo != null && rfqInfo.Any())
+                {
+                    var _dataInfo = rfqInfo.FirstOrDefault();
+
+                    response.data = new AcknowledgeDocumentData()
+                    {
+                        rfq_id = _dataInfo.nRFQID.ToString(),
+                        documentNo = _dataInfo.sRFQNumber,
+                        name = request.name,
+                        supplier_id = request.supplier_id,
+                        supplier_email = request.supplier_email,
+                        acknowledgeDate = request.acknowledgeDate,
+                    };
+
+                    var sqlParameter = new SqlParameter[]
+                    {
+                        new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel").ToString()),
+                    };
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Mahidol").ToString();
+                    HttpClient client = new HttpClient();
+                    client.BaseAddress = new Uri(endPoint);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {configToken.sToken}");
+                    var data = new List<QuotationData>();
+
+                    var json = Newtonsoft.Json.JsonConvert.SerializeObject(response.data);
+                    var content = new StringContent(json, Encoding.UTF8, "application/json");
+                    var result = await client.PostAsync("/apir3/api/addon/acknowledge-send-mail", content);
+                    if (!result.IsSuccessStatusCode)
+                    {
+                        var err = await result.Content.ReadAsStringAsync();
+                        var errObj = Newtonsoft.Json.Linq.JObject.Parse(err);
+                        var errMsg = errObj["message"]?.ToString();
+
+                        response.status = new Status()
+                        {
+                            code = ResponseCode.NotFound.Text(),
+                            message = errMsg ?? err
+                        };
+                    }
+                    else
+                    {
+                        var raw = await result.Content.ReadAsStringAsync();
+
+                        Logger.LogInfo("acknowledge-send-mail", $"result: {raw}");
+                        response.status = new Status()
+                        {
+                            code = ResponseCode.Success.Text(),
+                            message = "Send Acknowledge Document Success"
+                        };
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                response = new AcknowledgeDocumentResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+                Logger.LogError(ex, "Acknowledge Document");
+            }
+            return response;
+        }
+        #endregion 
     }
 
 }

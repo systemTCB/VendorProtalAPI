@@ -37,5 +37,7 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public int nCompanyID { get; set; }
         public string sQuotationCode { get; set; }
         public bool? bIsSpecific { get; set; }
+        public string RequestForType { get; set; }
+
     }
 }

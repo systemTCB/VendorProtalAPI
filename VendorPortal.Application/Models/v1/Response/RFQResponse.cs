@@ -29,6 +29,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public string payment_condition { get; set; }
         public string remark { get; set; }
         public string is_specific { get; set; }
+        public string request_for_type { get; set; }
+
     }
 
 }

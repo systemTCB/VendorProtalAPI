@@ -271,7 +271,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string status, string reason)
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id,string supplier_id, string status, string reason)
         {
             try
             {
@@ -283,7 +283,9 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     {
                         new("@RFQID", rfq_id),
                         new("@QuotationNumber", quo_number),
-                        new("@QuotationId", quo_id)
+                        new("@QuotationId", quo_id),
+                        new("@Supplier_ID", supplier_id)
+
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
                     return new SP_PUT_QUOTATION
@@ -332,7 +334,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string requesterTel,
             string created_by,
             string is_specific,
-            string supplier_id
+            string supplier_id,
+            string requestForType
         )
         {
             try
@@ -371,7 +374,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sRequesterLastname" , string.IsNullOrEmpty(requesterLastName) ? DBNull.Value : requesterLastName),
                         new SqlParameter("@sRequesterEmail" , string.IsNullOrEmpty(requesterEmail) ? DBNull.Value : requesterEmail),
                         new SqlParameter("@sRequesterTel" , string.IsNullOrEmpty(requesterTel) ? DBNull.Value : requesterTel),
-                        new SqlParameter("@Supplier_id" , string.IsNullOrEmpty(supplier_id) ? DBNull.Value : supplier_id)
+                        new SqlParameter("@Supplier_id" , string.IsNullOrEmpty(supplier_id) ? DBNull.Value : supplier_id),
+                        new SqlParameter("@RequestForType" , string.IsNullOrEmpty(requestForType) ? DBNull.Value : requestForType),
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ
@@ -540,6 +544,53 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
+        public async Task<List<SP_GET_COMPANY_API>> SP_GET_COMPANY_API(string company_id)
+        {
+            List<SP_GET_COMPANY_API> result = new List<SP_GET_COMPANY_API>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_COMPANY_API";
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@CompanyID", company_id)
+                    };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_COMPANY_API>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_COMPANY_API");
+                return result;
+            }
+            return result;
+        }
+
+        public async Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode)
+        {
+            List<SP_GET_Buyer_Code> result = new List<SP_GET_Buyer_Code>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_Buyer_Code";
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@BuyerCode", BuyerCode)
+                    };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_Buyer_Code>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_Buyer_Code");
+                return result;
+            }
+            return result;
+        }
 
     }
 }

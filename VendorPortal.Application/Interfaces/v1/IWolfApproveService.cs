@@ -3,6 +3,7 @@ using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.Common;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace VendorPortal.Application.Interfaces.v1
 {
@@ -14,6 +15,7 @@ namespace VendorPortal.Application.Interfaces.v1
                     string start_date,
                     string end_date,
                     string purchase_type_id,
+                    string request_for_type,
                     string status_id,
                     string category_id,
                     string order_direction,
@@ -56,5 +58,14 @@ namespace VendorPortal.Application.Interfaces.v1
         //Quotation
         Task<BaseResponse> PutQuotation(string rfq_id, PutQuotationRequest request);
         Task<QuotationResponse> GetQuotation(string supplier_id, string rfq_id);
+
+        //Vendor Register
+        Task<VendorRegisterResponse> CreateSupplierRegistration(string companyID, SupplierRegistrationResponse responseSuppliers);
+
+        //Task<bool> CreateSupplierRegistrationLPN(SupplierRegisterResponse Suppliers, string buyerCode);
+
+        Task<RFPCreateResponse> CreateRFP(string documentNo, RFPCreateRequest requestData, int company_id, List<IFormFile> files, string domain);
+        Task<AcknowledgeDocumentResponse> AcknowledgeDocument(AcknowledgeDocumentRequest request);
+
     }
 }

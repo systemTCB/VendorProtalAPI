@@ -68,4 +68,10 @@ namespace VendorPortal.Application.Models.v1.Request
         public string requesterEmail { get; set; }
         public string requesterTel { get; set; }
     }
+
+    public class RFPCreateRequest
+    {
+        public List<string> supplier_id { get; set; }
+
+    }
 }

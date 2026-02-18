@@ -52,6 +52,7 @@ namespace VendorPortal.Infrastructure.IoC.Middleware
             var responseData = await new StreamReader(context.Response.Body).ReadToEndAsync();
             
             context.Response.Body.Seek(0, SeekOrigin.Begin);
+            await responseBody.CopyToAsync(originalBodyStream);
 
             try
             {

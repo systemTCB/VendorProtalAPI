@@ -5,14 +5,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
-using VendorPortal.Infrastructure.IoC;
-using VendorPortal.Infrastructure.IoC.Middleware;
 using Serilog;
 using Serilog.Extensions;
 using VendorPortal.API.Middleware;
-using VendorPortal.Application.Services.v1;
 using VendorPortal.Application.Services.SyncExternalData;
+using VendorPortal.Application.Services.v1;
+using VendorPortal.Infrastructure.IoC;
+using VendorPortal.Infrastructure.IoC.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +85,7 @@ builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 builder.Services.AddResponseCompression();
 
 var app = builder.Build();
+
 app.UseDefaultFiles();
 
 app.UseStaticFiles();
@@ -95,6 +97,11 @@ app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Inde
 
 // Configure the HTTP request pipeline.
 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(builder.Configuration["FileUpload:RootPath"]),
+    RequestPath = "/uploads"
+});
 app.UseMiddleware<MiddlewareLogger>();
 app.UseMiddleware<TokenVerificationMiddleware>();
 

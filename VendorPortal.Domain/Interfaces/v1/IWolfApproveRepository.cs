@@ -42,7 +42,9 @@ namespace VendorPortal.Domain.Interfaces.v1
             string requesterTel,
             string created_by,
             string is_specific,
-            string supplier_id
+            string supplier_id,
+            string requestForType
+
         );
         Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by);
 
@@ -71,6 +73,11 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         //Quotation
         Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION(string rfq_id, string quo_number, string quo_id, string status, string reason);
-        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string status, string reason);
+        Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string supplier_id, string status, string reason);
+
+        //Register
+        Task<List<SP_GET_COMPANY_API>> SP_GET_COMPANY_API(string company_id);
+        Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode);
+
     }
 }
