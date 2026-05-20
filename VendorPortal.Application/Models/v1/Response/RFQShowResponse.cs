@@ -19,7 +19,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public string company_name { get; set; }
         public string project_name { get; set; }
         public string description { get; set; }
-        public string purchase_type_name { get; set; }
+        public int procurement_type_id { get; set; }
+        public string procurement_type_name { get; set; }
         public string category_name { get; set; }
         public DateTime start_date { get; set; }
         public DateTime end_date { get; set; }

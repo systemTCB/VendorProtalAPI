@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography.Xml;
+using Microsoft.AspNetCore.Http.HttpResults;
 using VendorPortal.Application.Models.Common;
+using VendorPortal.Application.Models.ExtenalModel;
 
 namespace VendorPortal.Application.Models.v1.Response
 {
@@ -22,7 +25,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string discount { get; set; }
         public string sub_total { get; set; }
         public string total_amount { get; set; }
-        public int vat_rate { get; set; }
+        public string vat_rate { get; set; }
         public string vat_amount { get; set; }
         public ExSyncSupplier supplier { get; set; }
         public DateTime created_at { get; set; }
@@ -33,6 +36,17 @@ namespace VendorPortal.Application.Models.v1.Response
         public ExSyncQuotationAddress address { get; set; }
         public string payment_condition { get; set; }
         public string remark { get; set; }
+        public bool is_supplier_signature_attached { get; set; }
+        public bool is_require_signature { get; set; }
+        public bool signed_completed { get; set; }
+        public CreatedBy created_by { get; set; }
+        public List<Signature> signatures { get; set; }
+        public string document_type { get; set; }
+        public bool include_withholding_tax { get; set; }
+        public string wht_rate { get; set; }
+        public string wht_amount { get; set; }
+        public string sys_wht_amount { get; set; }
+        public string final_amount { get; set; }
     }
     public class ExSyncSupplier
     {
@@ -50,6 +64,13 @@ namespace VendorPortal.Application.Models.v1.Response
         public string rfq_item_name { get; set; }
         public string rfq_uom_name { get; set; }
         public string rfq_description { get; set; }
+        public string total_amount { get; set; }
+        public string vat_rate { get; set; }
+        public string vat_amount { get; set; }
+        public string discount { get; set; }
+        public string sub_total { get; set; }
+        public string wht_rate { get; set; }
+        public string wht_amount { get; set; }
     }
 
     public class ExSyncQuotationDocument
@@ -79,6 +100,21 @@ namespace VendorPortal.Application.Models.v1.Response
         public string district_name { get; set; }
         public string sub_district_name { get; set; }
         public string postal_code { get; set; }
+        public string branch { get; set; }
+    }
+    public class Signature
+    {
+        public string name { get; set; }
+        public string surname { get; set; }
+        public string signature_url { get; set; }
+        public DateTime? signed_at { get; set; }
+    }
+
+    public class CreatedBy
+    {
+        public string name { get; set; }
+        public string surname { get; set; }
+        public string email { get; set; }
     }
 
 }

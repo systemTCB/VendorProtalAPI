@@ -58,6 +58,8 @@ namespace VendorPortal.Application.Models.v1.Request
         public string file_name { get; set; }
         public string file_path { get; set; }
         public int file_seq { get; set; }
+        public string file_base64 { get; set; }
+        public string file_type { get; set; }
     }
 
 
@@ -72,6 +74,10 @@ namespace VendorPortal.Application.Models.v1.Request
     public class RFPCreateRequest
     {
         public List<string> supplier_id { get; set; }
+        public string RequesterName { get; set; }
+        public string RequesterLastName { get; set; }
+        public string RequesterEmail { get; set; }
+        public string RequesterTel { get; set; }
 
     }
 }

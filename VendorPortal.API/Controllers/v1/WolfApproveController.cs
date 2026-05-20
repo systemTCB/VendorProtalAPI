@@ -1,27 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.IO;
-using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Serilog;
 using Swashbuckle.AspNetCore.Annotations;
 using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
+using VendorPortal.Application.Models.ExtenalModel;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
-using VendorPortal.Application.Services.SyncExternalData;
-using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
 namespace VendorPortal.API.Controllers.v1
@@ -31,7 +21,7 @@ namespace VendorPortal.API.Controllers.v1
     {
         private readonly IWolfApproveService _wolfApproveService;
         private readonly IKubbossService _kubBossService;
-        public WolfApproveController(IWolfApproveService wolfApproveService,IKubbossService kubBossService)
+        public WolfApproveController(IWolfApproveService wolfApproveService, IKubbossService kubBossService)
         {
             _wolfApproveService = wolfApproveService;
             _kubBossService = kubBossService;
@@ -131,7 +121,12 @@ namespace VendorPortal.API.Controllers.v1
             RFQCreateResponse response = new();
             try
             {
-                response = await _wolfApproveService.CreateAndUpdateRFQ(request);
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
+
+                Logger.LogInfo("CreateRFQ", $"domain: {domain}");
+
+                response = await _wolfApproveService.CreateAndUpdateRFQ(request,domain);
             }
             catch (System.Exception ex)
             {
@@ -517,6 +512,31 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        [HttpPost]
+        [Route("api/v1/wolf-approve/quotation/updateStatus/{rfq_id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Quotation V1" }, Summary = "", Description = "API สำหรับ Update Quotation")]
+        public async Task<IActionResult> UpdateStatusQuotation(string rfq_id, [FromBody] PutQuotationRequest request)
+        {
+            BaseResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.PutQuotation(rfq_id, request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Update Quotation", $"rfq_id:{rfq_id} , request:{JsonConvert.SerializeObject(request)}");
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
         #endregion
 
         #region [Vendor Register]
@@ -539,8 +559,8 @@ namespace VendorPortal.API.Controllers.v1
 
             try
             {
-                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id,request.buyerCode);
-                
+                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode, request.docNo);
+
                 return result.success
                     ? Ok(result)
                     : BadRequest(result);
@@ -584,7 +604,7 @@ namespace VendorPortal.API.Controllers.v1
 
             try
             {
-                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode);
+                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode, request.docNo);
 
                 return result.success
                     ? Ok(result)
@@ -675,6 +695,86 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        #endregion
+
+        #region Siriraj
+        [HttpGet]
+        [Route("api/v1/wolf-approve/productMedical")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+            Tags = new[] { "Product Medical V1" },
+            Summary = "Product Medical",
+            Description = "Product Medical"
+        )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
+        public async Task<IActionResult> productMedical(string sku, string name, string sortDirection, int page = 1, int per_page = 5)
+        {
+
+            ProductMedicalResponse responseProductMedical = new();
+            try
+            {
+                var result = await _kubBossService.GetProductMedical(sku, name, sortDirection, page, per_page);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "GetProductMedical ERROR");
+
+                responseProductMedical = new ProductMedicalResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseProductMedical);
+        }
+
+        [HttpGet]
+        [Route("api/v1/wolf-approve/productMedical/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+           Tags = new[] { "Product Medical V1" },
+           Summary = "Product Medical",
+           Description = "Product Medical"
+       )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
+        public async Task<IActionResult> productMedicalByID(string id)
+        {
+
+            ProductMedicalByIdResponse responseProductMedicalByID = new();
+            try
+            {
+                var result = await _kubBossService.GetProductMedicalByID(id);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "GetProductMedical ERROR");
+
+                responseProductMedicalByID = new ProductMedicalByIdResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseProductMedicalByID);
+        }
         #endregion
     }
 }

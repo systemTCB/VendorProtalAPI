@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -12,16 +11,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VendorPortal.Application.Helpers;
+using VendorPortal.Application.Interfaces.SyncExternalData;
 using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
-using VendorPortal.Application.Models.ExtenalModel;
 using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using static VendorPortal.Application.Models.Common.AppEnum;
 using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
@@ -36,13 +37,17 @@ namespace VendorPortal.Application.Services.v1
         private readonly string _baseUrl = string.Empty;
         private readonly IConfiguration _config;
         private readonly DbContext _dbContext;
+        private readonly IKubbossService _kubBossService;
+        private readonly IBuyerApiService _buyerApiService;
 
         public WolfApproveService(IHttpContextAccessor httpContext,
             IWolfApproveRepository wolfApproveRepository,
             IMasterDataRepository masterDataRepository,
             AppConfigHelper appConfigHelper,
             IConfiguration config,
-            DbContext dbContext
+            DbContext dbContext,
+            IKubbossService kubBossService,
+            IBuyerApiService buyerApiService
             )
         {
             _httpContext = httpContext;
@@ -54,6 +59,8 @@ namespace VendorPortal.Application.Services.v1
             _masterDataRepository = masterDataRepository;
             _config = config;
             _dbContext = dbContext;
+            _kubBossService = kubBossService;
+            _buyerApiService = buyerApiService;
 
         }
 
@@ -838,12 +845,12 @@ namespace VendorPortal.Application.Services.v1
                     if (!string.IsNullOrEmpty(number))
                     {
                         item = [.. item.Where(s => s.sRFQNumber.Contains(number))];
-                    }                  
+                    }
                     if (DateTime.TryParse(start_date, out var filterStart) && DateTime.TryParse(end_date, out var filterEnd))
                     {
                         filterStart = filterStart.Date;
                         filterEnd = filterEnd.Date;
-                        
+
                         item = [.. item.Where(s =>
                             s.dStartDate.Date <= filterEnd &&
                             s.dEndDate.Date >= filterStart
@@ -870,7 +877,7 @@ namespace VendorPortal.Application.Services.v1
                         item = order_direction.ToLower() == "asc" ? item.OrderBy(s => GetRFQRunningNo(s.sRFQNumber)).ToList() : item.OrderByDescending(s => GetRFQRunningNo(s.sRFQNumber)).ToList();
                     }
                     if (!string.IsNullOrEmpty(request_for_type))
-                    {   
+                    {
                         item = item.Where(s => !string.IsNullOrEmpty(s.RequestForType) && s.RequestForType.Equals(request_for_type, StringComparison.OrdinalIgnoreCase)).ToList();
                     }
                     page = page <= 0 ? 1 : page;
@@ -1008,7 +1015,8 @@ namespace VendorPortal.Application.Services.v1
                         rfq_number = _companyInfo.sRFQNumber,
                         payment_condition = _companyInfo.sPaymentCondition,
                         project_name = _companyInfo.sProjectName,
-                        purchase_type_name = _companyInfo.sProcurementTypeName,
+                        procurement_type_id = _companyInfo.nProcurementTypeID,
+                        procurement_type_name = _companyInfo.sProcurementTypeName,
                         remark = _companyInfo.sRemark,
                         require_date = _companyInfo.dRequireDate,
                         start_date = _companyInfo.dStartDate,
@@ -1105,7 +1113,7 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request)
+        public async Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request, string domain)
         {
             RFQCreateResponse response = new();
             DateTime createdDate = DateTime.Now;
@@ -1115,18 +1123,48 @@ namespace VendorPortal.Application.Services.v1
                 var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
                 if (!string.IsNullOrEmpty(request.rfq_id))
                 {
-
+                    string rootPath = _config["FileUpload:RootPath"];
                     List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
                     if (request.attachments != null && request.attachments.Any())
                     {
                         foreach (var attach in request.attachments.OrderBy(o => o.file_seq))
                         {
-                            document.Add(new RFQUpdateDocument
+                            #region เก็บไฟล์ของ base64
+                            if (!string.IsNullOrEmpty(attach.file_base64) && string.IsNullOrEmpty(attach.file_path))
                             {
-                                file_seq = attach.file_seq,
-                                file_name = attach.file_name,
-                                file_path = attach.file_path
-                            });
+                                var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
+                                if (!Directory.Exists(rfqFolder))
+                                    Directory.CreateDirectory(rfqFolder);
+                                var newFileName = $"{Guid.NewGuid()}{attach.file_type}";
+                                var fullPath = Path.Combine(rfqFolder, newFileName);
+                                var base64 = attach.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64); ;
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{newFileName}";
+
+                                document.Add(new RFQUpdateDocument
+                                {
+                                    file_seq = attach.file_seq,
+                                    file_name = attach.file_name,
+                                    file_path = fileUrl
+                                });
+                            }
+                            #endregion
+                            else
+                            {
+                                document.Add(new RFQUpdateDocument
+                                {
+                                    file_seq = attach.file_seq,
+                                    file_name = attach.file_name,
+                                    file_path = attach.file_path
+                                });
+                            }
                         }
                     }
 
@@ -1245,7 +1283,7 @@ namespace VendorPortal.Application.Services.v1
                         request.created_by,
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
-                        requestForType : "RFQ"
+                        requestForType: "RFQ"
 
                     );
                 // Check if the RFQ was created successfully
@@ -1298,17 +1336,58 @@ namespace VendorPortal.Application.Services.v1
                     }
                     if (request.attachments != null && request.attachments.Any())
                     {
+                        string rootPath = _config["FileUpload:RootPath"];
                         List<TEMP_RFQ_DOCUMENT> documents = new();
                         foreach (var item in request.attachments)
                         {
-                            documents.Add(new TEMP_RFQ_DOCUMENT()
+                            #region เก็บไฟล์ของ base64
+                            if (!string.IsNullOrEmpty(item.file_base64))
                             {
-                                nRFQID = result.RFQID?.ToString(),
-                                sFileName = item.file_name,
-                                sFilePath = item.file_path,
-                                sFileSeq = item.file_seq,
-                                CreatedBy = request.created_by,
-                            });
+                                try
+                                {
+                                    var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
+                                    if (!Directory.Exists(rfqFolder))
+                                        Directory.CreateDirectory(rfqFolder);
+                                    var newFileName = $"{Guid.NewGuid()}{item.file_type}";
+                                    var fullPath = Path.Combine(rfqFolder, newFileName);
+                                    var base64 = item.file_base64;
+                                    if (base64.Contains(","))
+                                    {
+                                        base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                    }
+
+                                    var bytes = Convert.FromBase64String(base64);
+                                    await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                    var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{newFileName}";
+
+                                    documents.Add(new TEMP_RFQ_DOCUMENT()
+                                    {
+                                        nRFQID = result.RFQID?.ToString(),
+                                        sFileName = item.file_name,
+                                        sFilePath = fileUrl,
+                                        sFileSeq = item.file_seq,
+                                        CreatedBy = request.created_by,
+                                    });
+                                }
+                                catch (Exception ex) 
+                                {
+                                    Logger.LogError(ex, "CreateRFQ File", $"request: {JsonConvert.SerializeObject(request)}");
+                                    continue;
+                                }
+                            }
+                            #endregion
+                            else
+                            {
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = result.RFQID?.ToString(),
+                                    sFileName = item.file_name,
+                                    sFilePath = item.file_path,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = request.created_by,
+                                });
+                            }     
                         }
                         var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
                         Logger.LogInfo("Insert Document", "CreateRFQ", $"result: {res.Message}");
@@ -1329,6 +1408,23 @@ namespace VendorPortal.Application.Services.v1
                             created_date = DateTime.Now,
                         }
                     };
+
+                    //ส่งเมลแจ้งเตือน New RFQ
+                    #region send mail new RFQ
+                    var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                    var defaultLang = "TH";
+                    await SendEmailNotify(client, request.supplier_id, result.RFQID?.ToString(), defaultLang);
+
+                    #endregion
                 }
                 else
                 {
@@ -1475,6 +1571,58 @@ namespace VendorPortal.Application.Services.v1
                                     message = ResponseCode.Success.Description()
                                 }
                             };
+
+                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                            var route = routes.FirstOrDefault(x => x.ActionType == "CREATE_QUOTATION");
+                            Logger.LogInfo("PutQuotation", $"RouteFound:{(route != null)} | Buyer:{request.buyerCode}");
+
+
+                            var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                            var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                            var resQuotation = await _kubBossService.GetQuotationDetail(client, request.quo_id);
+
+                            var resSuppliers = await _kubBossService.GetSuppliersDetail(client, request.supplier_id);
+                            var name = resSuppliers["data"]?["name"]?.ToString();
+                            var supplier_email = resSuppliers["data"]?["supplier_email"]?.ToString();
+
+                            var data = resQuotation["data"];
+
+                            if (data != null)
+                            {
+                                data["created_by"] = new JObject
+                                {
+                                    ["email"] = supplier_email,
+                                    ["name"] = name,
+                                    ["surname"] = "",
+
+                                };
+                            }
+
+                            var payload = new JObject
+                            {
+                                ["data"] = data
+                            };
+
+                            Logger.LogInfo("PutQuotation", "CreateRFQ", $"result: {JsonConvert.SerializeObject(payload)}");
+
+
+                            if (data == null)
+                                throw new Exception("Quotation data not found");
+
+                            if (route != null)
+                            {
+                                await _buyerApiService.SendToBuyer(route, JsonConvert.SerializeObject(payload));
+
+                            }
+
                         }
                         else
                         {
@@ -1486,6 +1634,79 @@ namespace VendorPortal.Application.Services.v1
                                     message = result.message
                                 }
                             };
+                        }
+                    }
+                    else if (request.status.ToLower() == "decline")
+                    {
+                        response = new BaseResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.Success.Text(),
+                                message = ResponseCode.Success.Description()
+                            }
+                        };
+                        try
+                        {
+
+                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                            var route = routes.FirstOrDefault(x => x.ActionType == "UPDATE_QUOTATION");
+
+                            var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                            var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                            var resSuppliers = await _kubBossService.GetSuppliersDetail(client, request.supplier_id);
+                            var name = resSuppliers["data"]?["name"]?.ToString();
+                            var supplier_email = resSuppliers["data"]?["supplier_email"]?.ToString();
+
+                            if (route != null)
+                            {
+
+                                var rfq_data = verify.FirstOrDefault();
+                                var payload = new RFQUpdateStatus
+                                {
+                                    rfq_number = rfq_data.sRFQNumber,
+                                    supplier_name = name,
+                                    supplier_email = supplier_email,
+                                    status = "ไม่เข้าร่วม",
+                                    reason = request.reason
+                                };
+
+                                Logger.LogInfo("SendToBuyer", "CreateRFP", $"result: {JsonConvert.SerializeObject(payload)}");
+
+                                await _buyerApiService.SendToBuyer(route, JsonConvert.SerializeObject(payload));
+
+                            }
+                            else
+                            {
+                                response = new BaseResponse()
+                                {
+                                    status = new Status()
+                                    {
+                                        code = ResponseCode.Unprocessable.Text(),
+                                        message = "Update Failed"
+                                    }
+                                };
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            response = new BaseResponse()
+                            {
+                                status = new Status()
+                                {
+                                    code = ResponseCode.InternalServerError.Text(),
+                                    message = ResponseCode.InternalServerError.Description()
+                                }
+                            };
+                            Logger.LogError(ex, "PutQuotation", $"rfq_id: {rfq_id}");
                         }
                     }
                     else
@@ -1514,7 +1735,6 @@ namespace VendorPortal.Application.Services.v1
                             };
                         }
                     }
-
                 }
             }
             catch (System.Exception ex)
@@ -1678,39 +1898,39 @@ namespace VendorPortal.Application.Services.v1
                         sup_id = string.Join(",", request.supplier_id);
 
                     var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
-                        documentNo, 
+                        documentNo,
                         company_id: companyData.nCompanyID,
                         company_name: companyData.sCompanyName,
                         rfq_status: "",
-                        0,
-                        0,
-                        0,
-                        0,
-                        "",
-                        "",
-                        "",
-                         0,
-                        "",
-                        0,
-                        "",
+                        sub_total: 0,
+                        discount: 0,
+                        total_amount: 0,
+                        net_amount: 0,
+                        payment_condition: "",
+                        project_name: "",
+                        project_description: "",
+                        procurement_tyepe_id: 0,
+                        procurement_type_name: "",
+                        catagory_id: 0,
+                        category_name: "",
                         today,
                         endDate,
                         required_date: today,
                         status_id: 2,
                         status_name: "Open",
-                        0,
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
-                        "",
+                        contract_value: 0,
+                        remark: "",
+                        requesterName: string.IsNullOrWhiteSpace(request.RequesterName) ? null : request.RequesterName,
+                        requesterLastName: request.RequesterLastName,
+                        requesterEmail: request.RequesterEmail,
+                        requesterTel: request.RequesterTel,
+                        "System",
                         "Y",
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
-                        requestForType : "RFP"
+                        requestForType: "RFP"
                     );
 
-                  
+
                     string rootPath = _config["FileUpload:RootPath"];
                     string publicPath = _config["FileUpload:PublicPath"];
                     string folderPath = Path.Combine(rootPath, "rfp", documentNo);
@@ -1885,7 +2105,79 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
-        #endregion 
+        #endregion
+
+        #region Send Maill New Docunent
+        public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language)
+        {
+            foreach (var supId in supplierIds)
+            {
+                try
+                {
+                    var resSuppliers = await _kubBossService.GetSuppliersDetail(client, supId);
+
+                    var email = resSuppliers["data"]?["supplier_email"]?.ToString();
+
+                    if (string.IsNullOrWhiteSpace(email))
+                    {
+                        Logger.LogInfo("NotifyRFQ", $"Skip supplier {supId} (no email)");
+                        continue;
+                    }
+
+                    var payload = new JObject
+                    {
+                        ["email"] = email,
+                        ["rfq_id"] = rfqId,
+                        ["lang"] = language ?? "TH",
+                    };
+
+                    var success = false;
+
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        var response = await client.PostAsync(
+                            "/api/notify/user/rfq",
+                            new StringContent(payload.ToString(), Encoding.UTF8, "application/json")
+                        );
+
+                        var resBody = await response.Content.ReadAsStringAsync();
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            Logger.LogInfo("NotifyRFQ",
+                                $"SUCCESS | supplier:{supId} | email:{email}");
+
+                            success = true;
+                            break;
+                        }
+
+                        Logger.LogInfo("NotifyRFQ",
+                            $"Retry {i} | supplier:{supId} | response:{resBody}");
+
+                        if (i < 3)
+                            await Task.Delay(3000);
+                    }
+
+                    if (!success)
+                    {
+                        Logger.LogError(
+                            new Exception("NotifyRFQ failed"),
+                            "NotifyRFQ",
+                            $"supplier:{supId} | email:{email}"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"NotifyRFQ ERROR supplier:{supId}");
+                }
+            }
+        }
+        #endregion
+
+        #region Siriraj
+
+        #endregion
     }
 
 }

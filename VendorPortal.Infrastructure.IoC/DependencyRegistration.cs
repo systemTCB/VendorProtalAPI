@@ -24,6 +24,8 @@ namespace VendorPortal.Infrastructure.IoC
             services.AddScoped<IWolfApproveService, WolfApproveService>();
             services.AddScoped<IAuthenticationService, AuthenticationService>();
             services.AddScoped<IMasterDataService, MasterDataService>();
+            services.AddScoped<IBuyerApiService, BuyerApiService>();
+            services.AddScoped<IBuyerRouteService, BuyerRouteService>();
 
             // services.AddSingleton<IApiWarmer, ApiWarmer>();
             services.AddFluentValidationAutoValidation().AddFluentValidationClientsideAdapters();

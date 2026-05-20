@@ -21,8 +21,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public decimal discount { get; set; }
         public decimal sub_total { get; set; }
         public decimal total_amount { get; set; }
-        public int vat_rate { get; set; }
-        public decimal vat_amount { get; set; }
+        public string vat_rate { get; set; }
+        public string vat_amount { get; set; }
         public SupplierData supplier { get; set; }
         public DateTime created_at { get; set; }
         public DateTime updated_at { get; set; }
@@ -79,5 +79,6 @@ namespace VendorPortal.Application.Models.v1.Response
         public string district_name { get; set; }
         public string sub_district_name { get; set; }
         public string postal_code { get; set; }
+        public string branch { get; set; }
     }
 }

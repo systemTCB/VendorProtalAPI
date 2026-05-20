@@ -592,5 +592,28 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             return result;
         }
 
+        public async Task<List<SP_GET_Systems>> SP_GET_Systems(string host)
+        {
+            List<SP_GET_Systems> result = new List<SP_GET_Systems>();
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_Systems";
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@host", host)
+                    };
+                    result = await _context.ExcuteStoreQueryListAsync<SP_GET_Systems>(sql, param);
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "SP_GET_Systems");
+                return result;
+            }
+            return result;
+        }
     }
 }

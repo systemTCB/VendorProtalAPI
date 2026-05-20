@@ -23,7 +23,7 @@ namespace VendorPortal.Application.Interfaces.v1
                     string q);
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
 
-        Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request);
+        Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request, string domain);
         Task<RFQUpdateResponse> UpdateRFQ(RFQUpdateRequest request);
 
         // Purchase Order

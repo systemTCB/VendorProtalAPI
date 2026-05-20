@@ -18,4 +18,13 @@ namespace VendorPortal.Application.Models.v1.Request
         public string file_path { get; set; }
         public int file_seq { get; set; }
     }
+
+    public class RFQUpdateStatus
+    {
+        public string status { get; set; }
+        public string supplier_name { get; set; }
+        public string supplier_email { get; set; }
+        public string rfq_number { get; set; }
+        public string reason { get; set; }
+    }
 }

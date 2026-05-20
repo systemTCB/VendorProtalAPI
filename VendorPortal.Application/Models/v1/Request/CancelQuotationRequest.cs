@@ -7,5 +7,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public string supplier_id { get; set; } = string.Empty;
         public string reason { get; set; } = string.Empty;
         public string status { get; set; } = string.Empty;
+        public string from_type { get; set; }
+        public string buyerCode { get; set; }
     }
 }

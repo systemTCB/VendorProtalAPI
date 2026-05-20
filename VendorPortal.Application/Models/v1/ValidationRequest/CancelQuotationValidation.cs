@@ -1,3 +1,4 @@
+using System;
 using FluentValidation;
 using VendorPortal.Application.Models.v1.Request;
 
@@ -7,10 +8,10 @@ namespace Namespace.Application.Models.v1.ValidationRequest
     {
         public CancelQuotationValidation()
         {
-            RuleFor(x => x.quo_number).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา");
+            RuleFor(x => x.quo_number).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา").When(x => !string.Equals(x.status, "decline", StringComparison.OrdinalIgnoreCase));
             RuleFor(x => x.reason).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เหตุผลในการยกเลิกใบเสนอราคา");
             RuleFor(x => x.status).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่สถานะใบเสนอราคา");
-            RuleFor(x => x.quo_number).NotEmpty().WithMessage("quo_number is required.");
+            RuleFor(x => x.quo_number).NotEmpty().WithMessage("quo_number is required.").When(x => !string.Equals(x.status, "decline", StringComparison.OrdinalIgnoreCase));
             RuleFor(x => x.reason).NotEmpty().WithMessage("reason is required.");
         }
     }

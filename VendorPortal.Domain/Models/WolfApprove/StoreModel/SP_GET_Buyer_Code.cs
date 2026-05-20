@@ -12,10 +12,14 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string HttpMethod { get; set; }
         public string AuthType { get; set; }
         public string AuthUrlPath { get; set; }
+        public string AuthUsername { get; set; }
+        public string AuthPassword { get; set; }
+        public string AuthBodyJson { get; set; }
+        public string TokenJsonPath { get; set; }
+        public int? TokenExpireMinutes { get; set; }
         public string ContentType { get; set; }
-        public int SequenceNo { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
+        public string ActionType { get; set; }
 
     }
 }
