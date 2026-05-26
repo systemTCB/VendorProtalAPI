@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using Azure;
 using HandlebarsDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using VendorPortal.Application.Helpers;
 using VendorPortal.Application.Interfaces.SyncExternalData;
-using VendorPortal.Application.Interfaces.v1;
 using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.ExtenalModel;
+using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
@@ -27,7 +24,6 @@ using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
-using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Services.SyncExternalData
 {
@@ -227,7 +223,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                             else
                             {
                                 Logger.LogError(new Exception($"Failed to sync quotation from Kubboss. Status Header : {result.IsSuccessStatusCode}"), "SyncQuotationFromKubboss");
-                                Logger.LogError(new Exception($"Get quotation failed. QuotationID = {item.nQuotationID}"),"SyncQuotationFromKubboss");
+                                Logger.LogError(new Exception($"Get quotation failed. QuotationID = {item.nQuotationID}"), "SyncQuotationFromKubboss");
                             }
                         }
                         if (data.Count > 0)
@@ -581,7 +577,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
         private static readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
 
-        public async Task<JObject> GetQuotationDetail(HttpClient client , string quoId)
+        public async Task<JObject> GetQuotationDetail(HttpClient client, string quoId)
         {
             var response = await client.GetAsync($"/api/quotations/{quoId}");
 
@@ -698,5 +694,38 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
+        public async Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(request);
+
+                var content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+                var res = await client.PostAsync("/api/document/purchase_order/create", content);
+
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<POCreateResponse>(responseContent);
+            }
+            catch (System.Exception ex) {
+
+                Logger.LogError(ex, "CreatePOKubboss");
+
+                return new POCreateResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
     }
 }

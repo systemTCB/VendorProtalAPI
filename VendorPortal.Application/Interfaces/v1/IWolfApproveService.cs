@@ -4,6 +4,7 @@ using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.Common;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 
 namespace VendorPortal.Application.Interfaces.v1
 {
@@ -41,6 +42,9 @@ namespace VendorPortal.Application.Interfaces.v1
             string order_by);
         Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id);
         Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request);
+
+        Task<POCreateResponse> CreatePO(POCreateRequest request);
+
 
         // Claim 
         Task<BaseResponse<List<ClaimResponse>>> GetClaimList(string supplier_id, string company_id, string status, string from_date, string to_date, string page, string per_page, string order_direction, string order_by);

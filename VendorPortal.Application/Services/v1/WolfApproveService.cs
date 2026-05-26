@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using Azure.Core;
 using HandlebarsDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
@@ -22,7 +21,6 @@ using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using static VendorPortal.Application.Models.Common.AppEnum;
 using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
@@ -817,6 +815,34 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<POCreateResponse> CreatePO(POCreateRequest request)
+        {
+            POCreateResponse response = new POCreateResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var resCreatePO = await _kubBossService.CreatePOKubboss(client,request);
+
+                return resCreatePO;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
+
         public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id, string number, string start_date, string end_date, string purchase_type_id, string request_for_type, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new BaseResponse<List<RFQDataItem>>();
@@ -1135,23 +1161,47 @@ namespace VendorPortal.Application.Services.v1
                                 var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
                                 if (!Directory.Exists(rfqFolder))
                                     Directory.CreateDirectory(rfqFolder);
-                                var newFileName = $"{Guid.NewGuid()}{attach.file_type}";
-                                var fullPath = Path.Combine(rfqFolder, newFileName);
+
                                 var base64 = attach.file_base64;
                                 if (base64.Contains(","))
                                 {
                                     base64 = base64.Substring(base64.IndexOf(",") + 1);
                                 }
 
-                                var bytes = Convert.FromBase64String(base64); ;
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(attach.file_name);
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var extension = Path.GetExtension(originalFileName);
+
+                                if (string.IsNullOrWhiteSpace(extension))
+                                {
+                                    var fileType = attach.file_type ?? "";
+
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    originalFileName += fileType;
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(rfqFolder, finalFileName);
+
                                 await File.WriteAllBytesAsync(fullPath, bytes);
 
-                                var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{newFileName}";
+                                var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{finalFileName}";
 
                                 document.Add(new RFQUpdateDocument
                                 {
                                     file_seq = attach.file_seq,
-                                    file_name = attach.file_name,
+                                    file_name = finalFileName,
                                     file_path = fileUrl
                                 });
                             }
@@ -1346,10 +1396,10 @@ namespace VendorPortal.Application.Services.v1
                                 try
                                 {
                                     var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
+
                                     if (!Directory.Exists(rfqFolder))
                                         Directory.CreateDirectory(rfqFolder);
-                                    var newFileName = $"{Guid.NewGuid()}{item.file_type}";
-                                    var fullPath = Path.Combine(rfqFolder, newFileName);
+
                                     var base64 = item.file_base64;
                                     if (base64.Contains(","))
                                     {
@@ -1357,20 +1407,44 @@ namespace VendorPortal.Application.Services.v1
                                     }
 
                                     var bytes = Convert.FromBase64String(base64);
+
+                                    var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                    foreach (char c in Path.GetInvalidFileNameChars())
+                                    {
+                                        originalFileName = originalFileName.Replace(c, '_');
+                                    }
+
+                                    var extension = Path.GetExtension(originalFileName);
+
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        var fileType = item.file_type ?? "";
+
+                                        if (!fileType.StartsWith("."))
+                                        {
+                                            fileType = "." + fileType;
+                                        }
+
+                                        originalFileName += fileType;
+                                    }
+
+                                    var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                    var fullPath = Path.Combine(rfqFolder, finalFileName);
                                     await File.WriteAllBytesAsync(fullPath, bytes);
 
-                                    var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{newFileName}";
+                                    var fileUrl = $"{domain}/uploads/rfq/{request.rfq_number}/{finalFileName}";
 
                                     documents.Add(new TEMP_RFQ_DOCUMENT()
                                     {
                                         nRFQID = result.RFQID?.ToString(),
-                                        sFileName = item.file_name,
+                                        sFileName = finalFileName,
                                         sFilePath = fileUrl,
                                         sFileSeq = item.file_seq,
                                         CreatedBy = request.created_by,
                                     });
                                 }
-                                catch (Exception ex) 
+                                catch (Exception ex)
                                 {
                                     Logger.LogError(ex, "CreateRFQ File", $"request: {JsonConvert.SerializeObject(request)}");
                                     continue;
@@ -1387,7 +1461,7 @@ namespace VendorPortal.Application.Services.v1
                                     sFileSeq = item.file_seq,
                                     CreatedBy = request.created_by,
                                 });
-                            }     
+                            }
                         }
                         var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
                         Logger.LogInfo("Insert Document", "CreateRFQ", $"result: {res.Message}");
@@ -1604,6 +1678,18 @@ namespace VendorPortal.Application.Services.v1
                                     ["surname"] = "",
 
                                 };
+
+                                var currency = string.IsNullOrWhiteSpace(data["currency"]?.ToString()) ? "THB" : data["currency"].ToString();
+
+                                var lines = data["lines"] as JArray;
+
+                                if (lines != null)
+                                {
+                                    foreach (JObject line in lines)
+                                    {
+                                        line["currency"] = currency;
+                                    }
+                                }
                             }
 
                             var payload = new JObject
@@ -1672,7 +1758,7 @@ namespace VendorPortal.Application.Services.v1
                                 var rfq_data = verify.FirstOrDefault();
                                 var payload = new RFQUpdateStatus
                                 {
-                                    rfq_number = rfq_data.sRFQNumber,
+                                    doc_number = rfq_data.sRFQNumber,
                                     supplier_name = name,
                                     supplier_email = supplier_email,
                                     status = "ไม่เข้าร่วม",
@@ -1733,6 +1819,61 @@ namespace VendorPortal.Application.Services.v1
                                     message = result.message
                                 }
                             };
+                        }
+
+                        if (request.status.ToLower() == "cancel")
+                        {
+                            try
+                            {
+                                var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                                var route = routes.FirstOrDefault(x => x.ActionType == "UPDATE_QUOTATION");
+
+                                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))};
+
+                                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                                var resSuppliers = await _kubBossService.GetSuppliersDetail(client, request.supplier_id);
+                                var name = resSuppliers["data"]?["name"]?.ToString();
+                                var supplier_email = resSuppliers["data"]?["supplier_email"]?.ToString();
+
+                                if (route != null)
+                                {
+
+                                    var rfq_data = verify.FirstOrDefault();
+                                    var payload = new RFQUpdateStatus
+                                    {
+                                        doc_number = rfq_data.sRFQNumber,
+                                        supplier_name = name,
+                                        supplier_email = supplier_email,
+                                        status = "ไม่เข้าร่วม",
+                                        reason = request.reason,
+                                        cancel = true
+                                    };
+
+                                    Logger.LogInfo("SendToBuyer", "CreatRFP", $"result: {JsonConvert.SerializeObject(payload)}");
+
+                                    await _buyerApiService.SendToBuyer(route, JsonConvert.SerializeObject(payload));
+                                }
+                            }
+                            catch (System.Exception ex)
+                            {
+                                response = new BaseResponse()
+                                {
+                                    status = new Status()
+                                    {
+                                        code = ResponseCode.Unprocessable.Text(),
+                                        message = ex.Message
+                                    }
+                                };
+
+                                Logger.LogError(ex, "PutQuotation", $"rfq_id: {rfq_id}");
+
+                            }
                         }
                     }
                 }

@@ -270,6 +270,35 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        [HttpPost]
+        [Route("api/v1/wolf-approve/purchases/create")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับสร้าง PO ใหม่")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POCreateResponse))]
+        public async Task<IActionResult> CreatePO([FromBody] POCreateRequest request)
+        {
+            POCreateResponse response = new();
+            try
+            {
+
+                response = await _wolfApproveService.CreatePO(request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new POCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
         #endregion
 
         #region [Claim]

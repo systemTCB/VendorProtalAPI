@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using VendorPortal.Application.Models.Common;
 using VendorPortal.Application.Models.ExtenalModel;
+using VendorPortal.Application.Models.v1.Request;
 using VendorPortal.Application.Models.v1.Response;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 
@@ -19,5 +20,6 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<JObject> GetSuppliersDetail(HttpClient client, string supplier_id);
         Task<ProductMedicalResponse> GetProductMedical(string sku, string name, string sortDirection, int page, int per_page);
         Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id);
+        Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request);
     }
 }
