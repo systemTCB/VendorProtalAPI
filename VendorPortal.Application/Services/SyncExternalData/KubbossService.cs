@@ -430,6 +430,52 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
+        public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request)
+        {
+            SupplierRegisterResponse response = new SupplierRegisterResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                    new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var json = JsonConvert.SerializeObject(request);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var res = await client.PostAsync("/api/register-supplier-wolf", content);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+                return new SupplierRegisterResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+
+            }
+        }
+
         private async Task<List<JObject>> GetSupplierQuestionnaires(string supplier_id)
         {
             var sqlParameter = new SqlParameter[]
@@ -693,7 +739,6 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 };
             }
         }
-
         public async Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request)
         {
             try
@@ -712,7 +757,8 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 return JsonConvert.DeserializeObject<POCreateResponse>(responseContent);
             }
-            catch (System.Exception ex) {
+            catch (System.Exception ex)
+            {
 
                 Logger.LogError(ex, "CreatePOKubboss");
 
@@ -726,6 +772,271 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     data = null
                 };
             }
+        }
+        public async Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request)
+        {
+            try
+            {
+                var body = new
+                {
+                    remark = request.cancel_reason ?? "ยกเลิก PO"
+                };
+
+                var json = JsonConvert.SerializeObject(body);
+
+                var content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+
+                var res = await client.PatchAsync($"api/purchase-order/{request.purchase_order_number}/cancel", content);
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<POCancelResponse>(responseContent);
+            }
+            catch (System.Exception ex)
+            {
+
+                Logger.LogError(ex, "CanlcelPOKubboss");
+
+                return new POCancelResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
+        public async Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request)
+        {
+            try
+            {
+                var body = new
+                {
+                    remark = request.remark ?? "ยกเลิก RFQ"
+                };
+
+                var json = JsonConvert.SerializeObject(body);
+
+                var content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+
+                var res = await client.PatchAsync($"api/rfq/{request.rfq_number}/cancel", content);
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<RFQCancelResponse>(responseContent);
+            }
+            catch (System.Exception ex)
+            {
+
+                Logger.LogError(ex, "CreatePOKubboss");
+
+                return new RFQCancelResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request)
+        {
+
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+                DocumentCreatetResponse result = await CreateDocument(request);
+
+                if (result?.data == null)
+                    return result;
+
+                if(result.data.id == null)
+                    return result;
+
+                if (request.files?.Any() == true)
+                {
+                    foreach (var file in request.files)
+                    {
+                        await UploadMedia(
+                            result.data.id,
+                            file);
+                    }
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+                return new DocumentCreatetResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+
+            }
+        }
+        public async Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id)
+        {
+            try
+            {
+                var host = _httpContextAccessor.HttpContext?.Request.Host.Host.ToLower();
+                var system = await _wolfApproveRepository.SP_GET_Systems(host);
+                if (system == null || system.Count == 0)
+                    throw new Exception("System not configured");
+
+                var systemConfig = system.First();
+                var baseUrl = systemConfig.BaseUrl;
+                var token = systemConfig.Token;
+
+                var client = HttpClientHelper.CreateClient(baseUrl, token);
+
+                var response = await client.GetAsync($"/api/request-documents/{id}");
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<DocumentCreatetResponse>(content);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "GetProductMedical By ID");
+
+                return new DocumentCreatetResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to GetProductMedical By ID"
+                    },
+                    data = null
+
+                };
+            }
+        }
+
+        private async Task<DocumentCreatetResponse> CreateDocument(RequestDocumentRequest request)
+        {
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var createRequestBody = new RequestDocumentRequest
+                {
+                    supplier_id = request.supplier_id,
+                    company_id = request.company_id,
+                    document_name = request.document_name,
+                    reason = request.reason,
+                    email = request.email,
+                    is_require_signature = request.is_require_signature,
+                    lang = request.lang
+                };
+
+                var json = JsonConvert.SerializeObject(createRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var res = await client.PostAsync($"/api/request-documents", content);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+                return new DocumentCreatetResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+
+            }
+        }
+
+        private async Task UploadMedia(string modelId, IFormFile file)
+        {
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                using var form = new MultipartFormDataContent();
+
+                form.Add(new StringContent(modelId), "model_id");
+                form.Add(new StringContent("RequestDocument"), "type");
+                form.Add(new StringContent(Guid.NewGuid().ToString()), "file_uuid");
+
+                var streamContent = new StreamContent(file.OpenReadStream());
+
+                streamContent.Headers.ContentType =
+                    new System.Net.Http.Headers.MediaTypeHeaderValue(
+                        file.ContentType);
+
+                form.Add(
+                    streamContent,
+                    "file",
+                    file.FileName);
+
+                var response = await client.PostAsync(
+                    "/api/media",
+                    form);
+
+                response.EnsureSuccessStatusCode();
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "UploadMedia");
+
+            }
+            
         }
     }
 }

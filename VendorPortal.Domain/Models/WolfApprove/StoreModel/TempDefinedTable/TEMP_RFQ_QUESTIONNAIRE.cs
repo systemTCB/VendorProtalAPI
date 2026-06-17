@@ -8,5 +8,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public int sQuestionNumber { get; set; }
         public string sQuestion { get; set; }
         public string sAnswer { get; set; } 
+        public string sCode { get; set; } 
     }
 }

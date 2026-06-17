@@ -30,6 +30,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string remark { get; set; }
         public string is_specific { get; set; }
         public string request_for_type { get; set; }
+        public string cancel_remark { get; set; }
 
     }
 

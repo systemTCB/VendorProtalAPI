@@ -44,6 +44,7 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request);
 
         Task<POCreateResponse> CreatePO(POCreateRequest request);
+        Task<POCancelResponse> CancelPO(POCancelRequest request);
 
 
         // Claim 
@@ -70,6 +71,7 @@ namespace VendorPortal.Application.Interfaces.v1
 
         Task<RFPCreateResponse> CreateRFP(string documentNo, RFPCreateRequest requestData, int company_id, List<IFormFile> files, string domain);
         Task<AcknowledgeDocumentResponse> AcknowledgeDocument(AcknowledgeDocumentRequest request);
+        Task<RFQCancelResponse> RFQCancelDocument(RFQCancelRequest request);
 
     }
 }

@@ -126,7 +126,7 @@ namespace VendorPortal.API.Controllers.v1
 
                 Logger.LogInfo("CreateRFQ", $"domain: {domain}");
 
-                response = await _wolfApproveService.CreateAndUpdateRFQ(request,domain);
+                response = await _wolfApproveService.CreateAndUpdateRFQ(request, domain);
             }
             catch (System.Exception ex)
             {
@@ -160,6 +160,36 @@ namespace VendorPortal.API.Controllers.v1
             {
                 Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
                 response = new RFQUpdateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/rfqs/cancel")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้สำหรับยกเเลิก RFQ")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQCancelResponse))]
+        public async Task<IActionResult> RFQCancelDocument([FromBody] RFQCancelRequest request)
+        {
+            RFQCancelResponse response = new();
+
+            try
+            {
+                response = await _wolfApproveService.RFQCancelDocument(request);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Cancel RFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new RFQCancelResponse()
                 {
                     status = new Status()
                     {
@@ -287,6 +317,34 @@ namespace VendorPortal.API.Controllers.v1
             {
                 Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
                 response = new POCreateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/purchases/cancel")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับยกเลิก PO")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POCancelResponse))]
+        public async Task<IActionResult> CancelPO([FromBody] POCancelRequest request)
+        {
+            POCancelResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.CancelPO(request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new POCancelResponse()
                 {
                     status = new Status()
                     {
@@ -615,48 +673,52 @@ namespace VendorPortal.API.Controllers.v1
         }
 
         [HttpPost]
-        [Route("api/v1/wolf-approve/vendor/VendorRegisterUpdateStatus")]
+        [Route("api/v1/wolf-approve/vendor/register-supplier-wolf")]
         [Description("Create By Triphop")]
         [SwaggerOperation(
             Tags = new[] { "Vendor Register V1" },
-            Summary = "Update Status Register Vendor",
-            Description = "Update Status Vendor Register by supplier_id"
+            Summary = "Register wolf supplier from email and send email register kubboss",
+            Description = "Register wolf supplier from email and send email register kubboss"
         )]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SupplierRegistrationResponse))]
-        public async Task<IActionResult> VendorRegisterUpdateStatus([FromBody] VendorRegisterRequest request)
+        public async Task<IActionResult> VendorRegisterSupplier([FromBody] SupplierRegisterRequest request)
         {
 
-            if (string.IsNullOrEmpty(request.buyerCode) || string.IsNullOrEmpty(request.supplier_id))
-                return BadRequest("buyerCode or supplier id is required");
+            if (string.IsNullOrWhiteSpace(request.email))
+                return BadRequest("email is required");
 
-            RegisterResponse responseSuppliers = new();
+            SupplierRegisterResponse responseSuppliers = new();
 
             try
             {
-                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode, request.docNo);
+                var result = await _kubBossService.RegsiterSuppliersToKubboss(request);
+                if (result == null)
+                {
+                    return StatusCode(500, "Register supplier failed");
+                }
 
-                return result.success
-                    ? Ok(result)
-                    : BadRequest(result);
+                if (result.status?.code != "200")
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
 
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "VendorRegister ERROR", $"supplier_id: {request.supplier_id}");
+                Logger.LogError(ex, "VendorRegister ERROR", $"email: {request.email}");
 
-                responseSuppliers = new RegisterResponse()
+                return StatusCode(StatusCodes.Status500InternalServerError, new SupplierRegisterResponse
                 {
-                    status = new Application.Models.Common.Status()
+                    status = new Application.Models.Common.Status
                     {
                         code = ResponseCode.InternalServerError.Text(),
                         message = ResponseCode.InternalServerError.Description()
                     },
-
                     data = null
-                };
+                });
             }
-
-            return Ok(responseSuppliers);
         }
 
         #endregion
@@ -804,6 +866,98 @@ namespace VendorPortal.API.Controllers.v1
 
             return Ok(responseProductMedicalByID);
         }
+
+        #endregion
+
+        #region Request Documents
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/RequestDocuments")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+           Tags = new[] { "Request Documents V1" },
+           Summary = "Create Request Documents",
+           Description = "Create a request document record from external systems."
+       )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> RequestDocuments([FromForm] RequestDocumentRequest request)
+        {
+
+            if (request.supplier_id == null)
+                return BadRequest("supplier_id is required");
+            try
+            {
+                var result = await _kubBossService.RequestDocuments(request);
+                if (result == null)
+                {
+                    return StatusCode(500, "Request Documents Supplier Failed");
+                }
+
+                if (result.status?.code != "200")
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Request Documents ERROR", $"supplier_id: {request.supplier_id}");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new SupplierRegisterResponse
+                {
+                    status = new Application.Models.Common.Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                });
+            }
+        }
+
+        [HttpGet]
+        [Route("api/v1/wolf-approve/RequestDocuments/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+          Tags = new[] { "Request Documents V1" },
+          Summary = "Get request document by id",
+          Description = "Get request document by id"
+      )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
+        public async Task<IActionResult> RequestDocuments(string id)
+        {
+
+            DocumentCreatetResponse responseRequestDocumentsByID = new();
+            try
+            {
+                var result = await _kubBossService.GetRequestDocumentsByID(id);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "GetProductMedical ERROR");
+
+                responseRequestDocumentsByID = new DocumentCreatetResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseRequestDocumentsByID);
+        }
+        #endregion
+
+        #region Delivery Orders
+
         #endregion
     }
 }

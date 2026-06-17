@@ -15,11 +15,16 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<BaseResponse> SyncVendorFromKubboss(DateTime dateTime);
         Task<QuotationResponse> SyncQuotationFromKubboss(string supplierId, string rfqId);
         Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo);
+        Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request);
       
         Task<JObject> GetQuotationDetail(HttpClient client, string quoId);
         Task<JObject> GetSuppliersDetail(HttpClient client, string supplier_id);
         Task<ProductMedicalResponse> GetProductMedical(string sku, string name, string sortDirection, int page, int per_page);
         Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id);
         Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request);
+        Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request);
+        Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request);
+        Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request);
+        Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id);
     }
 }

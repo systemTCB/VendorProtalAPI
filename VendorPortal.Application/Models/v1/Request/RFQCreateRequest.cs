@@ -51,6 +51,7 @@ namespace VendorPortal.Application.Models.v1.Request
     {
         public int questionnaire_number { get; set; }
         public string questionnaire_detail { get; set; }
+        public string code { get; set; }
     }
 
     public class RFQCreateDocument

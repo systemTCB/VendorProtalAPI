@@ -14,6 +14,7 @@ namespace VendorPortal.Application.Models.v1.Response
     {
         public string id { get; set; }
         public string request_for_type { get; set; }
+        public string cancel_remark { get; set; }
         public string rfq_number { get; set; }
         public int company_id { get; set; }
         public string company_name { get; set; }

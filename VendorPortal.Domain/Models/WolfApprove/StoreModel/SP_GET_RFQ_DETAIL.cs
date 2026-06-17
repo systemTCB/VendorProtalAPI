@@ -52,5 +52,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sPaymentCondition { get; set; }
         public string sRemark { get; set; }
         public string RequestForType { get; set; }
+        public string CancelRemark { get; set; }
     }
 }

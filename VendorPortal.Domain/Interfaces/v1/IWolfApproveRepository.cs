@@ -80,5 +80,6 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode);
         Task<List<SP_GET_Systems>> SP_GET_Systems(string host);
 
+        Task<bool> SP_UPDATE_RFQ_CANCEL(string rfq_number, string remark);
     }
 }

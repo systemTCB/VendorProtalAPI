@@ -843,6 +843,34 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<POCancelResponse> CancelPO(POCancelRequest request)
+        {
+            POCancelResponse response = new POCancelResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var resCreatePO = await _kubBossService.CancelPOKubboss(client, request);
+
+                return resCreatePO;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
+
         public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id, string number, string start_date, string end_date, string purchase_type_id, string request_for_type, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new BaseResponse<List<RFQDataItem>>();
@@ -935,7 +963,8 @@ namespace VendorPortal.Application.Services.v1
                         start_date = s.dStartDate,
                         status = s.sStatusName,
                         is_specific = s.bIsSpecific == true ? "Y" : "N",
-                        request_for_type = s.RequestForType
+                        request_for_type = s.RequestForType,
+                        cancel_remark = s.CancelRemark
                     }).ToList();
                     result = Utility.PagingCalculator<List<RFQDataItem>>(page, pageSize, item.Count, _baseUrl);
                     //result.data = [.. data.OrderByDescending(o => o.rfq_number)];
@@ -1012,6 +1041,7 @@ namespace VendorPortal.Application.Services.v1
                     {
                         id = _companyInfo.nRFQID.ToString(),
                         request_for_type = _companyInfo.RequestForType,
+                        cancel_remark = _companyInfo.CancelRemark,
                         company_address = new CompanyAddress
                         {
                             address_1 = _companyInfo.sAddress1,
@@ -1153,14 +1183,18 @@ namespace VendorPortal.Application.Services.v1
                     List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
                     if (request.attachments != null && request.attachments.Any())
                     {
+                        var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
+                        if (Directory.Exists(rfqFolder))
+                        {
+                            Directory.Delete(rfqFolder, true);
+                        }
+                        Directory.CreateDirectory(rfqFolder);
+
                         foreach (var attach in request.attachments.OrderBy(o => o.file_seq))
                         {
                             #region เก็บไฟล์ของ base64
                             if (!string.IsNullOrEmpty(attach.file_base64) && string.IsNullOrEmpty(attach.file_path))
                             {
-                                var rfqFolder = Path.Combine(rootPath, "rfq", request.rfq_number);
-                                if (!Directory.Exists(rfqFolder))
-                                    Directory.CreateDirectory(rfqFolder);
 
                                 var base64 = attach.file_base64;
                                 if (base64.Contains(","))
@@ -1208,6 +1242,7 @@ namespace VendorPortal.Application.Services.v1
                             #endregion
                             else
                             {
+
                                 document.Add(new RFQUpdateDocument
                                 {
                                     file_seq = attach.file_seq,
@@ -1378,6 +1413,7 @@ namespace VendorPortal.Application.Services.v1
                                 sQuestionNumber = item.questionnaire_number,
                                 sQuestion = item.questionnaire_detail,
                                 sAnswer = null,
+                                sCode = item.code
                             });
                         }
                         var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_QUESTIONNAIRE(questionnaireList);
@@ -1450,7 +1486,7 @@ namespace VendorPortal.Application.Services.v1
                                     continue;
                                 }
                             }
-                            #endregion
+                            #endregion 
                             else
                             {
                                 documents.Add(new TEMP_RFQ_DOCUMENT()
@@ -2251,6 +2287,9 @@ namespace VendorPortal.Application.Services.v1
         #region Send Maill New Docunent
         public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language)
         {
+            var delayMs = Random.Shared.Next(5000, 10001);
+            await Task.Delay(delayMs);
+
             foreach (var supId in supplierIds)
             {
                 try
@@ -2296,7 +2335,7 @@ namespace VendorPortal.Application.Services.v1
                             $"Retry {i} | supplier:{supId} | response:{resBody}");
 
                         if (i < 3)
-                            await Task.Delay(3000);
+                            await Task.Delay(6000);
                     }
 
                     if (!success)
@@ -2316,9 +2355,60 @@ namespace VendorPortal.Application.Services.v1
         }
         #endregion
 
-        #region Siriraj
+        public async Task<RFQCancelResponse> RFQCancelDocument(RFQCancelRequest request)
+        {
+            RFQCancelResponse response = new();
 
-        #endregion
+            try
+            {
+                var rfqInfo = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(request.rfq_id);
+
+                if (rfqInfo != null && rfqInfo.Any())
+                {
+                    var _dataInfo = rfqInfo.FirstOrDefault();
+
+                    var req = new RFQCancelRequest()
+                    {
+                        rfq_id = _dataInfo.nRFQID.ToString(),
+                        rfq_number = _dataInfo.sRFQNumber,
+                        remark = request.remark
+                    };
+
+                    var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                    var resCancel = await _kubBossService.CancelRFQKubboss(client, req);
+
+                    if (resCancel?.status?.code == "200")
+                    {
+                        await _wolfApproveRepository.SP_UPDATE_RFQ_CANCEL(request.rfq_number, request.remark);
+                    }
+
+                    return resCancel;
+                }
+            }
+            catch (System.Exception ex)
+            {
+                response = new RFQCancelResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+                Logger.LogError(ex, "Cancel RFQ Document");
+            }
+            return response;
+        }
     }
 
 }

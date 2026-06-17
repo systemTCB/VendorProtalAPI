@@ -615,5 +615,33 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
             return result;
         }
+
+        public async Task<bool> SP_UPDATE_RFQ_CANCEL(string rfqNumber, string remark)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionWrite())
+                {
+                    connection.Open();
+
+                    var sql = "SP_UPDATE_RFQ_CANCEL";
+
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@sRFQNumber", rfqNumber),
+                        new SqlParameter("@CancelRemark", remark ?? "Cancel")
+                    };
+
+                    await _context.ExecuteStoreNonQueryAsync(sql, param);
+
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "SP_UPDATE_RFQ_CANCEL");
+                return false;
+            }
+        }
     }
 }
