@@ -45,6 +45,7 @@ namespace VendorPortal.Application.Interfaces.v1
 
         Task<POCreateResponse> CreatePO(POCreateRequest request);
         Task<POCancelResponse> CancelPO(POCancelRequest request);
+        Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request);
 
 
         // Claim 

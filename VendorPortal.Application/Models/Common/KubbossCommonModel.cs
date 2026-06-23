@@ -55,6 +55,7 @@ namespace VendorPortal.Application.Models.Common
             public int question_number { get; set; }
             public string question { get; set; }
             public string answer { get; set; }
+            public string code { get; set; }
         }
 
     }

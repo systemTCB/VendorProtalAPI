@@ -23,6 +23,8 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id);
         Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request);
         Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request);
+        Task<QuotationAwardResponse> CreatePOAwardKubboss(HttpClient client, QuotationAwardRequest request);
+
         Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request);
         Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request);
         Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id);

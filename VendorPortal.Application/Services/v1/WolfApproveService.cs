@@ -871,6 +871,34 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request)
+        {
+            QuotationAwardResponse response = new QuotationAwardResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var resCreatePO = await _kubBossService.CreatePOAwardKubboss(client, request);
+
+                return resCreatePO;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
+
         public async Task<BaseResponse<List<RFQDataItem>>> GetRFQ_List(int pageSize, int page, string supplier_id, string company_id, string number, string start_date, string end_date, string purchase_type_id, string request_for_type, string status_id, string category_id, string order_direction, string order_by, string q)
         {
             var result = new BaseResponse<List<RFQDataItem>>();
@@ -1127,7 +1155,8 @@ namespace VendorPortal.Application.Services.v1
                                 question_id = item.nQuestion_ID,
                                 question = item.sQuestion,
                                 question_number = item.nQuestionNumber,
-                                answer = item.sAnswer
+                                answer = item.sAnswer,
+                                code = item.sCode
                             });
                         }
                     }

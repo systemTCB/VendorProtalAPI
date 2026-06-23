@@ -852,6 +852,48 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
+        public async Task<QuotationAwardResponse> CreatePOAwardKubboss(HttpClient client, QuotationAwardRequest request)
+        {
+            try
+            {
+                var body = new
+                {
+                    purchase_order_number = request.purchase_order_number ?? "",
+                    order_date = request.order_date ?? "",
+                    require_date = request.require_date
+                };
+
+                var json = JsonConvert.SerializeObject(body);
+
+                var content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+
+                var res = await client.PostAsync($"api/purchase-order/create/by-quotation/{request.quotation_id}", content);
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<QuotationAwardResponse>(responseContent);
+            }
+            catch (System.Exception ex)
+            {
+
+                Logger.LogError(ex, "CreatePOKubboss");
+
+                return new QuotationAwardResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
+
         public async Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request)
         {
 

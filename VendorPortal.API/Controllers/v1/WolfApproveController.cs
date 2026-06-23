@@ -357,6 +357,35 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/purchases/create/by-quotation")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับสร้าง PO เมื่อมีการ Award ใบ Quotation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POCreateResponse))]
+        public async Task<IActionResult> CreatePOByQuotation([FromBody] QuotationAwardRequest request)
+        {
+            QuotationAwardResponse response = new();
+            try
+            {
+                response = await _wolfApproveService.CreatePOAward(request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new QuotationAwardResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
         #endregion
 
         #region [Claim]
@@ -624,6 +653,8 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(response);
         }
+
+
         #endregion
 
         #region [Vendor Register]
