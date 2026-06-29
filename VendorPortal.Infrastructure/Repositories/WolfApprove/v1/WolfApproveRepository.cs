@@ -335,7 +335,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             string created_by,
             string is_specific,
             string supplier_id,
-            string requestForType
+            string requestForType,
+            int revision
         )
         {
             try
@@ -376,6 +377,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@sRequesterTel" , string.IsNullOrEmpty(requesterTel) ? DBNull.Value : requesterTel),
                         new SqlParameter("@Supplier_id" , string.IsNullOrEmpty(supplier_id) ? DBNull.Value : supplier_id),
                         new SqlParameter("@RequestForType" , string.IsNullOrEmpty(requestForType) ? DBNull.Value : requestForType),
+                        new SqlParameter("@Revision" , revision),
                     };
                     var sp_response = await _context.ExcuteStoreQuerySingleAsync<SP_CREATE_RFQ>(sql, param);
                     return new SP_CREATE_RFQ
@@ -641,6 +643,78 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             {
                 Logger.LogError(ex, "SP_UPDATE_RFQ_CANCEL");
                 return false;
+            }
+        }
+
+        public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_name, string reason, string email, bool is_require_signature, string lang)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+
+                    var sql = "SP_INSERT_RequestDocument";
+
+                    var param = new SqlParameter[]
+                    {
+                new SqlParameter("@docNo", docNo),
+                new SqlParameter("@memoId", memoId),
+                new SqlParameter("@kubboss_document_id", kubboss_document_id),
+                new SqlParameter("@supplier_id", supplier_id),
+                new SqlParameter("@company_id", company_id),
+                new SqlParameter("@document_name", document_name),
+                new SqlParameter("@reason", reason),
+                new SqlParameter("@email", email),
+                new SqlParameter("@is_require_signature", is_require_signature),
+                new SqlParameter("@lang", lang)
+                    };
+
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+
+                    return new SP_CREATE_RequestDocument
+                    {
+                        Result = sp_response.isSuccess,
+                        Message = sp_response.message
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+
+                return new SP_CREATE_RequestDocument
+                {
+                    Result = false,
+                    Message = ex.Message
+                };
+            }
+        }
+
+        public async Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string kubboss_document_id)
+        {
+            try
+            {
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+
+                    var sql = "SP_GET_RequestDocument";
+
+                    var param = new SqlParameter[]
+                    {
+                new SqlParameter("@kubboss_document_id", kubboss_document_id)
+                    };
+
+                    var result = await _context.ExcuteStoreQueryListAsync<SP_GET_RequestDocument>(sql, param);
+
+                    return result.FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+                return null;
             }
         }
     }

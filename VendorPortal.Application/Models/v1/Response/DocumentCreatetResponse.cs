@@ -12,6 +12,8 @@ namespace VendorPortal.Application.Models.v1.Response
     public class DocumentCreatetData
     {
         public string id { get; set; }
+        public string docNo { get; set; }
+        public int memoId { get; set; }
         public int supplier_id { get; set; }
         public string company_id { get; set; }
         public string company_name { get; set; }
@@ -45,5 +47,6 @@ namespace VendorPortal.Application.Models.v1.Response
         public string status { get; set; }
         public DateTime? signed_at { get; set; }
         public string signature_url { get; set; }
+        public string position { get; set; }
     }
 }

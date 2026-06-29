@@ -936,20 +936,19 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
             }
         }
-        public async Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id)
+        public async Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutQuotationRequest request)
         {
             try
             {
-                var host = _httpContextAccessor.HttpContext?.Request.Host.Host.ToLower();
-                var system = await _wolfApproveRepository.SP_GET_Systems(host);
-                if (system == null || system.Count == 0)
-                    throw new Exception("System not configured");
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
 
-                var systemConfig = system.First();
-                var baseUrl = systemConfig.BaseUrl;
-                var token = systemConfig.Token;
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
 
-                var client = HttpClientHelper.CreateClient(baseUrl, token);
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
                 var response = await client.GetAsync($"/api/request-documents/{id}");
 
@@ -958,18 +957,28 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 var content = await response.Content.ReadAsStringAsync();
 
-                return JsonConvert.DeserializeObject<DocumentCreatetResponse>(content);
+                var result = JsonConvert.DeserializeObject<DocumentCreatetResponse>(content);
+
+                var localData = await _wolfApproveRepository.SP_GET_RequestDocument(id);
+
+                if (result?.data != null && localData != null)
+                {
+                    result.data.docNo = localData.docNo;
+                    result.data.memoId = localData.memoId;
+                }
+
+                return result;
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(ex, "GetProductMedical By ID");
+                Logger.LogError(ex, "Get RequestDocuments By ID");
 
                 return new DocumentCreatetResponse
                 {
                     status = new Status()
                     {
                         code = "500",
-                        message = "Failed to GetProductMedical By ID"
+                        message = "Failed to RequestDocuments By ID"
                     },
                     data = null
 
@@ -1013,6 +1022,27 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     throw new Exception("Failed to call destination API");
 
                 var responseContent = await res.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
+
+
+                if (result?.status?.code != "200" || result.data == null)
+                {
+                    throw new Exception(result?.status?.message ?? "Create document failed");
+                }
+
+                await _wolfApproveRepository.SP_INSERT_RequestDocument(
+                    request.docNo,
+                    request.memoId,
+                    result.data.id, // kubboss_document_id
+                    request.supplier_id.ToString(),
+                    request.company_id,
+                    request.document_name,
+                    request.reason,
+                    request.email,
+                    request.is_require_signature,
+                    request.lang
+                );
 
                 return JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
 

@@ -1397,8 +1397,8 @@ namespace VendorPortal.Application.Services.v1
                         request.created_by,
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
-                        requestForType: "RFQ"
-
+                        requestForType: "RFQ",
+                        revision : request.revision
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)
@@ -1745,6 +1745,10 @@ namespace VendorPortal.Application.Services.v1
                                 };
 
                                 var currency = string.IsNullOrWhiteSpace(data["currency"]?.ToString()) ? "THB" : data["currency"].ToString();
+
+                                var revision = verify.FirstOrDefault()?.Revision;
+                                data["revision"] = revision;
+
 
                                 var lines = data["lines"] as JArray;
 
@@ -2133,7 +2137,8 @@ namespace VendorPortal.Application.Services.v1
                         "System",
                         "Y",
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
-                        requestForType: "RFP"
+                        requestForType: "RFP",
+                        revision : 0
                     );
 
 

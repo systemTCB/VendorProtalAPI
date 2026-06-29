@@ -6,6 +6,8 @@ namespace VendorPortal.Application.Models.v1.Request
 {
     public class RequestDocumentRequest
     {
+        public string docNo { get; set; }
+        public int memoId { get; set; }
         public int supplier_id { get; set; }
         public string company_id { get; set; }
         public string document_name { get; set; }

@@ -26,6 +26,7 @@ namespace VendorPortal.API.Controllers.v1
             _wolfApproveService = wolfApproveService;
             _kubBossService = kubBossService;
         }
+
         #region [RFQ]
 
         [HttpGet]
@@ -955,14 +956,14 @@ namespace VendorPortal.API.Controllers.v1
           Summary = "Get request document by id",
           Description = "Get request document by id"
       )]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
-        public async Task<IActionResult> RequestDocuments(string id)
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> RequestDocuments(string id, [FromBody] PutQuotationRequest request)
         {
 
             DocumentCreatetResponse responseRequestDocumentsByID = new();
             try
             {
-                var result = await _kubBossService.GetRequestDocumentsByID(id);
+                var result = await _kubBossService.GetRequestDocumentsByID(id, request);
 
                 return Ok(result);
 
@@ -985,10 +986,104 @@ namespace VendorPortal.API.Controllers.v1
 
             return Ok(responseRequestDocumentsByID);
         }
+
+        [HttpPut]
+        [Route("api/v1/wolf-approve/RequestDocuments/noti/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+         Tags = new[] { "Request Documents V1" },
+         Summary = "Get request document by id",
+         Description = "Get request document by id"
+     )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutRequestDocuments(string id, [FromBody] PutQuotationRequest request)
+        {
+
+            DocumentCreatetResponse responseRequestDocumentsByID = new();
+            try
+            {
+                var result = await _kubBossService.GetRequestDocumentsByID(id, request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "RequestDocuments ERROR");
+
+                responseRequestDocumentsByID = new DocumentCreatetResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseRequestDocumentsByID);
+        }
+
         #endregion
 
         #region Delivery Orders
 
+        [HttpPost]
+        [Route("api/v1/wolf-approve/delivery-orders/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "DeliveryOrders V1" }, Summary = "", Description = "API สำหรับ สร้าง Delivery Orders")]
+        public async Task<IActionResult> DeliveryOrders(string id, [FromBody] CreateDORequest request)
+        {
+            BaseResponse response = new();
+            try
+            {
+                //response = await _wolfApproveService.PutQuotation(id, request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Create Delivery Orders", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
+
+        #endregion
+
+        #region Invoices
+        [HttpPost]
+        [Route("api/v1/wolf-approve/invoices/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "DeliveryOrders V1" }, Summary = "", Description = "API สำหรับ สร้าง invoices")]
+        public async Task<IActionResult> invoices(string id, [FromBody] CreateInvoiceRequest request)
+        {
+            BaseResponse response = new();
+            try
+            {
+                //response = await _wolfApproveService.PutQuotation(id, request);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Create Invoice", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
         #endregion
     }
 }

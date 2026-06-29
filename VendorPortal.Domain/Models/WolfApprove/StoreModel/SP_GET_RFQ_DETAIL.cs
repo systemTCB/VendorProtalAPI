@@ -53,5 +53,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sRemark { get; set; }
         public string RequestForType { get; set; }
         public string CancelRemark { get; set; }
+        public string Revision { get; set; }
     }
 }
