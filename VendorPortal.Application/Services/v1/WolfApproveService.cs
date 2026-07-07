@@ -952,7 +952,17 @@ namespace VendorPortal.Application.Services.v1
                     }
                     if (!string.IsNullOrEmpty(q))
                     {
-                        item = [.. item.Where(s => s.sRFQNumber.Contains(q) || s.sProjectName.Contains(q) || s.sCompanyName.Contains(q))];
+                        //item = [.. item.Where(s => s.sRFQNumber.Contains(q) || s.sProjectName.Contains(q) || s.sCompanyName.Contains(q))];
+                        item = [.. item.Where(s =>
+                            (!string.IsNullOrEmpty(s.sRFQNumber) &&
+                             s.sRFQNumber.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+
+                            (!string.IsNullOrEmpty(s.sProjectName) &&
+                             s.sProjectName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+
+                            (!string.IsNullOrEmpty(s.sCompanyName) &&
+                             s.sCompanyName.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                        )];
                     }
                     if (!string.IsNullOrEmpty(order_direction))
                     {

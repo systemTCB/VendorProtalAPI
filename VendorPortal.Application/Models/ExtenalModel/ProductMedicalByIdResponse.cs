@@ -21,7 +21,7 @@ namespace VendorPortal.Application.Models.ExtenalModel
         public string name { get; set; }
         public string type_service_code { get; set; }
         public string category_code { get; set; }
-        public object sub_category_code { get; set; }
+        public string sub_category_code { get; set; }
         public string description { get; set; }
         public string unit_price { get; set; }
         public string fixed_price { get; set; }

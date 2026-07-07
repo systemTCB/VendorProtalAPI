@@ -117,4 +117,5 @@ namespace VendorPortal.Application.Models.v1.Response
         public string email { get; set; }
     }
 
+
 }

@@ -13,7 +13,7 @@ namespace VendorPortal.Application.Models.v1.ValidationRequest
         {
             RuleFor(x => x).NotNull().WithMessage("Request cannot be null.");
             RuleFor(x => x).NotEmpty().WithMessage("Request cannot be empty.");
-            RuleFor(x => x.rfq_number).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา").When(x => !string.Equals(x.rfq_status, "decline", StringComparison.OrdinalIgnoreCase)); ;
+            RuleFor(x => x.rfq_number).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา").When(x => !string.Equals(x.rfq_status, "decline", StringComparison.OrdinalIgnoreCase));
             RuleFor(x => x.company_id).GreaterThan(0).WithMessage("กรุณาใส่เลขที่ใบเสนอราคา");
             RuleFor(x => x.discount).GreaterThanOrEqualTo(0).WithMessage("กรุณาระบุส่วนลด");
             RuleFor(x => x.payment_condition).Must(x => !string.IsNullOrEmpty(x)).WithMessage("กรุณาใส่เงื่อนไขการชำระเงิน");

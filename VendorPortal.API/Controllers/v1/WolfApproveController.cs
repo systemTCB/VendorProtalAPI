@@ -957,7 +957,7 @@ namespace VendorPortal.API.Controllers.v1
           Description = "Get request document by id"
       )]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
-        public async Task<IActionResult> RequestDocuments(string id, [FromBody] PutQuotationRequest request)
+        public async Task<IActionResult> RequestDocuments(string id, [FromBody] PutRequestDocuments request)
         {
 
             DocumentCreatetResponse responseRequestDocumentsByID = new();
@@ -996,7 +996,7 @@ namespace VendorPortal.API.Controllers.v1
          Description = "Get request document by id"
      )]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
-        public async Task<IActionResult> PutRequestDocuments(string id, [FromBody] PutQuotationRequest request)
+        public async Task<IActionResult> PutRequestDocuments(string id, [FromBody] PutRequestDocuments request)
         {
 
             DocumentCreatetResponse responseRequestDocumentsByID = new();
@@ -1056,24 +1056,162 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        [HttpPut]
+        [Route("api/v1/wolf-approve/delivery-orders/noti/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+        Tags = new[] { "Delivery Orders V1" },
+        Summary = "Get request document by id",
+        Description = "Get request document by id"
+    )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutDeliveryOrders(string id, [FromBody] PutDeliveryOrdersRequest request)
+        {
+
+            DeliveryOrdersResponse responseDeliveryOrdersByID = new();
+            try
+            {
+                var result = await _kubBossService.GetDeliveryOrdersByID(id, request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "RequestDocuments ERROR");
+
+                responseDeliveryOrdersByID = new DeliveryOrdersResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDeliveryOrdersByID);
+        }
+
+        [HttpPut]
+        [Route("api/v1/wolf-approve/delivery-orders/{id}/update-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+        Tags = new[] { "Delivery Orders V1" },
+        Summary = "Get delivery orders by id",
+        Description = "Get delivery orders by id"
+    )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutDeliveryOrdersUpdateStatus(string id, [FromBody] PutDeliveryOrdersUpdateRequest request)
+        {
+
+            DeliveryOrdersUpdateResponse responseDeliveryOrdersUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.DeliveryOrdersUpdateStatus(id, request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "RequestDocuments ERROR");
+
+                responseDeliveryOrdersUpdate = new DeliveryOrdersUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDeliveryOrdersUpdate);
+        }
+
         #endregion
 
         #region Invoices
-        [HttpPost]
-        [Route("api/v1/wolf-approve/invoices/{id}")]
+        [HttpPut]
+        [Route("api/v1/wolf-approve/invoices/noti/{id}")]
         [Description("Create By Triphop")]
-        [SwaggerOperation(Tags = new[] { "DeliveryOrders V1" }, Summary = "", Description = "API สำหรับ สร้าง invoices")]
-        public async Task<IActionResult> invoices(string id, [FromBody] CreateInvoiceRequest request)
+        [SwaggerOperation(Tags = new[] { "Invoices V1" }, Summary = "", Description = "API สำหรับ สร้าง invoices")]
+        public async Task<IActionResult> PutInvoices(string id, [FromBody] CreateInvoiceRequest request)
         {
-            BaseResponse response = new();
             try
             {
-                //response = await _wolfApproveService.PutQuotation(id, request);
+                var result = await _kubBossService.GetInvoicesByID(id, request);
+                return Ok(result);
+
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "Create Invoice", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
-                response = new BaseResponse()
+                
+                return Ok(new InvoicesByIDResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
+        }
+        #endregion
+
+        #region Subscriptions BLOCK / UN-BLOCK
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/subscriptions/update")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Subscriptions V1" }, Summary = "", Description = "API สำหรับ Subscriptions BLOCK / UN-BLOCK")]
+        public async Task<IActionResult> Subscriptions([FromBody] SubscriptionsRequest request)
+        {
+            try
+            {
+                var result = await _kubBossService.Subscriptions(request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Subscriptions", $"email:{request.email} , request:{JsonConvert.SerializeObject(request)}");
+                return Ok(new SubscriptionsResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
+        }
+        #endregion
+
+        #region Credit Notes
+        [HttpPut]
+        [Route("api/v1/wolf-approve/credit-notes/noti/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Credit Notes V1" }, Summary = "", Description = "API สำหรับ สร้าง Credit Notes")]
+        public async Task<IActionResult> PutCreditNotes(string id, [FromBody] PutCreditNotesRequest request)
+        {
+            CreditNoteByIDResponse responseInvoiceByID = new();
+            try
+            {
+                var result = await _kubBossService.GetCreditNotesByID(id, request);
+                return Ok(result);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Create Invoice", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                responseInvoiceByID = new CreditNoteByIDResponse()
                 {
                     status = new Status()
                     {
@@ -1082,7 +1220,37 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 };
             }
-            return Ok(response);
+            return Ok(responseInvoiceByID);
+        }
+        #endregion
+
+        #region Debit Notes
+        [HttpPut]
+        [Route("api/v1/wolf-approve/debit-notes/noti/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Debit Notes V1" }, Summary = "", Description = "API สำหรับ สร้าง Debit Notes")]
+        public async Task<IActionResult> PutDebitNotes(string id, [FromBody] PutDebitNotesRequest request)
+        {
+            DebitNotesByIDResponse responseInvoiceByID = new();
+            try
+            {
+                var result = await _kubBossService.GetDebitNotesByID(id, request);
+                return Ok(result);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Create Debit Notes", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                responseInvoiceByID = new DebitNotesByIDResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(responseInvoiceByID);
         }
         #endregion
     }

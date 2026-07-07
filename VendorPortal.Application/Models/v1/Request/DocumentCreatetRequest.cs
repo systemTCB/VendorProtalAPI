@@ -10,6 +10,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public int memoId { get; set; }
         public int supplier_id { get; set; }
         public string company_id { get; set; }
+        public string company_code { get; set; }
         public string document_name { get; set; }
         public string reason { get; set; }
         public string email { get; set; }

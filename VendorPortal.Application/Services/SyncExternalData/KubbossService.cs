@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -22,6 +23,7 @@ using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
+using VendorPortal.Infrastructure.Repositories.WolfApprove.v1;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
 
@@ -34,13 +36,15 @@ namespace VendorPortal.Application.Services.SyncExternalData
         private readonly IWolfApproveRepository _wolfApproveRepository;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper, IWolfApproveRepository wolfApproveRepository, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor)
+        private readonly IMasterDataRepository _masterDataRepository;
+        public KubbossService(DbContext dbContext, AppConfigHelper appConfigHelper, IWolfApproveRepository wolfApproveRepository, IHttpClientFactory httpClientFactory, IHttpContextAccessor httpContextAccessor, IMasterDataRepository masterDataRepository)
         {
             _wolfApproveRepository = wolfApproveRepository;
             _appConfigHelper = appConfigHelper;
             _dbContext = dbContext;
             _httpClientFactory = httpClientFactory;
             _httpContextAccessor = httpContextAccessor;
+            _masterDataRepository = masterDataRepository;
         }
 
         public async Task<QuotationResponse> SyncQuotationFromKubboss(string supplierId, string rfqId)
@@ -532,6 +536,9 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     BaseAddress = new Uri(route.BaseUrl)
                 };
 
+                Logger.LogInfo($"Start Send | Buyer:{route.BuyerCode} | Method:{route.HttpMethod} | Url:{route.BaseUrl}{route.Path}", "SendToBuyer");
+
+
                 if (route.AuthType?.ToUpper() == "BEARER")
                 {
                     var token = await GetBearerToken(route);
@@ -549,26 +556,42 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 };
 
                 var responseBody = await response.Content.ReadAsStringAsync();
+                Logger.LogInfo($@"
+                ========== SEND TO BUYER ==========
+                Buyer      : {route.BuyerCode}
+                Method     : {route.HttpMethod}
+                URL        : {route.BaseUrl}{route.Path}
+                Auth Type  : {route.AuthType}
+                ContentType: {route.ContentType ?? "application/json"}
 
-                if (!response.IsSuccessStatusCode)
-                {
+                ----- Request -----
+                {payloadJson}
 
-                    Logger.LogInfo("SendToBuyer",
-                        $"FAILED | Buyer:{route.BuyerCode} | URL:{route.BaseUrl}{route.Path} | " +
-                        $"Status:{(int)response.StatusCode} {response.StatusCode} | Response:{responseBody}");
-                }
-                else
-                {
-                    Logger.LogInfo("SendToBuyer",
-                        $"SUCCESS | Buyer:{route.BuyerCode} | Status:{(int)response.StatusCode} | Response:{responseBody}");
-                }
+                ----- Response -----
+                Status : {(int)response.StatusCode} ({response.StatusCode})
+
+                {responseBody}
+
+                Result : {(response.IsSuccessStatusCode ? "SUCCESS" : "FAILED")}
+                ==================================", "SendToBuyer");
 
                 return response.IsSuccessStatusCode;
 
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "SendToBuyer");
+                Logger.LogError(ex, $@"
+                ========== SEND TO BUYER EXCEPTION ==========
+                Buyer  : {route?.BuyerCode}
+                Method : {route?.HttpMethod}
+                URL    : {route?.BaseUrl}{route?.Path}
+
+                ----- Request -----
+                {payloadJson}
+
+                ----- Exception -----
+                {ex}
+                ============================================");
             }
 
             return false;
@@ -905,7 +928,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 if (result?.data == null)
                     return result;
 
-                if(result.data.id == null)
+                if (result.data.id == null)
                     return result;
 
                 if (request.files?.Any() == true)
@@ -936,7 +959,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
             }
         }
-        public async Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutQuotationRequest request)
+        public async Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutRequestDocuments request)
         {
             try
             {
@@ -1001,10 +1024,53 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
+                var supplierId = request.supplier_id;
+                if (supplierId == null || supplierId == 0)
+                {
+                    var checkSupplierBody = new
+                    {
+                        email = request.email
+                    };
+
+                    var checkJson = JsonConvert.SerializeObject(checkSupplierBody);
+
+                    var checkContent = new StringContent(checkJson, Encoding.UTF8, "application/json");
+
+                    var checkRes = await client.PostAsync("/api/check-supplier", checkContent);
+
+                    if (!checkRes.IsSuccessStatusCode)
+                        throw new Exception("Failed to check supplier.");
+
+                    var checkResult = await checkRes.Content.ReadAsStringAsync();
+
+                    var checkObj = JObject.Parse(checkResult);
+
+                    supplierId = checkObj["data"]?["id"]?.Value<int>() ?? 0;
+
+                    if (supplierId == 0)
+                        throw new Exception($"Supplier not found. Email: {request.email}");
+                }
+
+                var companyCode = request.company_code;
+                var companyID = request.company_id;
+
+                if (!string.IsNullOrEmpty(companyCode)) {
+
+                    var resultCOMPANY = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
+                    if (resultCOMPANY != null)
+                    {
+                        var nCompanyCode = companyCode;
+                        var data = resultCOMPANY.Where(e => e.nCompanyCode == nCompanyCode).FirstOrDefault();
+
+                        companyID = data.nCompanyID.ToString();
+                    }
+                }
+
                 var createRequestBody = new RequestDocumentRequest
                 {
-                    supplier_id = request.supplier_id,
-                    company_id = request.company_id,
+                    supplier_id = supplierId,
+                    company_id = companyID,
+                    company_code = request.company_code,
                     document_name = request.document_name,
                     reason = request.reason,
                     email = request.email,
@@ -1108,7 +1174,346 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogError(ex, "UploadMedia");
 
             }
-            
+
+        }
+
+        public async Task<DeliveryOrdersResponse> GetDeliveryOrdersByID(string id, PutDeliveryOrdersRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var responseDelivery = await client.GetAsync($"/api/delivery-orders/{id}");
+
+                if (!responseDelivery.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await responseDelivery.Content.ReadAsStringAsync();
+
+                var resultDeliveryOrders = JsonConvert.DeserializeObject<DeliveryOrdersResponse>(content);
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_DO");
+
+                if (buyerRoute == null)
+                    throw new Exception("Failed to call destination API");
+
+                var jObj = JObject.Parse(content);
+
+                var payloadObj = jObj["data"] ?? new JObject();
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+
+                return resultDeliveryOrders;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get Delivery Orders By ID");
+
+                return new DeliveryOrdersResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to Delivery Orders"
+                    },
+                    data = null
+                };
+            }
+        }
+        public async Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(string id, PutDeliveryOrdersUpdateRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var response = await client.GetAsync($"/api/delivery-orders/{id}/update-status");
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<DeliveryOrdersUpdateResponse>(content);
+
+                //var localData = await _wolfApproveRepository.SP_GET_RequestDocument(id);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get RequestDocuments By ID");
+
+                return new DeliveryOrdersUpdateResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to RequestDocuments By ID"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<InvoicesByIDResponse> GetInvoicesByID(string id, CreateInvoiceRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var responseDelivery = await client.GetAsync($"/api/invoices/{id}");
+
+                if (!responseDelivery.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await responseDelivery.Content.ReadAsStringAsync();
+
+                var resultInvoices = JsonConvert.DeserializeObject<InvoicesByIDResponse>(content);
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_INVOICES");
+
+                if (buyerRoute == null)
+                    throw new Exception("Failed to call destination API");
+
+                var jObj = JObject.Parse(content);
+
+                var payloadObj = jObj["data"] ?? new JObject();
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+
+                return resultInvoices;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get invoices  By ID");
+
+                return new InvoicesByIDResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to invoices"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<SubscriptionsResponse> Subscriptions(SubscriptionsRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                // STEP 1 : Check Supplier Registered
+                var checkRequest = new
+                {
+                    company_id = request.company_id,
+                    email = request.email
+                };
+
+                var checkJson = JsonConvert.SerializeObject(checkRequest);
+
+                var checkContent = new StringContent(checkJson, Encoding.UTF8, "application/json");
+
+                var responseCheck = await client.PostAsync("/api/check-supplier-registered", checkContent);
+
+                if (!responseCheck.IsSuccessStatusCode)
+                    throw new Exception("Failed to check supplier registered.");
+
+                var checkResponseString = await responseCheck.Content.ReadAsStringAsync();
+
+                var checkResult = JsonConvert.DeserializeObject<SubscriptionsIDResponse>(checkResponseString);
+
+                if (checkResult?.data == null || string.IsNullOrWhiteSpace(checkResult.data.subscription_id))
+                {
+                    throw new Exception("Subscription ID not found.");
+                }
+
+                // STEP 2 : Update Status
+                var updateRequest = new SubscriptionsUpdateRequest
+                {
+                    status = request.status,
+                    remark = request.remark
+                };
+
+                var updateJson = JsonConvert.SerializeObject(updateRequest);
+
+                var updateContent = new StringContent(updateJson, Encoding.UTF8, "application/json");
+
+                var responseUpdate = await client.PatchAsync($"/api/subscriptions/{checkResult.data.subscription_id}/update-status", updateContent);
+
+                if (!responseUpdate.IsSuccessStatusCode)
+                    throw new Exception("Failed to update subscription status.");
+
+                var updateResponseString = await responseUpdate.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<SubscriptionsResponse>(updateResponseString);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get Subscriptions");
+
+                return new SubscriptionsResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to Subscriptions"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<CreditNoteByIDResponse> GetCreditNotesByID(string id, PutCreditNotesRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var responseCreditNote = await client.GetAsync($"/api/credit-notes/{id}");
+
+                if (!responseCreditNote.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await responseCreditNote.Content.ReadAsStringAsync();
+
+                var resultCreditNotes = JsonConvert.DeserializeObject<CreditNoteByIDResponse>(content);
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_CREDITNOTES");
+
+                if (buyerRoute == null)
+                    throw new Exception("Failed to call destination API");
+
+                var jObj = JObject.Parse(content);
+
+                var payloadObj = jObj["data"] ?? new JObject();
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+
+                return resultCreditNotes;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get CreditNote  By ID");
+
+                return new CreditNoteByIDResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to CreditNote"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<DebitNotesByIDResponse> GetDebitNotesByID(string id, PutDebitNotesRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var responseDebitNotes = await client.GetAsync($"/api/debit-notes/{id}");
+
+                if (!responseDebitNotes.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await responseDebitNotes.Content.ReadAsStringAsync();
+
+                var resultCreditNotes = JsonConvert.DeserializeObject<DebitNotesByIDResponse>(content);
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_DEBITNOTES");
+
+                if (buyerRoute == null)
+                    throw new Exception("Failed to call destination API");
+
+                var jObj = JObject.Parse(content);
+
+                var payloadObj = jObj["data"] ?? new JObject();
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+
+                return resultCreditNotes;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get CreditNote  By ID");
+
+                return new DebitNotesByIDResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to CreditNote"
+                    },
+                    data = null
+                };
+            }
         }
     }
 }
