@@ -41,6 +41,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_name { get; set; }
         public string item_uom_name { get; set; }
         public string item_descption { get; set; }
+        public string item_category { get; set; }
         public int quantity { get; set; }
         public decimal unit_price { get; set; }
         public decimal vat_rate { get; set; }

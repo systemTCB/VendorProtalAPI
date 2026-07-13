@@ -24,8 +24,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public int user_id { get; set; }
         public bool is_require_signature { get; set; }
         public bool signed_completed { get; set; }
-        public DateTime created_at { get; set; }
-        public DateTime updated_at { get; set; }
+        public DateTime? created_at { get; set; }
+        public DateTime? updated_at { get; set; }
         public List<DocumentCreate> documents { get; set; }
         public List<DocumentSignature> signatures { get; set; }
 
@@ -48,5 +48,17 @@ namespace VendorPortal.Application.Models.v1.Response
         public DateTime? signed_at { get; set; }
         public string signature_url { get; set; }
         public string position { get; set; }
+    }
+
+    public class DocumentUpdateResponse : BaseResponse
+    {
+        public DocumentUpdateData data { get; set; }
+    }
+
+    public class DocumentUpdateData
+    {
+        public string id { get; set; }
+        public string status { get; set; }
+        public object reason { get; set; }
     }
 }

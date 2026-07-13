@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -23,9 +22,9 @@ using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
-using VendorPortal.Infrastructure.Repositories.WolfApprove.v1;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
+using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Services.SyncExternalData
 {
@@ -538,6 +537,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 Logger.LogInfo($"Start Send | Buyer:{route.BuyerCode} | Method:{route.HttpMethod} | Url:{route.BaseUrl}{route.Path}", "SendToBuyer");
 
+                client.DefaultRequestHeaders.TryAddWithoutValidation("IsCool", "true");
 
                 if (route.AuthType?.ToUpper() == "BEARER")
                 {
@@ -931,13 +931,14 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 if (result.data.id == null)
                     return result;
 
+
                 if (request.files?.Any() == true)
                 {
                     foreach (var file in request.files)
                     {
                         await UploadMedia(
                             result.data.id,
-                            file);
+                            file: file);
                     }
                 }
 
@@ -948,6 +949,37 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
 
                 return new DocumentCreatetResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+
+            }
+        }
+
+        public async Task<DocumentUpdateResponse> RequestDocumentsUpdate(DocumentUpdateRequest request)
+        {
+            try
+            {
+                DocumentUpdateResponse result = await UpdateDocument(request);
+
+                if (result?.data == null)
+                    return result;
+
+                if (result.data.id == null)
+                    return result;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Update Document To Kubboss");
+
+                return new DocumentUpdateResponse
                 {
                     status = new Status
                     {
@@ -988,7 +1020,25 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 {
                     result.data.docNo = localData.docNo;
                     result.data.memoId = localData.memoId;
+
+                    if (result?.data?.signatures != null)
+                    {
+                        foreach (var signature in result.data.signatures)
+                        {
+                            signature.user_id ??= 0;
+                        }
+                    }
+
                 }
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_VENDORSIGNATURE");
+
+                var jObj = JObject.FromObject(result);
+   
+                var payloadJson = JsonConvert.SerializeObject(jObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
 
                 return result;
             }
@@ -1054,7 +1104,8 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 var companyCode = request.company_code;
                 var companyID = request.company_id;
 
-                if (!string.IsNullOrEmpty(companyCode)) {
+                if (!string.IsNullOrEmpty(companyCode))
+                {
 
                     var resultCOMPANY = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
                     if (resultCOMPANY != null)
@@ -1129,8 +1180,69 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
             }
         }
+        private async Task<DocumentUpdateResponse> UpdateDocument(DocumentUpdateRequest request)
+        {
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
 
-        private async Task UploadMedia(string modelId, IFormFile file)
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+
+                var createRequestBody = new
+                {
+                    status = request.status,
+                    reason = request.reason,
+                    lang = request.lang,
+                };
+
+                var json = JsonConvert.SerializeObject(createRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var res = await client.PatchAsync($"/api/request-documents/{request.id}/update-status", content);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
+
+
+                if (result?.status?.code != "200" || result.data == null)
+                {
+                    throw new Exception(result?.status?.message ?? "Create document failed");
+                }
+
+                return JsonConvert.DeserializeObject<DocumentUpdateResponse>(responseContent);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+                return new DocumentUpdateResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+
+            }
+        }
+
+        private async Task UploadMedia(string modelId, IFormFile file = null)
         {
             try
             {

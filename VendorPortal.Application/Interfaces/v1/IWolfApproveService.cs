@@ -43,7 +43,7 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<PurchaseOrderDetailResponse> GetPurchaseOrderDetail(string order_id, string supplier_id);
         Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request);
 
-        Task<POCreateResponse> CreatePO(POCreateRequest request);
+        Task<POCreateResponse> CreatePO(POCreateRequest request, string domain);
         Task<POCancelResponse> CancelPO(POCancelRequest request);
         Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request);
 

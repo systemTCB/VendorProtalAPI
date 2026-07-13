@@ -8,6 +8,7 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sItemName { get; set; }
         public string sItemUomName { get; set; }
         public string sItemDescption { get; set; }
+        public string sItemCategory { get; set; }
         public int nQuantity { get; set; }
         public decimal dUnitPrice { get; set; }
         public decimal dVatRate { get; set; }

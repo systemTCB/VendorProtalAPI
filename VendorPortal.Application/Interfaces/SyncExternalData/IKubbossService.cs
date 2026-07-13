@@ -27,6 +27,7 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
 
         Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request);
         Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request);
+        Task<DocumentUpdateResponse> RequestDocumentsUpdate(DocumentUpdateRequest request);
         Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutRequestDocuments request);
         Task<DeliveryOrdersResponse> GetDeliveryOrdersByID(string id, PutDeliveryOrdersRequest request);
         Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(string id, PutDeliveryOrdersUpdateRequest request);

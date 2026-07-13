@@ -30,6 +30,7 @@ namespace VendorPortal.Application.Models.Common
             public string line_number { get; set; }
             public string item_code { get; set; }
             public string item_name { get; set; }
+            public string item_category { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
             public int quantity { get; set; }

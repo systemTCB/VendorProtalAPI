@@ -13,6 +13,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public List<RfqLinePO> rfq_lines { get; set; }
         public DocumentDataPO document_data { get; set; }
         public List<DocumentLinePO> document_lines { get; set; }
+        public List<RFQCreateDocument> attachments { get; set; } = new List<RFQCreateDocument>();
     }
 
     public class CompanyPO

@@ -311,8 +311,12 @@ namespace VendorPortal.API.Controllers.v1
             POCreateResponse response = new();
             try
             {
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
 
-                response = await _wolfApproveService.CreatePO(request);
+                Logger.LogInfo("CreatePO", $"domain: {domain}");
+
+                response = await _wolfApproveService.CreatePO(request, domain);
             }
             catch (System.Exception ex)
             {
@@ -1025,6 +1029,54 @@ namespace VendorPortal.API.Controllers.v1
 
             return Ok(responseRequestDocumentsByID);
         }
+
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/RequestDocumentsUpdate")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+           Tags = new[] { "Request Documents V1" },
+           Summary = "Create Request Documents",
+           Description = "Create a request document record from external systems."
+       )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentUpdateResponse))]
+        public async Task<IActionResult> RequestDocumentsUpdate([FromBody] DocumentUpdateRequest request)
+        {
+
+            if (request.id == null)
+                return BadRequest("id is required");
+            try
+            {
+                var result = await _kubBossService.RequestDocumentsUpdate(request);
+                if (result == null)
+                {
+                    return StatusCode(500, "Request Documents Update Failed");
+                }
+
+                if (result.status?.code != "200")
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Request Documents Update ERROR", $"Document ID: {request.id}");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new SupplierRegisterResponse
+                {
+                    status = new Application.Models.Common.Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                });
+            }
+        }
+
 
         #endregion
 

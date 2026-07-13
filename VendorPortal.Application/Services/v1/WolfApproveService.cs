@@ -815,7 +815,7 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<POCreateResponse> CreatePO(POCreateRequest request)
+        public async Task<POCreateResponse> CreatePO(POCreateRequest request, string domain)
         {
             POCreateResponse response = new POCreateResponse();
             DateTime createdDate = DateTime.Now;
@@ -832,9 +832,122 @@ namespace VendorPortal.Application.Services.v1
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                var resCreatePO = await _kubBossService.CreatePOKubboss(client,request);
+                POCreateResponse resCreatePO = await _kubBossService.CreatePOKubboss(client, request);
+
+                if (resCreatePO?.data == null)
+                    return resCreatePO;
+
+                if (resCreatePO.data.id == null)
+                    return resCreatePO;
+
+                #region ส่งไป upload 
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    foreach (var file in request.attachments)
+                    {
+                        string contentType = "application/octet-stream";
+                        string base64 = file.file_base64;
+
+                        if (!string.IsNullOrWhiteSpace(base64) && base64.StartsWith("data:"))
+                        {
+                            var parts = base64.Split(',');
+
+                            if (parts.Length == 2)
+                            {
+                                // data:application/pdf;base64
+                                var header = parts[0];
+
+                                contentType = header
+                                    .Replace("data:", "")
+                                    .Replace(";base64", "");
+
+                                base64 = parts[1];
+                            }
+                        }
+                        var bytes = Convert.FromBase64String(base64);
+
+                        await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+                    }
+                }
+                #endregion
+
+                #region เก็บไฟล์ของ base64
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    string rootPath = _config["FileUpload:RootPath"];
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    foreach (var item in request.attachments)
+                    {
+
+                        if (!string.IsNullOrEmpty(item.file_base64))
+                        {
+                            try
+                            {
+                                var poFolder = Path.Combine(rootPath, "po", resCreatePO.data.purchase_order_number);
+
+                                if (!Directory.Exists(poFolder))
+                                    Directory.CreateDirectory(poFolder);
+
+                                var base64 = item.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var extension = Path.GetExtension(originalFileName);
+
+                                if (string.IsNullOrWhiteSpace(extension))
+                                {
+                                    var fileType = item.file_type ?? "";
+
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    originalFileName += fileType;
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(poFolder, finalFileName);
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/po/{resCreatePO.data.purchase_order_number}/{finalFileName}";
+
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = resCreatePO.data.id.ToString(),
+                                    sFileName = finalFileName,
+                                    sFilePath = fileUrl,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = "system",
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "CreatePO File", $"request: {JsonConvert.SerializeObject(request)}");
+                                continue;
+                            }
+                        }
+                    }
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
+                }
+                #endregion
+
+
 
                 return resCreatePO;
+
             }
             catch (System.Exception ex)
             {
@@ -1132,6 +1245,7 @@ namespace VendorPortal.Application.Services.v1
                             line_number = i.ToString(),
                             item_code = item.sItemCode,
                             item_name = item.sItemName,
+                            item_category = item.sItemCategory,
                             quantity = item.nQuantity,
                             uom_name = item.sItemUomName,
                             unit_price = item.dUnitPrice,
@@ -1377,6 +1491,14 @@ namespace VendorPortal.Application.Services.v1
                 if (request.supplier_id.Count != 0)
                     sup_id = string.Join(",", request.supplier_id);
 
+                var chkRevision = request.revision;
+                var projectName = request.project_name;
+
+                if (chkRevision > 0)
+                {
+                    projectName += $" (ต่อรองครั้งที่ {request.revision})";
+                }
+
                 var result = await _wolfApproveRepository.SP_INSERT_NEWRFQ(
                         request.rfq_number,
                         company_id: companyData.nCompanyID,
@@ -1387,7 +1509,7 @@ namespace VendorPortal.Application.Services.v1
                         request.total_amount,
                         request.net_amount,
                         request.payment_condition,
-                        request.project_name,
+                        projectName,
                         request.project_description,
                         request.procurement_type_id ?? 0,
                         procurement_type_name: procurementData.sProcurementTypeName,
@@ -1408,7 +1530,7 @@ namespace VendorPortal.Application.Services.v1
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
                         requestForType: "RFQ",
-                        revision : request.revision
+                        revision: request.revision
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)
@@ -1427,6 +1549,7 @@ namespace VendorPortal.Application.Services.v1
                                 sItemName = item.item_name,
                                 sItemUomName = item.item_uom_name,
                                 sItemDescption = item.item_descption,
+                                sItemCategory = item.item_category,
                                 nQuantity = item.quantity,
                                 dUnitPrice = item.unit_price,
                                 dVatRate = item.vat_rate,
@@ -2148,7 +2271,7 @@ namespace VendorPortal.Application.Services.v1
                         "Y",
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
                         requestForType: "RFP",
-                        revision : 0
+                        revision: 0
                     );
 
 
@@ -2452,6 +2575,65 @@ namespace VendorPortal.Application.Services.v1
                 Logger.LogError(ex, "Cancel RFQ Document");
             }
             return response;
+        }
+
+        private async Task UploadMedia(string modelId, IFormFile file = null, byte[] fileBytes = null, string fileName = null, string contentType = null, string uploadForm = null)
+        {
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                using var form = new MultipartFormDataContent();
+
+                form.Add(new StringContent(modelId), "model_id");
+                form.Add(new StringContent(uploadForm), "type");
+                form.Add(new StringContent(Guid.NewGuid().ToString()), "file_uuid");
+
+                HttpContent uploadContent;
+                string uploadFileName;
+                string uploadContentType;
+
+                if (file != null)
+                {
+                    uploadContent = new StreamContent(file.OpenReadStream());
+                    uploadFileName = file.FileName;
+                    uploadContentType = file.ContentType;
+                }
+                else if (fileBytes != null && fileBytes.Length > 0)
+                {
+                    uploadContent = new ByteArrayContent(fileBytes);
+                    uploadFileName = fileName;
+                    uploadContentType = contentType;
+                }
+                else
+                {
+                    throw new Exception("File is required.");
+                }
+
+                uploadContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(uploadContentType);
+
+                form.Add(uploadContent, "file", uploadFileName);
+
+                var response = await client.PostAsync("/api/media", form);
+
+                response.EnsureSuccessStatusCode();
+
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "UploadMedia");
+
+            }
         }
     }
 
