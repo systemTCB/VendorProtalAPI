@@ -1031,6 +1031,10 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 }
 
+                if (string.IsNullOrEmpty(request.buyerCode))
+                {
+                    request.buyerCode = "";
+                }
                 var routes = await GetActiveBuyerRoute(request.buyerCode);
                 var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_VENDORSIGNATURE");
 
@@ -1185,6 +1189,9 @@ namespace VendorPortal.Application.Services.SyncExternalData
             DateTime createdDate = DateTime.Now;
             try
             {
+
+                var localData = await _wolfApproveRepository.SP_GET_RequestDocument(request.id);
+
                 var sqlParameter = new SqlParameter[] {
                                 new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
                             };
@@ -1207,7 +1214,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var res = await client.PatchAsync($"/api/request-documents/{request.id}/update-status", content);
+                var res = await client.PatchAsync($"/api/request-documents/{localData.kubboss_document_id}/update-status", content);
 
                 if (!res.IsSuccessStatusCode)
                     throw new Exception("Failed to call destination API");

@@ -507,7 +507,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
         }
 
 
-        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate, string modified_by)
+        public async Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate, string modified_by, string supplier_id)
         {
             try
             {
@@ -525,7 +525,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                         new SqlParameter("@dStartDate", startDate ?? (object)DBNull.Value),
                         new SqlParameter("@dEndDate", endDate ?? (object)DBNull.Value),
                         new SqlParameter("@nRFQID", nRFQID),
-                        new SqlParameter("@ModifiedBy" , modified_by)
+                        new SqlParameter("@ModifiedBy" , modified_by),
+                        new SqlParameter("@Supplier_id", supplier_id)
                     };
                     var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
                     return new SP_UPDATE_RFQ
@@ -570,7 +571,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             return result;
         }
 
-        public async Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode)
+        public async Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string? BuyerCode)
         {
             List<SP_GET_Buyer_Code> result = new List<SP_GET_Buyer_Code>();
             try
@@ -691,7 +692,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string kubboss_document_id)
+        public async Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value)
         {
             try
             {
@@ -703,7 +704,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
 
                     var param = new SqlParameter[]
                     {
-                new SqlParameter("@kubboss_document_id", kubboss_document_id)
+                        new SqlParameter("@search_value", search_value)
                     };
 
                     var result = await _context.ExcuteStoreQueryListAsync<SP_GET_RequestDocument>(sql, param);

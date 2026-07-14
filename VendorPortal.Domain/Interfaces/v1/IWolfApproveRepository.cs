@@ -47,7 +47,7 @@ namespace VendorPortal.Domain.Interfaces.v1
             int revision
 
         );
-        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by);
+        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by, string supplier_id);
 
         Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);
         Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires);
@@ -85,6 +85,6 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_name, string reason,  string email, bool is_require_signature, string lang);
 
-        Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string kubboss_document_id);
+        Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value);
     }
 }

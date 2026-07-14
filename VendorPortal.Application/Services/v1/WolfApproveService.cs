@@ -1406,13 +1406,35 @@ namespace VendorPortal.Application.Services.v1
                         }
                     }
 
+                    string update_sup_id = string.Empty;
+                    if (request.supplier_id.Count != 0)
+                        update_sup_id = string.Join(",", request.supplier_id);
+
+                    //ส่งเมลแจ้งเตือน New RFQ
+                    //#region send mail new RFQ
+                    //var sqlParameter = new SqlParameter[] {
+                    //            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    //        };
+
+                    //var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                    //var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    //var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                    //var defaultLang = "TH";
+                    //await SendEmailNotify(client, request.supplier_id, update_rfq_response.data.rfq_id?.ToString(), defaultLang);
+
+                    //#endregion
+
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
                         rfq_id = request.rfq_id,
                         end_date = request.end_date,
                         start_date = request.start_date,
                         documents = document,
-                        modified_by = request.created_by
+                        modified_by = request.created_by,
+                        supplier_id = string.IsNullOrEmpty(update_sup_id) ? "" : update_sup_id,
                     });
 
                     response = new RFQCreateResponse()
@@ -1431,6 +1453,9 @@ namespace VendorPortal.Application.Services.v1
                             rfq_number = request.rfq_number
                         };
                     }
+
+                    
+
                     return response;
 
                 }
@@ -1549,7 +1574,6 @@ namespace VendorPortal.Application.Services.v1
                                 sItemName = item.item_name,
                                 sItemUomName = item.item_uom_name,
                                 sItemDescption = item.item_descption,
-                                sItemCategory = item.item_category,
                                 nQuantity = item.quantity,
                                 dUnitPrice = item.unit_price,
                                 dVatRate = item.vat_rate,
@@ -1557,6 +1581,7 @@ namespace VendorPortal.Application.Services.v1
                                 dTotalAmount = item.total_amount,
                                 IsActive = true,
                                 CreatedBy = request.created_by,
+                                sItemCategory = item.item_category
                             });
                         }
                         var res = await _wolfApproveRepository.SP_INSERT_NEWREQ_ITEMLINES(itemList);
@@ -1763,7 +1788,7 @@ namespace VendorPortal.Application.Services.v1
                         });
                     }
 
-                    var result = await _wolfApproveRepository.SP_UPDATE_RFQ(doc, request.rfq_id, request.start_date, request.end_date, request.modified_by);
+                    var result = await _wolfApproveRepository.SP_UPDATE_RFQ(doc, request.rfq_id, request.start_date, request.end_date, request.modified_by, request.supplier_id);
                     if (result.result)
                     {
                         response = new RFQUpdateResponse()
@@ -2454,7 +2479,7 @@ namespace VendorPortal.Application.Services.v1
         #region Send Maill New Docunent
         public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language)
         {
-            var delayMs = Random.Shared.Next(5000, 10001);
+            var delayMs = Random.Shared.Next(10000, 50001);
             await Task.Delay(delayMs);
 
             foreach (var supId in supplierIds)
