@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
@@ -433,49 +434,114 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
+        //public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request)
+        //{
+        //    SupplierRegisterResponse response = new SupplierRegisterResponse();
+        //    DateTime createdDate = DateTime.Now;
+        //    try
+        //    {
+        //        var sqlParameter = new SqlParameter[] {
+        //            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+        //        };
+
+        //        var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+        //        var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+        //        var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+        //        var json = JsonConvert.SerializeObject(request);
+
+        //        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //        var res = await client.PostAsync("/api/register-supplier-wolf", content);
+
+        //        if (!res.IsSuccessStatusCode)
+        //            throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+
+        //        var responseContent = await res.Content.ReadAsStringAsync();
+
+        //        return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+        //        return new SupplierRegisterResponse
+        //        {
+        //            status = new Status
+        //            {
+        //                code = "500",
+        //                message = " response failed"
+        //            },
+        //            data = null
+        //        };
+
+        //    }
+        //}
+
         public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request)
         {
-            SupplierRegisterResponse response = new SupplierRegisterResponse();
-            DateTime createdDate = DateTime.Now;
             try
             {
-                var sqlParameter = new SqlParameter[] {
-                    new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                Logger.LogInfo($"TLS = {ServicePointManager.SecurityProtocol}", "RegisterSupplier");
+                Logger.LogInfo("STEP 1 : Start RegsiterSuppliersToKubboss", "RegisterSupplier");
+
+                var sqlParameter = new SqlParameter[]
+                {
+            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
                 };
 
-                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                Logger.LogInfo("STEP 2 : Before SP_GET_SYSENDPOINT", "RegisterSupplier");
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+                    "SP_GET_SYSENDPOINT", sqlParameter);
+
+                Logger.LogInfo($"STEP 3 : Token Exists = {!string.IsNullOrEmpty(configToken?.sToken)}", "RegisterSupplier");
 
                 var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
 
+                Logger.LogInfo($"STEP 4 : EndPoint = {endPoint}", "RegisterSupplier");
+
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                client.Timeout = TimeSpan.FromSeconds(30);
 
                 var json = JsonConvert.SerializeObject(request);
 
+                Logger.LogInfo($"STEP 5 : Payload = {json}", "RegisterSupplier");
+
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                Logger.LogInfo("STEP 6 : Before PostAsync", "RegisterSupplier");
 
                 var res = await client.PostAsync("/api/register-supplier-wolf", content);
 
-                if (!res.IsSuccessStatusCode)
-                    throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+                Logger.LogInfo($"STEP 7 : After PostAsync Status = {(int)res.StatusCode} {res.StatusCode}", "RegisterSupplier");
 
                 var responseContent = await res.Content.ReadAsStringAsync();
 
+                Logger.LogInfo($"STEP 8 : Response = {responseContent}", "RegisterSupplier");
+
+                res.EnsureSuccessStatusCode();
+
+                Logger.LogInfo("STEP 9 : Success", "RegisterSupplier");
+
                 return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
+            }
+            catch (TaskCanceledException ex)
+            {
+                Logger.LogError(ex, "RegisterSupplier Timeout");
+                throw;
+            }
+            catch (HttpRequestException ex)
+            {
+                Logger.LogError(ex, "RegisterSupplier HttpRequestException");
+                throw;
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
-
-                return new SupplierRegisterResponse
-                {
-                    status = new Status
-                    {
-                        code = "500",
-                        message = " response failed"
-                    },
-                    data = null
-                };
-
+                Logger.LogError(ex, "RegisterSupplier Exception");
+                throw;
             }
         }
 
@@ -536,7 +602,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 };
 
                 Logger.LogInfo($"Start Send | Buyer:{route.BuyerCode} | Method:{route.HttpMethod} | Url:{route.BaseUrl}{route.Path}", "SendToBuyer");
-
+                Logger.LogInfo($"payloadJson | {payloadJson}", "SendToBuyer");
                 client.DefaultRequestHeaders.TryAddWithoutValidation("IsCool", "true");
 
                 if (route.AuthType?.ToUpper() == "BEARER")
@@ -555,7 +621,12 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     throw new NotSupportedException($"HTTP method {route.HttpMethod} not supported")
                 };
 
+                Logger.LogInfo("After HttpMethodAsync", "SendToBuyer");
+
                 var responseBody = await response.Content.ReadAsStringAsync();
+
+                Logger.LogInfo("After ReadAsString", "SendToBuyer");
+                
                 Logger.LogInfo($@"
                 ========== SEND TO BUYER ==========
                 Buyer      : {route.BuyerCode}
@@ -1039,8 +1110,28 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_VENDORSIGNATURE");
 
                 var jObj = JObject.FromObject(result);
-   
+
                 var payloadJson = JsonConvert.SerializeObject(jObj);
+
+                Logger.LogInfo($"Document ID : {id}", "GetRequestDocumentsByID");
+
+                Logger.LogInfo($"Response Content : {content}", "GetRequestDocumentsByID");
+
+                Logger.LogInfo($"Local DocNo : {localData?.docNo}, MemoId : {localData?.memoId}", "GetRequestDocumentsByID");
+
+                Logger.LogInfo($"BuyerCode : {request.buyerCode}", "GetRequestDocumentsByID");
+
+                Logger.LogInfo($"Route Found : {buyerRoute != null}", "GetRequestDocumentsByID");
+
+                Logger.LogInfo($@"========== SEND TO BUYER ==========
+                BuyerCode : {request.buyerCode}
+                Route     : {buyerRoute?.BaseUrl}{buyerRoute?.Path}
+                Action    : {buyerRoute?.ActionType}
+
+                Payload:
+                {payloadJson}
+                ===================================",
+                "GetRequestDocumentsByID");
 
                 await SendToBuyer(buyerRoute, payloadJson);
 

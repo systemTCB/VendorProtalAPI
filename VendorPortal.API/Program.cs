@@ -96,7 +96,7 @@ app.MapControllers();
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 // Configure the HTTP request pipeline.
-app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "VendorPortal.API v1"));
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger.json", "VendorPortal.API v1"));
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(builder.Configuration["FileUpload:RootPath"]),
