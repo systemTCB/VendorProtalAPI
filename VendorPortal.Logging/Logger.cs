@@ -79,8 +79,12 @@ namespace VendorPortal.Logging
                 }
 
             }
-            catch { }
-
+            catch (Exception ex)
+            {
+                File.AppendAllText(
+                    @"C:\Temp\LoggerError.txt",
+                    ex.ToString());
+            }
         }
     }
 }

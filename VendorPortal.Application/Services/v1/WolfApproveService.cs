@@ -1330,6 +1330,8 @@ namespace VendorPortal.Application.Services.v1
             {
                 var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
                 var companyData = _companyList.Where(e => e.nCompanyID == request.company_id).FirstOrDefault();
+
+                #region Update RFQ
                 if (!string.IsNullOrEmpty(request.rfq_id))
                 {
                     string rootPath = _config["FileUpload:RootPath"];
@@ -1410,22 +1412,40 @@ namespace VendorPortal.Application.Services.v1
                     if (request.supplier_id.Count != 0)
                         update_sup_id = string.Join(",", request.supplier_id);
 
+                    var oldSupplier = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_LATEST_RFQ_SUPPLIER>(
+                        "SP_GET_LATEST_RFQ_SUPPLIER", new[] { new SqlParameter("@nRFQID", request.rfq_id) });
+
+                    var oldSupplierList = oldSupplier?.Supplier_id?
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim()).ToHashSet() ?? new HashSet<string>();
+
+                    var newSupplier = request.supplier_id
+                        .Where(x => !oldSupplierList.Contains(x))
+                        .ToList();
+
                     //ส่งเมลแจ้งเตือน New RFQ
-                    //#region send mail new RFQ
-                    //var sqlParameter = new SqlParameter[] {
-                    //            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                    //        };
 
-                    //var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                    #region send mail new RFQ
+                    if (newSupplier.Any())
+                    {
+                        var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
 
-                    //var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+                        var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
 
-                    //var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                        var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
 
-                    //var defaultLang = "TH";
-                    //await SendEmailNotify(client, request.supplier_id, update_rfq_response.data.rfq_id?.ToString(), defaultLang);
+                        var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                    //#endregion
+                        await SendEmailNotify(
+                            client,
+                            newSupplier,
+                            request.rfq_id.ToString(),
+                            "TH");
+                    }
+
+                    #endregion
 
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
@@ -1454,11 +1474,12 @@ namespace VendorPortal.Application.Services.v1
                         };
                     }
 
-                    
+
 
                     return response;
 
                 }
+                #endregion
 
                 var _pocurement_type = await _masterDataRepository.SP_GET_MASTER_PROCUREMENTTYPE(isShowAll: true);
                 var _catagory = await _masterDataRepository.SP_GET_MASTER_CATEGORY(isShowAll: true);
