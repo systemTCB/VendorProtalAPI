@@ -1147,8 +1147,8 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(responseDeliveryOrdersByID);
         }
 
-        [HttpPut]
-        [Route("api/v1/wolf-approve/delivery-orders/{id}/update-status")]
+        [HttpPost]
+        [Route("api/v1/wolf-approve/delivery-orders/update-status")]
         [Description("Create By Triphop")]
         [SwaggerOperation(
         Tags = new[] { "Delivery Orders V1" },
@@ -1156,14 +1156,14 @@ namespace VendorPortal.API.Controllers.v1
         Description = "Get delivery orders by id"
     )]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
-        public async Task<IActionResult> PutDeliveryOrdersUpdateStatus(string id, [FromBody] PutDeliveryOrdersUpdateRequest request)
+        public async Task<IActionResult> PutDeliveryOrdersUpdateStatus([FromBody] PutDeliveryOrdersUpdateRequest request)
         {
 
             DeliveryOrdersUpdateResponse responseDeliveryOrdersUpdate = new();
 
             try
             {
-                var result = await _kubBossService.DeliveryOrdersUpdateStatus(id, request);
+                var result = await _kubBossService.DeliveryOrdersUpdateStatus(request);
 
                 return Ok(result);
 

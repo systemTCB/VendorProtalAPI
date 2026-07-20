@@ -1350,7 +1350,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 };
             }
         }
-        public async Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(string id, PutDeliveryOrdersUpdateRequest request)
+        public async Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(PutDeliveryOrdersUpdateRequest request)
         {
             try
             {
@@ -1364,16 +1364,26 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                var response = await client.GetAsync($"/api/delivery-orders/{id}/update-status");
+                var updateRequestBody = new
+                {
+                    status = request.status,
+                    reason = request.reason,
+                    lang = request.lang,
+                };
+
+                var json = JsonConvert.SerializeObject(updateRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await client.PutAsync($"/api/delivery-orders/{request.id}/update-status", content);
+
 
                 if (!response.IsSuccessStatusCode)
                     throw new Exception("Failed to call destination API");
 
-                var content = await response.Content.ReadAsStringAsync();
+                var responseContent = await response.Content.ReadAsStringAsync();
 
-                var result = JsonConvert.DeserializeObject<DeliveryOrdersUpdateResponse>(content);
-
-                //var localData = await _wolfApproveRepository.SP_GET_RequestDocument(id);
+                var result = JsonConvert.DeserializeObject<DeliveryOrdersUpdateResponse>(responseContent);
 
                 return result;
             }
