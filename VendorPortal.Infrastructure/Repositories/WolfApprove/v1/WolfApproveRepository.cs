@@ -647,7 +647,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_name, string reason, string email, bool is_require_signature, string lang)
+        public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id,string company_code, string document_name, string reason, string email, bool is_require_signature, string lang)
         {
             try
             {
@@ -664,6 +664,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 new SqlParameter("@kubboss_document_id", kubboss_document_id),
                 new SqlParameter("@supplier_id", supplier_id),
                 new SqlParameter("@company_id", company_id),
+                new SqlParameter("@company_code", company_code),
                 new SqlParameter("@document_name", document_name),
                 new SqlParameter("@reason", reason),
                 new SqlParameter("@email", email),

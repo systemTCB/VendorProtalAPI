@@ -433,38 +433,135 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
+        //public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request)
+        //{
+        //    SupplierRegisterResponse response = new SupplierRegisterResponse();
+        //    DateTime createdDate = DateTime.Now;
+        //    try
+        //    {
+        //        var host = _httpContextAccessor.HttpContext?.Request.Host.Host?.ToLower();
+
+        //        var system = (await _wolfApproveRepository.SP_GET_Systems(host))?.FirstOrDefault();
+
+        //        HttpClient client;
+
+        //        if (system != null)
+        //        {
+        //            // ใช้ค่าจาก DB
+        //            client = HttpClientHelper.CreateClient(system.BaseUrl, system.Token);
+        //        }
+        //        else
+        //        {
+        //            // Fallback ไปใช้ config เดิม
+        //            var sqlParameter = new SqlParameter[]
+        //            {
+        //                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+        //            };
+
+        //            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+        //                "SP_GET_SYSENDPOINT",
+        //                sqlParameter);
+
+        //            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+        //            client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+        //        }
+
+        //        var json = JsonConvert.SerializeObject(request);
+
+        //        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        //        var res = await client.PostAsync("/api/register-supplier-wolf", content);
+
+        //        if (!res.IsSuccessStatusCode)
+        //            throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+
+        //        var responseContent = await res.Content.ReadAsStringAsync();
+
+        //        return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+
+        //        return new SupplierRegisterResponse
+        //        {
+        //            status = new Status
+        //            {
+        //                code = "500",
+        //                message = " response failed"
+        //            },
+        //            data = null
+        //        };
+
+        //    }
+        //}
+
         public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request)
         {
             SupplierRegisterResponse response = new SupplierRegisterResponse();
             DateTime createdDate = DateTime.Now;
+            string logName = "RegisterSupplierKubboss";
+
             try
             {
-                var sqlParameter = new SqlParameter[] {
-                    new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                };
+                var clientSystem = _httpContextAccessor.HttpContext?.Request.Headers["X-Client-System"].ToString();
+                Logger.LogInfo($"[ENTRY] X-Client-System header = '{clientSystem}'", logName);
 
-                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                var system = (await _wolfApproveRepository.SP_GET_Systems(clientSystem))?.FirstOrDefault();
 
-                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+                HttpClient client;
+                string usedBaseUrl;
 
-                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                if (system != null)
+                {
+                    // ใช้ค่าจาก DB
+                    await Logger.LogInfo($"Host '{clientSystem}' matched system in DB -> SystemCode: {system.SystemCode}, BaseUrl: {system.BaseUrl}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(system.BaseUrl, system.Token);
+                    usedBaseUrl = system.BaseUrl;
+                }
+                else
+                {
+                    // Fallback ไปใช้ config เดิม
+                    var sqlParameter = new SqlParameter[]
+                    {
+                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    };
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+                        "SP_GET_SYSENDPOINT",
+                        sqlParameter);
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    await Logger.LogInfo($"Host '{clientSystem}' not found in DB -> fallback to config EndPoint:Kubboss = {endPoint}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                    usedBaseUrl = endPoint;
+                }
 
                 var json = JsonConvert.SerializeObject(request);
-
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                await Logger.LogInfo($"Sending request to {usedBaseUrl}/api/register-supplier-wolf", logName, json);
 
                 var res = await client.PostAsync("/api/register-supplier-wolf", content);
 
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo($"Response from {usedBaseUrl} | StatusCode: {(int)res.StatusCode} {res.StatusCode}",
+                    logName, responseContent);
+
                 if (!res.IsSuccessStatusCode)
                     throw new Exception("Failed to Regsiter Suppliers To Kubboss");
-
-                var responseContent = await res.Content.ReadAsStringAsync();
 
                 return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+                Logger.LogInfo($"Exception occurred: {ex.Message}", logName, ex.ToString());
 
                 return new SupplierRegisterResponse
                 {
@@ -475,6 +572,159 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     },
                     data = null
                 };
+            }
+        }
+
+        public async Task<SupplierRegisterResponse> RegsiterSuppliersToKubbossTrial(SupplierRegisterRequestTrial request)
+        {
+            SupplierRegisterResponse response = new SupplierRegisterResponse();
+            DateTime createdDate = DateTime.Now;
+            string logName = "RegisterSupplierKubboss";
+
+            try
+            {
+                var clientSystem = _httpContextAccessor.HttpContext?.Request.Headers["X-Client-System"].ToString();
+                Logger.LogInfo($"[ENTRY] X-Client-System header = '{clientSystem}'", logName);
+
+                var system = (await _wolfApproveRepository.SP_GET_Systems(clientSystem))?.FirstOrDefault();
+
+                HttpClient client;
+                string usedBaseUrl;
+
+                if (system != null)
+                {
+                    // ใช้ค่าจาก DB
+                    await Logger.LogInfo($"Host '{clientSystem}' matched system in DB -> SystemCode: {system.SystemCode}, BaseUrl: {system.BaseUrl}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(system.BaseUrl, system.Token);
+                    usedBaseUrl = system.BaseUrl;
+                }
+                else
+                {
+                    // Fallback ไปใช้ config เดิม
+                    var sqlParameter = new SqlParameter[]
+                    {
+                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    };
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+                        "SP_GET_SYSENDPOINT",
+                        sqlParameter);
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    await Logger.LogInfo($"Host '{clientSystem}' not found in DB -> fallback to config EndPoint:Kubboss = {endPoint}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                    usedBaseUrl = endPoint;
+                }
+
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                await Logger.LogInfo($"Sending request to {usedBaseUrl}/api/register-supplier-trial", logName, json);
+
+                var res = await client.PostAsync("/api/register-supplier-trial", content);
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo($"Response from {usedBaseUrl} | StatusCode: {(int)res.StatusCode} {res.StatusCode}",
+                    logName, responseContent);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+
+                return JsonConvert.DeserializeObject<SupplierRegisterResponse>(responseContent);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+                Logger.LogInfo($"Exception occurred: {ex.Message}", logName, ex.ToString());
+
+                return new SupplierRegisterResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<JObject> VendorRegisterQuestionnaireUpdate(QuestionnaireUpdateRequest request)
+        {
+            SupplierRegisterResponse response = new SupplierRegisterResponse();
+            DateTime createdDate = DateTime.Now;
+            string logName = "RegisterSupplierKubboss";
+
+            try
+            {
+                var clientSystem = _httpContextAccessor.HttpContext?.Request.Headers["X-Client-System"].ToString();
+                Logger.LogInfo($"[ENTRY] X-Client-System header = '{clientSystem}'", logName);
+
+                var system = (await _wolfApproveRepository.SP_GET_Systems(clientSystem))?.FirstOrDefault();
+
+                HttpClient client;
+                string usedBaseUrl;
+
+                if (system != null)
+                {
+                    // ใช้ค่าจาก DB
+                    await Logger.LogInfo($"Host '{clientSystem}' matched system in DB -> SystemCode: {system.SystemCode}, BaseUrl: {system.BaseUrl}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(system.BaseUrl, system.Token);
+                    usedBaseUrl = system.BaseUrl;
+                }
+                else
+                {
+                    // Fallback ไปใช้ config เดิม
+                    var sqlParameter = new SqlParameter[]
+                    {
+                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    };
+                    var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+                        "SP_GET_SYSENDPOINT",
+                        sqlParameter);
+                    var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                    await Logger.LogInfo($"Host '{clientSystem}' not found in DB -> fallback to config EndPoint:Kubboss = {endPoint}",
+                        logName);
+
+                    client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                    usedBaseUrl = endPoint;
+                }
+
+                var json = JsonConvert.SerializeObject(request);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                await Logger.LogInfo($"Sending request to {usedBaseUrl}/api/questionnaire/answer/update", logName, json);
+
+                var res = await client.PostAsync("/api/questionnaire/answer/update", content);
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo($"Response from {usedBaseUrl} | StatusCode: {(int)res.StatusCode} {res.StatusCode}",
+                    logName, responseContent);
+
+                if (!res.IsSuccessStatusCode)
+                    throw new Exception("Failed to Regsiter Suppliers To Kubboss");
+
+                return JObject.Parse(responseContent);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+                Logger.LogInfo($"Exception occurred: {ex.Message}", logName, ex.ToString());
+
+                var errorResponse = new JObject
+                {
+                    ["success"] = false,
+                    ["message"] = ex.Message
+                };
+                return errorResponse;
 
             }
         }
@@ -1158,6 +1408,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     result.data.id, // kubboss_document_id
                     request.supplier_id.ToString(),
                     request.company_id,
+                    request.company_code,
                     request.document_name,
                     request.reason,
                     request.email,

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 namespace VendorPortal.Logging
 {
@@ -14,7 +15,7 @@ namespace VendorPortal.Logging
         /// <param name="ex">Exception</param>
         /// <param name="name">ให้ใช้ชื่อของ Function มีการเรียกเข้ามา</param>
         /// <param name="request">request คือ Parametor ที่ส่งเข้ามาทำงานที่ Function นี้ แต่ถ้าไม่มีก็ไม่จำเป็นต้องส่งเข้ามา</param>
-        public async static void LogError(Exception ex, string name, string? request = null)
+        public async static Task LogError(Exception ex, string name, string? request = null)
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
@@ -50,7 +51,7 @@ namespace VendorPortal.Logging
             catch{ }
 
         }
-        public async static void LogInfo(string message, string name, string? request = null)
+        public async static Task LogInfo(string message, string name, string? request = null)
         {
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())

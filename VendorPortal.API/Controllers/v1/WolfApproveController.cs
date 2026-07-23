@@ -757,6 +757,105 @@ namespace VendorPortal.API.Controllers.v1
             }
         }
 
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/register-supplier-trial")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+       Tags = new[] { "Vendor Register V1" },
+       Summary = "Register wolf supplier from email and send email register kubboss",
+       Description = "Register wolf supplier from email and send email register kubboss"
+   )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SupplierRegistrationResponse))]
+        public async Task<IActionResult> VendorRegisterSupplierTrial([FromBody] SupplierRegisterRequestTrial request)
+        {
+
+            if (string.IsNullOrWhiteSpace(request.email))
+                return BadRequest("email is required");
+
+            SupplierRegisterResponse responseSuppliers = new();
+
+            try
+            {
+                var result = await _kubBossService.RegsiterSuppliersToKubbossTrial(request);
+                if (result == null)
+                {
+                    return StatusCode(500, "Register supplier failed");
+                }
+
+                if (result.status?.code != "200")
+                {
+                    return BadRequest(result);
+                }
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "VendorRegister ERROR", $"email: {request.email}");
+
+                return StatusCode(StatusCodes.Status500InternalServerError, new SupplierRegisterResponse
+                {
+                    status = new Application.Models.Common.Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/vendor/questionnaire/answer/update")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+      Tags = new[] { "Vendor Register V1" },
+      Summary = "Vendor Register Questionnaire Update",
+      Description = "Vendor Register Questionnaire Update"
+  )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(SupplierRegistrationResponse))]
+        public async Task<IActionResult> VendorRegisterQuestionnaireUpdate([FromBody] QuestionnaireUpdateRequest request)
+        {
+
+            if (string.IsNullOrWhiteSpace(request.supplier_answer_id))
+                return BadRequest("email is required");
+
+            SupplierRegisterResponse responseSuppliers = new();
+
+            try
+            {
+                var result = await _kubBossService.VendorRegisterQuestionnaireUpdate(request);
+
+                if (result == null)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Register supplier failed");
+                }
+
+                var statusCode = result["status"]?["code"]?.ToString();
+
+                if (statusCode != "200")
+                {
+                    return BadRequest(result);
+                }
+
+                return Content(result.ToString(Newtonsoft.Json.Formatting.None), "application/json");
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "VendorRegisterQuestionnaireUpdate ERROR", $"supplier_answer_id: {request.supplier_answer_id}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new SupplierRegisterResponse
+                {
+                    status = new Application.Models.Common.Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                });
+            }
+        }
+
         #endregion
 
         #region RFP

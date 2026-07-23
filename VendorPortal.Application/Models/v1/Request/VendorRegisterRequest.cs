@@ -20,4 +20,13 @@ namespace VendorPortal.Application.Models.v1.Request
         public string coupon_code { get; set; }
         public string lang { get; set; }
     }
+
+    public class SupplierRegisterRequestTrial
+    {
+        public string email { get; set; }
+        public string docNo { get; set; }
+        public string supplier_name { get; set; }
+        public string key_contact_name { get; set; }
+        public string lang { get; set; }
+    }
 }
