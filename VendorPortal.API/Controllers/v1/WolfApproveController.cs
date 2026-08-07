@@ -335,6 +335,39 @@ namespace VendorPortal.API.Controllers.v1
         }
 
         [HttpPost]
+        [Route("api/v2/wolf-approve/purchases/create")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V2" }, Summary = "", Description = "ใช้สำหรับสร้าง PO ใหม่ เพิ่ม Document Type")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POCreateResponse))]
+        public async Task<IActionResult> CreatePO_V2([FromBody] POCreateV2Request request)
+        {
+            POCreateV2Response response = new();
+            try
+            {
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
+
+                Logger.LogInfo("CreatePO", $"domain: {domain}");
+
+                response = await _wolfApproveService.CreatePOV2(request, domain);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateRFQ", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new POCreateV2Response()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
+        [HttpPost]
         [Route("api/v1/wolf-approve/purchases/cancel")]
         [Description("Create By Triphop")]
         [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับยกเลิก PO")]
@@ -373,7 +406,12 @@ namespace VendorPortal.API.Controllers.v1
             QuotationAwardResponse response = new();
             try
             {
-                response = await _wolfApproveService.CreatePOAward(request);
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
+
+                Logger.LogInfo("CreatePO", $"domain: {domain}");
+
+                response = await _wolfApproveService.CreatePOAward(request, domain);
             }
             catch (System.Exception ex)
             {
@@ -389,6 +427,33 @@ namespace VendorPortal.API.Controllers.v1
                 };
             }
             return Ok(response);
+        }
+
+        [HttpPut]
+        [Route("api/v1/wolf-approve/purchases/noti/{id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "API สำหรับสร้าง PO ไปยัง WOLF")]
+        public async Task<IActionResult> PutPO(string id, [FromBody] CreatePORequest request)
+        {
+            try
+            {
+                var result = await _kubBossService.GetPOByID(id, request);
+                return Ok(result);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Create PO", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+
+                return Ok(new InvoicesByIDResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
         }
 
         #endregion
@@ -1304,7 +1369,7 @@ namespace VendorPortal.API.Controllers.v1
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "Create Invoice", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
-                
+
                 return Ok(new InvoicesByIDResponse
                 {
                     status = new Status
@@ -1315,6 +1380,43 @@ namespace VendorPortal.API.Controllers.v1
                 });
             }
         }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/invoices/update-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Invoices V1" }, Summary = "", Description = "API สำหรับ Update invoices")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutInvoicesUpdateStatus([FromBody] PutInvoicesUpdateRequest request)
+        {
+
+            InvoicesUpdateResponse responseInvoicesUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.InvoicesUpdateStatus(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Invoices Update ERROR");
+
+                responseInvoicesUpdate = new InvoicesUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseInvoicesUpdate);
+        }
+
         #endregion
 
         #region Subscriptions BLOCK / UN-BLOCK
@@ -1373,6 +1475,42 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(responseInvoiceByID);
         }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/credit-notes/update-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Credit Notes V1" }, Summary = "", Description = "API สำหรับ Update Credit Notes")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutCreditNotesUpdateStatus([FromBody] PutCreditNoteUpdateRequest request)
+        {
+
+            CreditNoteUpdateResponse responseCreditNoteUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.CreditNoteUpdateStatus(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "CreditNoteUpdateStatus ERROR");
+
+                responseCreditNoteUpdate = new CreditNoteUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseCreditNoteUpdate);
+        }
         #endregion
 
         #region Debit Notes
@@ -1402,6 +1540,43 @@ namespace VendorPortal.API.Controllers.v1
                 };
             }
             return Ok(responseInvoiceByID);
+        }
+
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/debit-notes/update-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Debit Notes V1" }, Summary = "", Description = "API สำหรับ Update Debit Notes")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PutDebitNotesUpdateStatus([FromBody] PutDebitNoteUpdateRequest request)
+        {
+
+            DebitNoteUpdateResponse responseDebitNoteUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.DebitNoteUpdateStatus(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "CreditNoteUpdateStatus ERROR");
+
+                responseDebitNoteUpdate = new DebitNoteUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDebitNoteUpdate);
         }
         #endregion
     }

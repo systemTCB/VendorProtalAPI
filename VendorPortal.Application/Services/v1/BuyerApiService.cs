@@ -27,8 +27,24 @@ namespace VendorPortal.Application.Services.v1
         }
         public async Task<bool> SendToBuyer(SP_GET_Buyer_Code route, string payloadJson)
         {
+            await Logger.LogInfo(
+                $"START | Buyer:{route?.BuyerCode} | Method:{route?.HttpMethod} | BaseUrl:{route?.BaseUrl} | Path:{route?.Path} | AuthType:{route?.AuthType}",
+                "SendToBuyer",
+                payloadJson);
+
             try
             {
+                if (route == null)
+                {
+                    await Logger.LogInfo("ABORT | route is NULL", "SendToBuyer");
+                    return false;
+                }
+                if (string.IsNullOrWhiteSpace(route.BaseUrl))
+                {
+                    await Logger.LogInfo($"ABORT | route.BaseUrl is null/empty | Buyer:{route.BuyerCode}", "SendToBuyer");
+                    return false;
+                }
+
                 using var client = new HttpClient
                 {
                     BaseAddress = new Uri(route.BaseUrl)
@@ -37,11 +53,22 @@ namespace VendorPortal.Application.Services.v1
                 if (route.AuthType?.ToUpper() == "BEARER")
                 {
                     var token = await GetBearerToken(route);
+                    await Logger.LogInfo($"Bearer token obtained: {!string.IsNullOrEmpty(token)}", "SendToBuyer");
+
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        await Logger.LogInfo($"ABORT | Bearer token is null/empty | Buyer:{route.BuyerCode}", "SendToBuyer");
+                        return false;
+                    }
+
                     client.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue("Bearer", token);
                 }
 
                 var content = new StringContent(payloadJson, Encoding.UTF8, route.ContentType ?? "application/json");
+
+                await Logger.LogInfo($"SENDING | {route.HttpMethod.ToUpper()} {route.BaseUrl}{route.Path}", "SendToBuyer");
+
                 HttpResponseMessage response = route.HttpMethod.ToUpper() switch
                 {
                     "POST" => await client.PostAsync(route.Path, content),
@@ -54,25 +81,25 @@ namespace VendorPortal.Application.Services.v1
 
                 if (!response.IsSuccessStatusCode)
                 {
-
-                    Logger.LogInfo("SendToBuyer",
+                    await Logger.LogInfo(
                         $"FAILED | Buyer:{route.BuyerCode} | URL:{route.BaseUrl}{route.Path} | " +
-                        $"Status:{(int)response.StatusCode} {response.StatusCode} | Response:{responseBody}");
+                        $"Status:{(int)response.StatusCode} {response.StatusCode} | Response:{responseBody}",
+                        "SendToBuyer");
                 }
                 else
                 {
-                    Logger.LogInfo("SendToBuyer",
-                        $"SUCCESS | Buyer:{route.BuyerCode} | Status:{(int)response.StatusCode} | Response:{responseBody}");
+                    await Logger.LogInfo(
+                        $"SUCCESS | Buyer:{route.BuyerCode} | Status:{(int)response.StatusCode} | Response:{responseBody}",
+                        "SendToBuyer");
                 }
 
                 return response.IsSuccessStatusCode;
-
             }
             catch (Exception ex)
             {
+                await Logger.LogInfo($"EXCEPTION | Buyer:{route?.BuyerCode} | {ex.Message}\n{ex.StackTrace}", "SendToBuyer");
                 Logger.LogError(ex, "SendToBuyer");
             }
-
             return false;
         }
         private async Task<string> GetBearerToken(SP_GET_Buyer_Code route)

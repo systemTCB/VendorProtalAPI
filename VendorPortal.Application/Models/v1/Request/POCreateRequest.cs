@@ -57,7 +57,9 @@ namespace VendorPortal.Application.Models.v1.Request
         public string description { get; set; }
         public int quantity { get; set; }
         public int unit_price { get; set; }
+        public int discount { get; set; }
         public int vat_rate { get; set; }
+        public int wht_rate { get; set; }
     }
 
     public class RfqDataPO

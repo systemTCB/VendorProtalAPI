@@ -31,6 +31,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public List<RFQCreateQuestionnaire> questionaires { get; set; } = new List<RFQCreateQuestionnaire>();
         public List<RFQCreateDocument> attachments { get; set; } = new List<RFQCreateDocument>();
         public int revision { get; set; }
+        public string requestForType { get; set; }
 
     }
 

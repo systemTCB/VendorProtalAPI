@@ -647,51 +647,51 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id,string company_code, string document_name, string reason, string email, bool is_require_signature, string lang)
-        {
-            try
+            public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id,string company_code, string document_name, string reason, string email, bool is_require_signature, string lang)
             {
-                using (var connection = _context.CreateConnectionRead())
+                try
                 {
-                    connection.Open();
-
-                    var sql = "SP_INSERT_RequestDocument";
-
-                    var param = new SqlParameter[]
+                    using (var connection = _context.CreateConnectionRead())
                     {
-                new SqlParameter("@docNo", docNo),
-                new SqlParameter("@memoId", memoId),
-                new SqlParameter("@kubboss_document_id", kubboss_document_id),
-                new SqlParameter("@supplier_id", supplier_id),
-                new SqlParameter("@company_id", company_id),
-                new SqlParameter("@company_code", company_code),
-                new SqlParameter("@document_name", document_name),
-                new SqlParameter("@reason", reason),
-                new SqlParameter("@email", email),
-                new SqlParameter("@is_require_signature", is_require_signature),
-                new SqlParameter("@lang", lang)
-                    };
+                        connection.Open();
 
-                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+                        var sql = "SP_INSERT_RequestDocument";
+
+                        var param = new SqlParameter[]
+                        {
+                    new SqlParameter("@docNo", docNo),
+                    new SqlParameter("@memoId", memoId),
+                    new SqlParameter("@kubboss_document_id", kubboss_document_id),
+                    new SqlParameter("@supplier_id", supplier_id),
+                    new SqlParameter("@company_id", company_id),
+                    new SqlParameter("@company_code", company_code),
+                    new SqlParameter("@document_name", document_name),
+                    new SqlParameter("@reason", reason),
+                    new SqlParameter("@email", email),
+                    new SqlParameter("@is_require_signature", is_require_signature),
+                    new SqlParameter("@lang", lang)
+                        };
+
+                        var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
+
+                        return new SP_CREATE_RequestDocument
+                        {
+                            Result = sp_response.isSuccess,
+                            Message = sp_response.message
+                        };
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "WolfApproveRepository");
 
                     return new SP_CREATE_RequestDocument
                     {
-                        Result = sp_response.isSuccess,
-                        Message = sp_response.message
+                        Result = false,
+                        Message = ex.Message
                     };
                 }
             }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "WolfApproveRepository");
-
-                return new SP_CREATE_RequestDocument
-                {
-                    Result = false,
-                    Message = ex.Message
-                };
-            }
-        }
 
         public async Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value)
         {

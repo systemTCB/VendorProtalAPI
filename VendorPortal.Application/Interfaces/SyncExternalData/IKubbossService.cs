@@ -24,8 +24,10 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<ProductMedicalResponse> GetProductMedical(string sku, string name, string sortDirection, int page, int per_page);
         Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id);
         Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request);
+        Task<POCreateV2Response> CreatePOKubbossV2(HttpClient client, POCreateV2Request request);
         Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request);
         Task<QuotationAwardResponse> CreatePOAwardKubboss(HttpClient client, QuotationAwardRequest request);
+        Task<POByIDResponse> GetPOByID(string id, CreatePORequest request);
 
         Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request);
         Task<DocumentCreatetResponse> RequestDocuments(RequestDocumentRequest request);
@@ -33,8 +35,12 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutRequestDocuments request);
         Task<DeliveryOrdersResponse> GetDeliveryOrdersByID(string id, PutDeliveryOrdersRequest request);
         Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(PutDeliveryOrdersUpdateRequest request);
+        Task<CreditNoteUpdateResponse> CreditNoteUpdateStatus(PutCreditNoteUpdateRequest request);
+        Task<DebitNoteUpdateResponse> DebitNoteUpdateStatus(PutDebitNoteUpdateRequest request);
 
         Task<InvoicesByIDResponse> GetInvoicesByID(string id, CreateInvoiceRequest request);
+        Task<InvoicesUpdateResponse> InvoicesUpdateStatus(PutInvoicesUpdateRequest request);
+
         Task<SubscriptionsResponse> Subscriptions(SubscriptionsRequest request);
         Task<CreditNoteByIDResponse> GetCreditNotesByID(string id, PutCreditNotesRequest request);
         Task<DebitNotesByIDResponse> GetDebitNotesByID(string id, PutDebitNotesRequest request);

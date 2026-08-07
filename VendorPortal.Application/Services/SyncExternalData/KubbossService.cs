@@ -24,7 +24,6 @@ using VendorPortal.Domain.Models.WolfApprove.StoreModel.TempDefinedTable;
 using VendorPortal.Infrastructure.Extensions;
 using VendorPortal.Logging;
 using static VendorPortal.Application.Models.Common.AppEnum;
-using static VendorPortal.Application.Models.Common.KubbossCommonModel;
 
 namespace VendorPortal.Application.Services.SyncExternalData
 {
@@ -395,18 +394,33 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
         public async Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo)
         {
+            await Logger.LogInfo($"START | supplier_id:{supplier_id} | buyerCode:{buyerCode} | docNo:{docNo}", "RegsiterSuppliersFromKubboss");
+
             try
             {
+                var ctx = await ResolveClientSystemAsync(buyerCode);
+                await Logger.LogInfo($"Resolved system | SystemCode:{ctx.SystemCode} | BaseUrl:{ctx.BaseUrl}", "RegsiterSuppliersFromKubboss");
 
-                var questionnaires = await GetSupplierQuestionnaires(supplier_id);
+                var questionnaires = await GetSupplierQuestionnaires(supplier_id, ctx.Client);
+                await Logger.LogInfo($"Questionnaires fetched | count:{questionnaires?.Count ?? 0}", "RegsiterSuppliersFromKubboss");
+
                 if (questionnaires == null || !questionnaires.Any())
+                {
+                    await Logger.LogInfo($"ABORT | Questionnaire not found | supplier_id:{supplier_id}", "RegsiterSuppliersFromKubboss");
                     return ActionResultResponse.Fail("Questionnaire not found");
+                }
 
                 var routes = await GetActiveBuyerRoute(buyerCode);
+                await Logger.LogInfo($"Active buyer routes fetched | buyerCode:{buyerCode} | count:{routes?.Count ?? 0}", "RegsiterSuppliersFromKubboss");
+
                 var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_REGISTER");
+                await Logger.LogInfo($"Route match | ActionType:CREATE_REGISTER | Found:{buyerRoute != null}", "RegsiterSuppliersFromKubboss");
 
                 if (buyerRoute == null)
+                {
+                    await Logger.LogInfo($"ABORT | Buyer route not found | buyerCode:{buyerCode}", "RegsiterSuppliersFromKubboss");
                     return ActionResultResponse.Fail("Buyer route not found");
+                }
 
                 var answerData = questionnaires.FirstOrDefault(x =>
                     string.Equals(
@@ -415,19 +429,34 @@ namespace VendorPortal.Application.Services.SyncExternalData
                         StringComparison.OrdinalIgnoreCase
                     )
                 );
+                await Logger.LogInfo($"Answer match by CompanyName:'{buyerRoute.CompanyName}' | Found:{answerData != null}", "RegsiterSuppliersFromKubboss");
+
+                if (answerData == null)
+                {
+                    await Logger.LogInfo($"WARNING | No matching questionnaire answer for CompanyName:'{buyerRoute.CompanyName}' -> sending empty payload", "RegsiterSuppliersFromKubboss");
+                }
 
                 var payloadObj = answerData ?? new JObject();
-
                 var jObj = JObject.FromObject(payloadObj);
                 jObj["data"]["docNo"] = docNo;
-
                 var payloadJson = JsonConvert.SerializeObject(jObj);
 
-                await SendToBuyer(buyerRoute, payloadJson);
+                await Logger.LogInfo($"Payload built | Buyer:{buyerRoute.BuyerCode} | Payload:{payloadJson}", "RegsiterSuppliersFromKubboss");
+
+                await Logger.LogInfo($"Calling SendToBuyer | Buyer:{buyerRoute.BuyerCode}", "RegsiterSuppliersFromKubboss");
+                var sent = await SendToBuyer(buyerRoute, payloadJson);
+                await Logger.LogInfo($"SendToBuyer returned | Buyer:{buyerRoute.BuyerCode} | Result:{sent}", "RegsiterSuppliersFromKubboss");
+
+                if (!sent)
+                {
+                    await Logger.LogInfo($"WARNING | SendToBuyer returned false but flow reports Success anyway | Buyer:{buyerRoute.BuyerCode}", "RegsiterSuppliersFromKubboss");
+                }
+
                 return ActionResultResponse.Success("Send to buyer success");
             }
             catch (Exception ex)
             {
+                await Logger.LogInfo($"EXCEPTION | supplier_id:{supplier_id} | buyerCode:{buyerCode} | {ex.GetType().Name}: {ex.Message}", "RegsiterSuppliersFromKubboss");
                 Logger.LogError(ex, "RegsiterSuppliersFromKubboss");
                 return ActionResultResponse.Fail("internal error");
             }
@@ -729,28 +758,17 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
-        private async Task<List<JObject>> GetSupplierQuestionnaires(string supplier_id)
+        private async Task<List<JObject>> GetSupplierQuestionnaires(string supplier_id, HttpClient client)
         {
-            var sqlParameter = new SqlParameter[]
-            {
-                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-            };
-
-            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
-
-            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
-
-            var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
             var response = await client.GetAsync($"/api/questionnaire/supplier/{supplier_id}/answers");
-
             if (!response.IsSuccessStatusCode) throw new Exception("Failed to fetch questionnaire list");
 
             var content = await response.Content.ReadAsStringAsync();
-
             var root = JObject.Parse(content);
             var items = root["data"] as JArray;
             if (items == null || !items.Any()) return new List<JObject>();
+
             var result = new List<JObject>();
             foreach (var item in items)
             {
@@ -792,11 +810,22 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 if (route.AuthType?.ToUpper() == "BEARER")
                 {
                     var token = await GetBearerToken(route);
+                    await Logger.LogInfo($"Bearer token obtained | Buyer:{route.BuyerCode} | HasToken:{!string.IsNullOrEmpty(token)}", "SendToBuyer");
+
+                    if (string.IsNullOrEmpty(token))
+                    {
+                        await Logger.LogInfo($"ABORT | Bearer token is null/empty | Buyer:{route.BuyerCode}", "SendToBuyer");
+                        return false;
+                    }
+
                     client.DefaultRequestHeaders.Authorization =
                         new AuthenticationHeaderValue("Bearer", token);
                 }
 
                 var content = new StringContent(payloadJson, Encoding.UTF8, route.ContentType ?? "application/json");
+
+                await Logger.LogInfo($"Sending request now | Buyer:{route.BuyerCode} | {route.HttpMethod.ToUpper()} {route.BaseUrl}{route.Path}", "SendToBuyer");
+
                 HttpResponseMessage response = route.HttpMethod.ToUpper() switch
                 {
                     "POST" => await client.PostAsync(route.Path, content),
@@ -849,49 +878,117 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
         private async Task<string> GetBearerToken(SP_GET_Buyer_Code route)
         {
-
             var cacheKey = $"TOKEN_{route.BuyerCode}";
 
             if (_cache.TryGetValue(cacheKey, out string token))
+            {
+                await Logger.LogInfo($"Cache HIT | Buyer:{route.BuyerCode} | cacheKey:{cacheKey}", "GetBearerToken");
                 return token;
-
-            using var client = new HttpClient
-            {
-                BaseAddress = new Uri(route.BaseUrl + route.AuthUrlPath)
-            };
-
-            object body;
-
-            if (!string.IsNullOrEmpty(route.AuthBodyJson))
-            {
-                body = JObject.Parse(route.AuthBodyJson);
             }
-            else
+
+            await Logger.LogInfo($"Cache MISS | Buyer:{route.BuyerCode} | requesting new token", "GetBearerToken");
+
+            if (string.IsNullOrWhiteSpace(route.BaseUrl) || string.IsNullOrWhiteSpace(route.AuthUrlPath))
             {
-                body = new
+                await Logger.LogInfo($"ABORT | BaseUrl or AuthUrlPath is null/empty", "GetBearerToken");
+                throw new Exception("Auth BaseUrl or AuthUrlPath is not configured");
+            }
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            try
+            {
+                using var client = new HttpClient
                 {
-                    username = route.AuthUsername,
-                    password = route.AuthPassword
+                    BaseAddress = new Uri(route.BaseUrl),
+                    Timeout = TimeSpan.FromSeconds(15)
                 };
+
+                object body;
+                if (!string.IsNullOrEmpty(route.AuthBodyJson))
+                {
+                    body = JObject.Parse(route.AuthBodyJson);
+                }
+                else
+                {
+                    body = new
+                    {
+                        username = route.AuthUsername,
+                        password = route.AuthPassword
+                    };
+                }
+
+                var bodyJson = JsonConvert.SerializeObject(body);
+
+                // สร้าง HttpRequestMessage เองแทน PostAsync ตรงๆ เพื่อ log ได้ครบทุก field ก่อนส่ง
+                var request = new HttpRequestMessage(HttpMethod.Post, route.AuthUrlPath)
+                {
+                    Content = new StringContent(bodyJson, Encoding.UTF8, "application/json")
+                };
+
+                // ประกอบ log ให้เหมือน curl --location ... --header ... --data-raw ...
+                var headerDump = string.Join("\n", client.DefaultRequestHeaders
+                    .Select(h => $"  {h.Key}: {string.Join(",", h.Value)}"));
+
+                var fullUrl = $"{client.BaseAddress}{route.AuthUrlPath}";
+
+                await Logger.LogInfo($@"
+        ========== OUTGOING AUTH REQUEST ==========
+        Method     : POST
+        Full URL   : {fullUrl}
+        BaseAddress: {client.BaseAddress}
+        RequestUri : {request.RequestUri}
+        Headers (client.DefaultRequestHeaders):
+        {(string.IsNullOrEmpty(headerDump) ? "  (none)" : headerDump)}
+        Content-Type: application/json
+        Body       : {bodyJson}
+        ============================================", "GetBearerToken");
+
+                var response = await client.SendAsync(request);
+
+                await Logger.LogInfo($"Auth response received | Buyer:{route.BuyerCode} | Status:{(int)response.StatusCode} {response.StatusCode} | ElapsedAfterSend:{sw.ElapsedMilliseconds}ms", "GetBearerToken");
+
+                var content = await response.Content.ReadAsStringAsync();
+
+                // log response headers ด้วย เผื่อ gateway ตอบ header อะไรที่บอกใบ้ว่า route ผิดตรงไหน
+                var responseHeaderDump = string.Join("\n", response.Headers
+                    .Select(h => $"  {h.Key}: {string.Join(",", h.Value)}"));
+
+                await Logger.LogInfo($@"
+        ========== AUTH RESPONSE ==========
+        Status     : {(int)response.StatusCode} {response.StatusCode}
+        Headers    :
+        {responseHeaderDump}
+        Body       : {content}
+        ====================================", "GetBearerToken");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    await Logger.LogInfo($"FAILED to get token | Buyer:{route.BuyerCode} | Status:{(int)response.StatusCode} | Response:{content}", "GetBearerToken");
+                    throw new Exception("Failed to get token");
+                }
+
+                var json = JObject.Parse(content);
+                var tokenPath = route.TokenJsonPath ?? "$.Result";
+                token = json.SelectToken(tokenPath)?.ToString();
+
+                await Logger.LogInfo($"Token extracted | TokenFound:{!string.IsNullOrEmpty(token)}", "GetBearerToken");
+
+                var expire = TimeSpan.FromMinutes(route.TokenExpireMinutes ?? 30);
+                _cache.Set(cacheKey, token, expire);
+
+                return token;
             }
-
-            var response = await client.PostAsync(
-                route.AuthUrlPath,
-                new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json")
-            );
-
-            if (!response.IsSuccessStatusCode)
-                throw new Exception("Failed to get token");
-
-            var content = await response.Content.ReadAsStringAsync();
-            var json = JObject.Parse(content);
-
-            token = json.SelectToken(route.TokenJsonPath ?? "$.Result")?.ToString();
-
-            var expire = TimeSpan.FromMinutes(route.TokenExpireMinutes ?? 30);
-            _cache.Set(cacheKey, token, expire);
-
-            return token;
+            catch (TaskCanceledException ex)
+            {
+                await Logger.LogInfo($"TIMEOUT | Buyer:{route.BuyerCode} | after {sw.ElapsedMilliseconds}ms | {ex.Message}", "GetBearerToken");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await Logger.LogInfo($"EXCEPTION | Buyer:{route.BuyerCode} | ElapsedBeforeFail:{sw.ElapsedMilliseconds}ms | {ex.GetType().Name}: {ex.Message}", "GetBearerToken");
+                throw;
+            }
         }
 
         private static readonly MemoryCache _cache = new MemoryCache(new MemoryCacheOptions());
@@ -1036,6 +1133,40 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogError(ex, "CreatePOKubboss");
 
                 return new POCreateResponse
+                {
+                    status = new Status
+                    {
+                        code = "500",
+                        message = " response failed"
+                    },
+                    data = null
+                };
+            }
+        }
+        public async Task<POCreateV2Response> CreatePOKubbossV2(HttpClient client, POCreateV2Request request)
+        {
+            try
+            {
+                var json = JsonConvert.SerializeObject(request);
+
+                var content = new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
+
+                var res = await client.PostAsync("/api/document/v2/purchase_order/create", content);
+
+
+                var responseContent = await res.Content.ReadAsStringAsync();
+
+                return JsonConvert.DeserializeObject<POCreateV2Response>(responseContent);
+            }
+            catch (System.Exception ex)
+            {
+
+                Logger.LogError(ex, "CreatePOKubboss");
+
+                return new POCreateV2Response
                 {
                     status = new Status
                     {
@@ -1245,31 +1376,47 @@ namespace VendorPortal.Application.Services.SyncExternalData
         {
             try
             {
-                var sqlParameter = new SqlParameter[] {
-                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                            };
+                Logger.LogInfo($"Start GetRequestDocumentsByID | id={id} | buyerCode={request?.buyerCode}", "GetRequestDocumentsByID");
 
+                var sqlParameter = new SqlParameter[] {
+                        new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    };
+
+                Logger.LogInfo("Before SP_GET_SYSENDPOINT", "GetRequestDocumentsByID");
                 var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                Logger.LogInfo($"After SP_GET_SYSENDPOINT | tokenIsNull={configToken?.sToken == null}", "GetRequestDocumentsByID");
 
                 var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+                Logger.LogInfo($"Kubboss endpoint={endPoint}", "GetRequestDocumentsByID");
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
+                Logger.LogInfo($"Before GET /api/request-documents/{id}", "GetRequestDocumentsByID");
                 var response = await client.GetAsync($"/api/request-documents/{id}");
+                Logger.LogInfo($"After GET /api/request-documents/{id} | Status={(int)response.StatusCode} ({response.StatusCode})", "GetRequestDocumentsByID");
 
                 if (!response.IsSuccessStatusCode)
+                {
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    Logger.LogError(null, $"Kubboss API failed | id={id} | Status={(int)response.StatusCode} | Body={errorBody}");
                     throw new Exception("Failed to call destination API");
+                }
 
                 var content = await response.Content.ReadAsStringAsync();
+                Logger.LogInfo($"Response body length={content?.Length}", "GetRequestDocumentsByID");
 
                 var result = JsonConvert.DeserializeObject<DocumentCreatetResponse>(content);
 
+                Logger.LogInfo("Before SP_GET_RequestDocument (local)", "GetRequestDocumentsByID");
                 var localData = await _wolfApproveRepository.SP_GET_RequestDocument(id);
+                Logger.LogInfo($"After SP_GET_RequestDocument | localDataIsNull={localData == null} | docNo={localData?.docNo} | companyCode={localData?.company_code}", "GetRequestDocumentsByID");
 
+                string companyCode = null;
                 if (result?.data != null && localData != null)
                 {
                     result.data.docNo = localData.docNo;
                     result.data.memoId = localData.memoId;
+                    companyCode = localData.company_code;
 
                     if (result?.data?.signatures != null)
                     {
@@ -1278,28 +1425,45 @@ namespace VendorPortal.Application.Services.SyncExternalData
                             signature.user_id ??= 0;
                         }
                     }
-
                 }
-
-                if (string.IsNullOrEmpty(request.buyerCode))
+                else
                 {
-                    request.buyerCode = "";
+                    Logger.LogInfo($"Skip merge local data | resultDataIsNull={result?.data == null} | localDataIsNull={localData == null}", "GetRequestDocumentsByID");
                 }
-                var routes = await GetActiveBuyerRoute(request.buyerCode);
+
+                var routeKey = !string.IsNullOrEmpty(companyCode) ? companyCode : request.buyerCode;
+                Logger.LogInfo($"Resolved routeKey={routeKey} (source={(!string.IsNullOrEmpty(companyCode) ? "companyCode" : "request.buyerCode")})", "GetRequestDocumentsByID");
+
+                if (string.IsNullOrEmpty(routeKey))
+                {
+                    // ป้องกัน route ไปมั่วๆ ถ้าไม่มีทั้งคู่
+                    throw new InvalidOperationException($"Cannot resolve buyer route: missing both CompanyCode and buyerCode for document id={id}");
+                }
+
+                Logger.LogInfo($"Before GetActiveBuyerRoute | routeKey={routeKey}", "GetRequestDocumentsByID");
+                var routes = await GetActiveBuyerRoute(routeKey);
+                Logger.LogInfo($"After GetActiveBuyerRoute | count={routes?.Count() ?? 0}", "GetRequestDocumentsByID");
+
                 var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_VENDORSIGNATURE");
+                if (buyerRoute == null)
+                {
+                    throw new InvalidOperationException($"No active route found for key='{routeKey}', action='CREATE_VENDORSIGNATURE'");
+                }
+                Logger.LogInfo($"Found buyerRoute | BuyerCode={buyerRoute.BuyerCode} | BaseUrl={buyerRoute.BaseUrl} | Path={buyerRoute.Path}", "GetRequestDocumentsByID");
 
                 var jObj = JObject.FromObject(result);
-   
                 var payloadJson = JsonConvert.SerializeObject(jObj);
 
-                await SendToBuyer(buyerRoute, payloadJson);
+                Logger.LogInfo($"Before SendToBuyer | BuyerCode={buyerRoute.BuyerCode} | id={id}", "GetRequestDocumentsByID");
+                var sendResult = await SendToBuyer(buyerRoute, payloadJson);
+                Logger.LogInfo($"After SendToBuyer | BuyerCode={buyerRoute.BuyerCode} | id={id} | Success={sendResult}", "GetRequestDocumentsByID");
 
+                Logger.LogInfo($"End GetRequestDocumentsByID | id={id} | Success=true", "GetRequestDocumentsByID");
                 return result;
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(ex, "Get RequestDocuments By ID");
-
+                Logger.LogError(ex, $"Get RequestDocuments By ID | id={id} | buyerCode={request?.buyerCode}");
                 return new DocumentCreatetResponse
                 {
                     status = new Status()
@@ -1308,7 +1472,6 @@ namespace VendorPortal.Application.Services.SyncExternalData
                         message = "Failed to RequestDocuments By ID"
                     },
                     data = null
-
                 };
             }
         }
@@ -1407,7 +1570,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     request.memoId,
                     result.data.id, // kubboss_document_id
                     request.supplier_id.ToString(),
-                    request.company_id,
+                    companyID,
                     request.company_code,
                     request.document_name,
                     request.reason,
@@ -1421,7 +1584,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+                Logger.LogError(ex, "Request Document");
 
                 return new DocumentCreatetResponse
                 {
@@ -1643,6 +1806,165 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogError(ex, "Get RequestDocuments By ID");
 
                 return new DeliveryOrdersUpdateResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to RequestDocuments By ID"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<CreditNoteUpdateResponse> CreditNoteUpdateStatus(PutCreditNoteUpdateRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var updateRequestBody = new
+                {
+                    status = request.status,
+                    reason = request.reason,
+                    lang = request.lang,
+                };
+
+                var json = JsonConvert.SerializeObject(updateRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await client.PutAsync($"/api/credit-notes/{request.id}/update-status", content);
+
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<CreditNoteUpdateResponse>(responseContent);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreditNoteUpdateStatus");
+
+                return new CreditNoteUpdateResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to RequestDocuments By ID"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<DebitNoteUpdateResponse> DebitNoteUpdateStatus(PutDebitNoteUpdateRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var updateRequestBody = new
+                {
+                    status = request.status,
+                    reason = request.reason,
+                    lang = request.lang,
+                };
+
+                var json = JsonConvert.SerializeObject(updateRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await client.PutAsync($"/api/debit-notes/{request.id}/update-status", content);
+
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<DebitNoteUpdateResponse>(responseContent);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "DebitNoteUpdateResponse");
+
+                return new DebitNoteUpdateResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to RequestDocuments By ID"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        public async Task<InvoicesUpdateResponse> InvoicesUpdateStatus(PutInvoicesUpdateRequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var updateRequestBody = new
+                {
+                    status = request.status,
+                    reason = request.reason,
+                    lang = request.lang,
+                };
+
+                var json = JsonConvert.SerializeObject(updateRequestBody);
+
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await client.PutAsync($"/api/invoices/{request.id}/update-status", content);
+
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+
+                var result = JsonConvert.DeserializeObject<InvoicesUpdateResponse>(responseContent);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get RequestDocuments By ID");
+
+                return new InvoicesUpdateResponse
                 {
                     status = new Status()
                     {
@@ -1895,5 +2217,128 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 };
             }
         }
+
+        public async Task<POByIDResponse> GetPOByID(string id, CreatePORequest request)
+        {
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var responseDelivery = await client.GetAsync($"/api/purchase-orders/{id}");
+
+                if (!responseDelivery.IsSuccessStatusCode)
+                    throw new Exception("Failed to call destination API");
+
+                var content = await responseDelivery.Content.ReadAsStringAsync();
+
+                var resultInvoices = JsonConvert.DeserializeObject<POByIDResponse>(content);
+
+                var routes = await GetActiveBuyerRoute(request.buyerCode);
+                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_PO");
+
+                if (buyerRoute == null)
+                    throw new Exception("Failed to call destination API");
+
+                var jObj = JObject.Parse(content);
+
+                var payloadObj = jObj["data"] ?? new JObject();
+
+                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+
+                await SendToBuyer(buyerRoute, payloadJson);
+
+                return resultInvoices;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Get invoices  By ID");
+
+                return new POByIDResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to invoices"
+                    },
+                    data = null
+                };
+            }
+        }
+
+        #region ResolveClientSystemAsync
+        public class SystemEndpointContext
+        {
+            public string SystemCode { get; set; }
+            public string BaseUrl { get; set; }
+            public string Token { get; set; }
+            public HttpClient Client { get; set; }
+        }
+
+        private async Task<SystemEndpointContext> ResolveClientSystemAsync(string buyerCode = null)
+        {
+            string logName = "RegisterSupplierKubboss";
+            var clientSystem = _httpContextAccessor.HttpContext?.Request.Headers["X-Client-System"].ToString();
+            Logger.LogInfo($"[ENTRY] X-Client-System header = '{clientSystem}', buyerCode = '{buyerCode}'", logName);
+
+            List<SP_GET_Systems> matched = null;
+
+            if (!string.IsNullOrWhiteSpace(clientSystem))
+            {
+                matched = await _wolfApproveRepository.SP_GET_Systems(clientSystem);
+            }
+
+            if ((matched == null || !matched.Any()) && !string.IsNullOrWhiteSpace(buyerCode))
+            {
+                matched = await _wolfApproveRepository.SP_GET_Systems(buyerCode);
+
+                if (matched != null && matched.Any())
+                {
+                    Logger.LogInfo($"Resolved system from buyerCode '{buyerCode}'",logName);
+                }
+            }
+
+            var system = matched?.FirstOrDefault();
+
+            if (system != null)
+            {
+                Logger.LogInfo($"Using system from DB -> SystemCode: {system.SystemCode}, BaseUrl: {system.BaseUrl}",logName);
+
+                return new SystemEndpointContext
+                {
+                    SystemCode = system.SystemCode,
+                    BaseUrl = system.BaseUrl,
+                    Token = system.Token,
+                    Client = HttpClientHelper.CreateClient(system.BaseUrl, system.Token)
+                };
+            }
+
+            // ทั้ง header และ buyerCode ไม่ match เลย -> fallback เดิม
+            var sqlParameter = new SqlParameter[]
+            {
+        new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+            };
+            var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>(
+                "SP_GET_SYSENDPOINT", sqlParameter);
+            var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+            Logger.LogInfo($"No system matched (header='{clientSystem}', buyerCode='{buyerCode}') -> fallback to config EndPoint:Kubboss = {endPoint}",logName);
+
+            return new SystemEndpointContext
+            {
+                SystemCode = "KUBBOSS",
+                BaseUrl = endPoint,
+                Token = configToken?.sToken,
+                Client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken)
+            };
+        }
+        #endregion
     }
 }

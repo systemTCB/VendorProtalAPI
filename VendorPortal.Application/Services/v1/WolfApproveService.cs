@@ -956,6 +956,166 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<POCreateV2Response> CreatePOV2(POCreateV2Request request, string domain)
+        {
+            POCreateV2Response response = new POCreateV2Response();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                POCreateV2Response resCreatePO = await _kubBossService.CreatePOKubbossV2(client, request);
+
+                if (resCreatePO?.data == null)
+                    return resCreatePO;
+
+                if (resCreatePO.data.id == null)
+                    return resCreatePO;
+
+                #region ส่งไป upload 
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    foreach (var file in request.attachments)
+                    {
+                        try
+                        {
+                            if (string.IsNullOrWhiteSpace(file.file_base64))
+                            {                             
+                                continue;
+                            }
+
+                            string contentType = "application/octet-stream";
+                            string base64 = file.file_base64.Trim();
+
+                            if (base64.StartsWith("data:"))
+                            {
+                                var parts = base64.Split(',');
+                                if (parts.Length >= 2)
+                                {
+                                    var header = parts[0];
+                                    contentType = header.Replace("data:", "").Replace(";base64", "");
+                                    base64 = parts[1]; // ใช้ parts[1] เพียงพอแม้มี comma เกิน (payload ไม่มี comma อยู่แล้ว)
+                                }
+                                else
+                                {
+                                    continue;
+                                }
+                            }
+
+                            byte[] bytes;
+                            try
+                            {
+                                bytes = Convert.FromBase64String(base64);
+                            }
+                            catch (FormatException ex)
+                            {
+                              
+                                continue;
+                            }
+
+                            await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError(ex, "CreatePOV2", $"request: {JsonConvert.SerializeObject(request)}");
+                        }
+                    }
+                }
+                #endregion
+
+                #region เก็บไฟล์ของ base64
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    string rootPath = _config["FileUpload:RootPath"];
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    foreach (var item in request.attachments)
+                    {
+
+                        if (!string.IsNullOrEmpty(item.file_base64))
+                        {
+                            try
+                            {
+                                var poFolder = Path.Combine(rootPath, "po", resCreatePO.data.purchase_order_number);
+
+                                if (!Directory.Exists(poFolder))
+                                    Directory.CreateDirectory(poFolder);
+
+                                var base64 = item.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var extension = Path.GetExtension(originalFileName);
+
+                                if (string.IsNullOrWhiteSpace(extension))
+                                {
+                                    var fileType = item.file_type ?? "";
+
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    originalFileName += fileType;
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(poFolder, finalFileName);
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/po/{resCreatePO.data.purchase_order_number}/{finalFileName}";
+
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = resCreatePO.data.id.ToString(),
+                                    sFileName = finalFileName,
+                                    sFilePath = fileUrl,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = "system",
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "CreatePO File", $"request: {JsonConvert.SerializeObject(request)}");
+                                continue;
+                            }
+                        }
+                    }
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
+                }
+                #endregion
+
+
+
+                return resCreatePO;
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
         public async Task<POCancelResponse> CancelPO(POCancelRequest request)
         {
             POCancelResponse response = new POCancelResponse();
@@ -984,7 +1144,7 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request)
+        public async Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request, string domain)
         {
             QuotationAwardResponse response = new QuotationAwardResponse();
             DateTime createdDate = DateTime.Now;
@@ -1001,7 +1161,118 @@ namespace VendorPortal.Application.Services.v1
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                var resCreatePO = await _kubBossService.CreatePOAwardKubboss(client, request);
+                QuotationAwardResponse resCreatePO = await _kubBossService.CreatePOAwardKubboss(client, request);
+
+                if (resCreatePO?.data == null)
+                    return resCreatePO;
+
+                if (resCreatePO.data.purchase_order.id == null)
+                    return resCreatePO;
+
+                #region ส่งไป upload 
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    foreach (var file in request.attachments)
+                    {
+                        string contentType = "application/octet-stream";
+                        string base64 = file.file_base64;
+
+                        if (!string.IsNullOrWhiteSpace(base64) && base64.StartsWith("data:"))
+                        {
+                            var parts = base64.Split(',');
+
+                            if (parts.Length == 2)
+                            {
+                                // data:application/pdf;base64
+                                var header = parts[0];
+
+                                contentType = header
+                                    .Replace("data:", "")
+                                    .Replace(";base64", "");
+
+                                base64 = parts[1];
+                            }
+                        }
+                        var bytes = Convert.FromBase64String(base64);
+
+                        await UploadMedia(resCreatePO.data.purchase_order.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+                    }
+                }
+                #endregion
+
+                #region เก็บไฟล์ของ base64
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    string rootPath = _config["FileUpload:RootPath"];
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    foreach (var item in request.attachments)
+                    {
+
+                        if (!string.IsNullOrEmpty(item.file_base64))
+                        {
+                            try
+                            {
+                                var poFolder = Path.Combine(rootPath, "po", resCreatePO.data.purchase_order.purchase_order_number);
+
+                                if (!Directory.Exists(poFolder))
+                                    Directory.CreateDirectory(poFolder);
+
+                                var base64 = item.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var extension = Path.GetExtension(originalFileName);
+
+                                if (string.IsNullOrWhiteSpace(extension))
+                                {
+                                    var fileType = item.file_type ?? "";
+
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    originalFileName += fileType;
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(poFolder, finalFileName);
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/po/{resCreatePO.data.purchase_order.purchase_order_number}/{finalFileName}";
+
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = resCreatePO.data.purchase_order.id.ToString(),
+                                    sFileName = finalFileName,
+                                    sFilePath = fileUrl,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = "system",
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "CreatePO File", $"request: {JsonConvert.SerializeObject(request)}");
+                                continue;
+                            }
+                        }
+                    }
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
+                }
+                #endregion
+
 
                 return resCreatePO;
             }
@@ -1575,7 +1846,7 @@ namespace VendorPortal.Application.Services.v1
                         request.created_by,
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
-                        requestForType: "RFQ",
+                        requestForType: string.IsNullOrEmpty(request.requestForType) ? "RFQ" : request.requestForType,
                         revision: request.revision
                     );
                 // Check if the RFQ was created successfully
@@ -1879,6 +2150,8 @@ namespace VendorPortal.Application.Services.v1
                     if (request.status.ToLower() == "create")
                     {
                         var result = await _wolfApproveRepository.SP_PUT_QUOTATION_CREATE(rfq_id, request.quo_number, request.quo_id, request.supplier_id, request.status, request.reason);
+                        await Logger.LogInfo($"SP_PUT_QUOTATION_CREATE result: {result?.result}, message: {result?.message}", "PutQuotation");
+
                         if (result.result)
                         {
                             response = new BaseResponse()
@@ -1891,27 +2164,41 @@ namespace VendorPortal.Application.Services.v1
                             };
 
                             var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                            await Logger.LogInfo($"SP_GET_Buyer_Code routes count: {routes?.Count ?? 0} | buyerCode: {request.buyerCode}", "PutQuotation");
+
                             var route = routes.FirstOrDefault(x => x.ActionType == "CREATE_QUOTATION");
                             Logger.LogInfo("PutQuotation", $"RouteFound:{(route != null)} | Buyer:{request.buyerCode}");
-
+                            await Logger.LogInfo($"Matched route: {(route != null ? JsonConvert.SerializeObject(route) : "NULL - no route with ActionType=CREATE_QUOTATION")}", "PutQuotation");
 
                             var sqlParameter = new SqlParameter[] {
-                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                            };
-
+            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+        };
                             var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+                            await Logger.LogInfo($"configToken.sToken exists: {!string.IsNullOrEmpty(configToken?.sToken)}", "PutQuotation");
 
                             var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+                            await Logger.LogInfo($"EndPoint:Kubboss = '{endPoint}'", "PutQuotation");
+
+                            if (string.IsNullOrWhiteSpace(endPoint))
+                            {
+                                await Logger.LogInfo("EndPoint is null/empty - CreateClient will throw here", "PutQuotation");
+                            }
 
                             var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+                            await Logger.LogInfo("HttpClient created successfully", "PutQuotation");
 
                             var resQuotation = await _kubBossService.GetQuotationDetail(client, request.quo_id);
+                            await Logger.LogInfo($"GetQuotationDetail result: {(resQuotation != null ? JsonConvert.SerializeObject(resQuotation) : "NULL")}", "PutQuotation");
 
                             var resSuppliers = await _kubBossService.GetSuppliersDetail(client, request.supplier_id);
+                            await Logger.LogInfo($"GetSuppliersDetail result: {(resSuppliers != null ? JsonConvert.SerializeObject(resSuppliers) : "NULL")}", "PutQuotation");
+
                             var name = resSuppliers["data"]?["name"]?.ToString();
                             var supplier_email = resSuppliers["data"]?["supplier_email"]?.ToString();
+                            await Logger.LogInfo($"supplier name: '{name}', email: '{supplier_email}'", "PutQuotation");
 
                             var data = resQuotation["data"];
+                            await Logger.LogInfo($"resQuotation.data is null: {data == null}", "PutQuotation");
 
                             if (data != null)
                             {
@@ -1920,16 +2207,14 @@ namespace VendorPortal.Application.Services.v1
                                     ["email"] = supplier_email,
                                     ["name"] = name,
                                     ["surname"] = "",
-
                                 };
-
                                 var currency = string.IsNullOrWhiteSpace(data["currency"]?.ToString()) ? "THB" : data["currency"].ToString();
-
                                 var revision = verify.FirstOrDefault()?.Revision;
+                                await Logger.LogInfo($"currency: '{currency}', revision: '{revision}'", "PutQuotation");
+
                                 data["revision"] = revision;
-
-
                                 var lines = data["lines"] as JArray;
+                                await Logger.LogInfo($"lines count: {lines?.Count ?? 0}", "PutQuotation");
 
                                 if (lines != null)
                                 {
@@ -1944,22 +2229,28 @@ namespace VendorPortal.Application.Services.v1
                             {
                                 ["data"] = data
                             };
-
                             Logger.LogInfo("PutQuotation", "CreateRFQ", $"result: {JsonConvert.SerializeObject(payload)}");
 
-
                             if (data == null)
+                            {
+                                await Logger.LogInfo("THROWING: Quotation data not found - stopping before SendToBuyer", "PutQuotation");
                                 throw new Exception("Quotation data not found");
+                            }
 
                             if (route != null)
                             {
+                                await Logger.LogInfo("Calling SendToBuyer now...", "PutQuotation");
                                 await _buyerApiService.SendToBuyer(route, JsonConvert.SerializeObject(payload));
-
+                                await Logger.LogInfo("SendToBuyer completed", "PutQuotation");
                             }
-
+                            else
+                            {
+                                await Logger.LogInfo("SKIPPED SendToBuyer - route is NULL (no matching ActionType=CREATE_QUOTATION for this buyerCode)", "PutQuotation");
+                            }
                         }
                         else
                         {
+                            await Logger.LogInfo($"SP_PUT_QUOTATION_CREATE returned false: {result.message}", "PutQuotation");
                             response = new BaseResponse()
                             {
                                 status = new Status()

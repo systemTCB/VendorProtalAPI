@@ -44,8 +44,9 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<PurchaseOrderConfirmResponse> ConfirmPurchaseOrderStatus(string purchase_order_id, PurchaseOrderConfirmRequest request);
 
         Task<POCreateResponse> CreatePO(POCreateRequest request, string domain);
+        Task<POCreateV2Response> CreatePOV2(POCreateV2Request request, string domain);
         Task<POCancelResponse> CancelPO(POCancelRequest request);
-        Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request);
+        Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request, string domain);
 
 
         // Claim 
