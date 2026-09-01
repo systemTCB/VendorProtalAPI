@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Swashbuckle.AspNetCore.Annotations;
 using VendorPortal.Application.Interfaces.SyncExternalData;
@@ -21,10 +23,12 @@ namespace VendorPortal.API.Controllers.v1
     {
         private readonly IWolfApproveService _wolfApproveService;
         private readonly IKubbossService _kubBossService;
-        public WolfApproveController(IWolfApproveService wolfApproveService, IKubbossService kubBossService)
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        public WolfApproveController(IWolfApproveService wolfApproveService, IKubbossService kubBossService, IServiceScopeFactory serviceScopeFactory)
         {
             _wolfApproveService = wolfApproveService;
             _kubBossService = kubBossService;
+            _serviceScopeFactory = serviceScopeFactory;
         }
 
         #region [RFQ]
@@ -747,11 +751,54 @@ namespace VendorPortal.API.Controllers.v1
 
             try
             {
-                var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode, request.docNo);
 
-                return result.success
-                    ? Ok(result)
-                    : BadRequest(result);
+                var supplierId = request.supplier_id;
+                var buyerCode = request.buyerCode;
+                var docNo = request.docNo;
+                bool is_unblock = request.is_unblock;
+
+                //var result = await _kubBossService.RegsiterSuppliersFromKubboss(request.supplier_id, request.buyerCode, request.docNo, request.is_unblock);
+
+                //return result.success
+                //    ? Ok(result)
+                //    : BadRequest(result);
+
+                responseSuppliers = new RegisterResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.Success.Text(),
+                        message = "รับคำขอเรียบร้อย กำลังดำเนินการลงทะเบียนผู้ขาย"
+                    },
+                    data = null
+                };
+
+                _ = Task.Run(async () =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var kubBossService = scope.ServiceProvider.GetRequiredService<IKubbossService>();
+
+                    try
+                    {
+                        int delaySeconds = Random.Shared.Next(0, 5);
+
+                        await Logger.LogInfo($"BACKGROUND START | supplier_id:{supplierId} | buyerCode:{buyerCode} | docNo:{docNo} | delaySeconds:{delaySeconds}", "VendorRegister");
+
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | supplier_id:{supplierId} | buyerCode:{buyerCode} | docNo:{docNo}", "VendorRegister");
+
+                        var result = await kubBossService.RegsiterSuppliersFromKubboss(supplierId, buyerCode, docNo, is_unblock);
+
+                        await Logger.LogInfo($"BACKGROUND RESULT | supplier_id:{supplierId} | success:{result.success}", "VendorRegister");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "VendorRegister BACKGROUND ERROR", $"supplier_id: {supplierId}");
+                    }
+                });
+
+          
 
             }
             catch (Exception ex)
@@ -883,8 +930,10 @@ namespace VendorPortal.API.Controllers.v1
         public async Task<IActionResult> VendorRegisterQuestionnaireUpdate([FromBody] QuestionnaireUpdateRequest request)
         {
 
+            await Logger.LogInfo($"Answer Update | supplier_answer_id:{request.supplier_answer_id} | status:{request.status}", "VendorRegister");
+
             if (string.IsNullOrWhiteSpace(request.supplier_answer_id))
-                return BadRequest("email is required");
+                return BadRequest("supplier answer id is required");
 
             SupplierRegisterResponse responseSuppliers = new();
 
@@ -1081,9 +1130,8 @@ namespace VendorPortal.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
         public async Task<IActionResult> RequestDocuments([FromForm] RequestDocumentRequest request)
         {
+            await Logger.LogInfo($"CreateJobDocument: Incoming request | WolfVendorCode:{request?.WolfVendorCode}", "CreateJobDocument", JsonConvert.SerializeObject(request));
 
-            if (request.supplier_id == null)
-                return BadRequest("supplier_id is required");
             try
             {
                 var result = await _kubBossService.RequestDocuments(request);
@@ -1321,6 +1369,46 @@ namespace VendorPortal.API.Controllers.v1
     )]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
         public async Task<IActionResult> PutDeliveryOrdersUpdateStatus([FromBody] PutDeliveryOrdersUpdateRequest request)
+        {
+
+            DeliveryOrdersUpdateResponse responseDeliveryOrdersUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.DeliveryOrdersUpdateStatus(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "RequestDocuments ERROR");
+
+                responseDeliveryOrdersUpdate = new DeliveryOrdersUpdateResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDeliveryOrdersUpdate);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/delivery-orders/sap-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+            Tags = new[] { "Delivery Orders V1" }, 
+            Summary = "Get delivery orders by id", 
+            Description = "Updates whether a delivery order has been sent to SAP. When set to Y, the supplier's cancel delivery order action is disabled/hidden; " +
+            "when set to N, it becomes available again (e.g. for correction).")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        public async Task<IActionResult> PatchDeliveryOrderSAPStatus([FromBody] PutDeliveryOrdersUpdateRequest request)
         {
 
             DeliveryOrdersUpdateResponse responseDeliveryOrdersUpdate = new();

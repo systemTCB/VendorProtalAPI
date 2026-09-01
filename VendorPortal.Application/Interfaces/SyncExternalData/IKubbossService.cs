@@ -14,7 +14,7 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
     {
         Task<BaseResponse> SyncVendorFromKubboss(DateTime dateTime);
         Task<QuotationResponse> SyncQuotationFromKubboss(string supplierId, string rfqId);
-        Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo);
+        Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo, bool is_unblock);
         Task<SupplierRegisterResponse> RegsiterSuppliersToKubboss(SupplierRegisterRequest request);
         Task<SupplierRegisterResponse> RegsiterSuppliersToKubbossTrial(SupplierRegisterRequestTrial request);
         Task<JObject> VendorRegisterQuestionnaireUpdate(QuestionnaireUpdateRequest request);

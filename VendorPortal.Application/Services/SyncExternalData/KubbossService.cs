@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Core;
 using HandlebarsDotNet;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.WebUtilities;
@@ -392,9 +393,15 @@ namespace VendorPortal.Application.Services.SyncExternalData
             return response;
         }
 
-        public async Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo)
+        public async Task<ActionResultResponse> RegsiterSuppliersFromKubboss(string supplier_id, string buyerCode, string docNo, bool is_unblock)
         {
-            await Logger.LogInfo($"START | supplier_id:{supplier_id} | buyerCode:{buyerCode} | docNo:{docNo}", "RegsiterSuppliersFromKubboss");
+            int delaySeconds = Random.Shared.Next(5, 10);
+
+            await Logger.LogInfo($"START | supplier_id:{supplier_id} | buyerCode:{buyerCode} | docNo:{docNo} | delaySeconds:{delaySeconds}", "VendorRegister");
+
+            await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+            await Logger.LogInfo($"CALL KUBBOSS | supplier_id:{supplier_id} | buyerCode:{buyerCode} | docNo:{docNo}", "VendorRegister");
 
             try
             {
@@ -439,6 +446,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 var payloadObj = answerData ?? new JObject();
                 var jObj = JObject.FromObject(payloadObj);
                 jObj["data"]["docNo"] = docNo;
+                jObj["data"]["is_unblock"] = is_unblock;
                 var payloadJson = JsonConvert.SerializeObject(jObj);
 
                 await Logger.LogInfo($"Payload built | Buyer:{buyerRoute.BuyerCode} | Payload:{payloadJson}", "RegsiterSuppliersFromKubboss");
@@ -1412,11 +1420,14 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 Logger.LogInfo($"After SP_GET_RequestDocument | localDataIsNull={localData == null} | docNo={localData?.docNo} | companyCode={localData?.company_code}", "GetRequestDocumentsByID");
 
                 string companyCode = null;
+
                 if (result?.data != null && localData != null)
                 {
                     result.data.docNo = localData.docNo;
                     result.data.memoId = localData.memoId;
+                    result.data.WolfVendorCode = localData.WolfVendorCode;
                     companyCode = localData.company_code;
+
 
                     if (result?.data?.signatures != null)
                     {
@@ -1481,14 +1492,13 @@ namespace VendorPortal.Application.Services.SyncExternalData
             DateTime createdDate = DateTime.Now;
             try
             {
+                await Logger.LogInfo($"CreateDocument: Start | Email:{request.email} | DocNo:{request.docNo}", "CreateDocument", JsonConvert.SerializeObject(request));
+
                 var sqlParameter = new SqlParameter[] {
-                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                            };
-
+                        new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                    };
                 var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
-
                 var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
-
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
                 var supplierId = request.supplier_id;
@@ -1498,40 +1508,38 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     {
                         email = request.email
                     };
-
                     var checkJson = JsonConvert.SerializeObject(checkSupplierBody);
-
                     var checkContent = new StringContent(checkJson, Encoding.UTF8, "application/json");
 
-                    var checkRes = await client.PostAsync("/api/check-supplier", checkContent);
+                    await Logger.LogInfo($"CreateDocument: Sending request now | POST {endPoint}/api/check-supplier", "CreateDocument", checkJson);
 
+                    var checkRes = await client.PostAsync("/api/check-supplier", checkContent);
                     if (!checkRes.IsSuccessStatusCode)
                         throw new Exception("Failed to check supplier.");
 
                     var checkResult = await checkRes.Content.ReadAsStringAsync();
 
+                    await Logger.LogInfo($"CreateDocument: Response received | /api/check-supplier", "CreateDocument", checkResult);
+
                     var checkObj = JObject.Parse(checkResult);
-
                     supplierId = checkObj["data"]?["id"]?.Value<int>() ?? 0;
-
                     if (supplierId == 0)
                         throw new Exception($"Supplier not found. Email: {request.email}");
                 }
 
                 var companyCode = request.company_code;
                 var companyID = request.company_id;
-
                 if (!string.IsNullOrEmpty(companyCode))
                 {
-
                     var resultCOMPANY = await _masterDataRepository.SP_GET_MASTER_COMPANY(true);
                     if (resultCOMPANY != null)
                     {
                         var nCompanyCode = companyCode;
                         var data = resultCOMPANY.Where(e => e.nCompanyCode == nCompanyCode).FirstOrDefault();
-
                         companyID = data.nCompanyID.ToString();
                     }
+
+                    await Logger.LogInfo($"CreateDocument: Resolved companyID:{companyID} | companyCode:{companyCode}", "CreateDocument");
                 }
 
                 var createRequestBody = new RequestDocumentRequest
@@ -1545,46 +1553,66 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     is_require_signature = request.is_require_signature,
                     lang = request.lang
                 };
-
                 var json = JsonConvert.SerializeObject(createRequestBody);
-
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var res = await client.PostAsync($"/api/request-documents", content);
+                await Logger.LogInfo($"CreateDocument: Sending request now | POST {endPoint}/api/request-documents", "CreateDocument", json);
 
+                var res = await client.PostAsync($"/api/request-documents", content);
                 if (!res.IsSuccessStatusCode)
                     throw new Exception("Failed to call destination API");
 
                 var responseContent = await res.Content.ReadAsStringAsync();
 
+                await Logger.LogInfo($"CreateDocument: Response received | /api/request-documents", "CreateDocument", responseContent);
+
                 var result = JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
-
-
-                if (result?.status?.code != "200" || result.data == null)
+                if (result?.status?.code != "200" || result.data == null)   
                 {
                     throw new Exception(result?.status?.message ?? "Create document failed");
                 }
 
-                await _wolfApproveRepository.SP_INSERT_RequestDocument(
-                    request.docNo,
-                    request.memoId,
-                    result.data.id, // kubboss_document_id
-                    request.supplier_id.ToString(),
-                    companyID,
-                    request.company_code,
-                    request.document_name,
-                    request.reason,
-                    request.email,
-                    request.is_require_signature,
-                    request.lang
-                );
+                try
+                {
+                    await _wolfApproveRepository.SP_INSERT_RequestDocument(
+                        request.docNo,
+                        request.memoId,
+                        result.data.id,
+                        supplierId.ToString(),
+                        companyID,
+                        request.company_code,
+                        request.document_name,
+                        request.reason,
+                        request.email,
+                        request.is_require_signature,
+                        request.lang,
+                        request.WolfVendorCode
+                    );
 
-                return JsonConvert.DeserializeObject<DocumentCreatetResponse>(responseContent);
+                    await Logger.LogInfo(
+                        $"CreateDocument: Insert success | kubboss_document_id:{result.data.id} | DocNo:{request.docNo}",
+                        "CreateDocument"
+                    );
+                }
+                catch (Exception insertEx)
+                {
+                    await Logger.LogInfo(
+                        $"CreateDocument: INSERT FAILED | DocNo:{request.docNo} | supplierId:{supplierId} | companyID:{companyID} | Error:{insertEx.Message}",
+                        "CreateDocument",
+                        insertEx.ToString()
+                    );
+                    throw; // โยนต่อให้ catch ข้างนอกจัดการ response ตามเดิม
+                }
 
+                await Logger.LogInfo($"CreateDocument: Success | kubboss_document_id:{result.data.id} | DocNo:{request.docNo}", "CreateDocument");
+
+                return result;
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "Request Document");
+
+                await Logger.LogInfo($"CreateDocument: ERROR | {ex.Message}", "CreateDocument", ex.ToString());
 
                 return new DocumentCreatetResponse
                 {
@@ -1595,7 +1623,6 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     },
                     data = null
                 };
-
             }
         }
         private async Task<DocumentUpdateResponse> UpdateDocument(DocumentUpdateRequest request)

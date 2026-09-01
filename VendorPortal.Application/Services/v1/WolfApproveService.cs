@@ -989,7 +989,7 @@ namespace VendorPortal.Application.Services.v1
                         try
                         {
                             if (string.IsNullOrWhiteSpace(file.file_base64))
-                            {                             
+                            {
                                 continue;
                             }
 
@@ -1018,7 +1018,7 @@ namespace VendorPortal.Application.Services.v1
                             }
                             catch (FormatException ex)
                             {
-                              
+
                                 continue;
                             }
 
@@ -1605,6 +1605,30 @@ namespace VendorPortal.Application.Services.v1
                 #region Update RFQ
                 if (!string.IsNullOrEmpty(request.rfq_id))
                 {
+                    List<SP_GET_RFQ_DETAIL> currentRfqList = new List<SP_GET_RFQ_DETAIL>();
+                    currentRfqList = await _wolfApproveRepository.SP_GET_RFQ_DETAIL(request.rfq_id);
+                    var currentRfq = currentRfqList?.FirstOrDefault();
+                    if (currentRfq == null)
+
+                    {
+                        response = new RFQCreateResponse()
+                        {
+                            status = new Status()
+                            {
+                                code = ResponseCode.NotFound.Text(),
+                                message = ResponseCode.NotFound.Description()
+                            },
+                            data = null
+                        };
+                        return response;
+                    }
+
+                    #region Check File เก่า
+                    var oldDocuments = await _wolfApproveRepository.SP_GET_RFQ_DOCUMENT(request.rfq_id);
+                    var oldFileNameSet = oldDocuments?.Select(x => x.sFileName).ToHashSet() ?? new HashSet<string>();
+
+                    #endregion
+
                     string rootPath = _config["FileUpload:RootPath"];
                     List<RFQUpdateDocument> document = new List<RFQUpdateDocument>();
                     if (request.attachments != null && request.attachments.Any())
@@ -1679,6 +1703,10 @@ namespace VendorPortal.Application.Services.v1
                         }
                     }
 
+                    var newFileNameSet = document.Select(x => x.file_name).ToHashSet();
+                    bool isNewFileAdded = newFileNameSet.Except(oldFileNameSet).Any();
+                    bool isEndDateChanged = currentRfq.dEndDate != request.end_date;
+
                     string update_sup_id = string.Empty;
                     if (request.supplier_id.Count != 0)
                         update_sup_id = string.Join(",", request.supplier_id);
@@ -1694,29 +1722,11 @@ namespace VendorPortal.Application.Services.v1
                         .Where(x => !oldSupplierList.Contains(x))
                         .ToList();
 
-                    //ส่งเมลแจ้งเตือน New RFQ
+                    var allSupplierList = oldSupplierList
+                        .Union(request.supplier_id)
+                        .ToList();
 
-                    #region send mail new RFQ
-                    if (newSupplier.Any())
-                    {
-                        var sqlParameter = new SqlParameter[] {
-                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                            };
-
-                        var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
-
-                        var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
-
-                        var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
-
-                        await SendEmailNotify(
-                            client,
-                            newSupplier,
-                            request.rfq_id.ToString(),
-                            "TH");
-                    }
-
-                    #endregion
+                    var mailRecipientList = (isEndDateChanged || isNewFileAdded) ? allSupplierList : newSupplier;
 
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
@@ -1745,7 +1755,33 @@ namespace VendorPortal.Application.Services.v1
                         };
                     }
 
+                    //ส่งเมลแจ้งเตือน New RFQ
 
+                    #region send mail new RFQ
+                    if (mailRecipientList.Any())
+                    {
+                        var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                        var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                        var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                        var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                        var delayMs = Random.Shared.Next(10000, 50001);
+                        await Task.Delay(delayMs);
+
+                        await SendEmailNotify(
+                            client,
+                            mailRecipientList,
+                            request.rfq_id.ToString(),
+                            "TH",
+                            request.requester.requesterEmail);
+                    }
+
+                    #endregion
 
                     return response;
 
@@ -2011,7 +2047,7 @@ namespace VendorPortal.Application.Services.v1
                     var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
                     var defaultLang = "TH";
-                    await SendEmailNotify(client, request.supplier_id, result.RFQID?.ToString(), defaultLang);
+                    await SendEmailNotify(client, request.supplier_id, result.RFQID?.ToString(), defaultLang, request.requester.requesterEmail);
 
                     #endregion
                 }
@@ -2789,7 +2825,7 @@ namespace VendorPortal.Application.Services.v1
         #endregion
 
         #region Send Maill New Docunent
-        public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language)
+        public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language, string cc_requester)
         {
             var delayMs = Random.Shared.Next(10000, 50001);
             await Task.Delay(delayMs);
@@ -2812,7 +2848,8 @@ namespace VendorPortal.Application.Services.v1
                     {
                         ["email"] = email,
                         ["rfq_id"] = rfqId,
-                        ["lang"] = language ?? "TH",
+                        ["lang"] = language ?? "TH"
+                        //["cc_requester"] = cc_requester
                     };
 
                     var success = false;
@@ -2972,6 +3009,59 @@ namespace VendorPortal.Application.Services.v1
 
             }
         }
+
+        #region Job Documents
+        public async Task<JobDocumentResponse> GetJobDocuments(JobDocumentRequest request)
+        {
+            JobDocumentResponse response = new();
+            try
+            {
+                var jobInfo = await _wolfApproveRepository.SP_GET_JOB_DOCUMENTS(request.jobDocumentID);
+
+                var _dataInfo = jobInfo == null ? null : new JobDocumentData
+                {
+                    id = jobInfo.id,
+                    jobDocumentID = jobInfo.jobDocumentID,
+                    jobDocumentVendorCode = jobInfo.jobDocumentVendorCode,
+                    jobDocumentVendorName = jobInfo.jobDocumentVendorName,
+                    jobDocumentEmail = jobInfo.jobDocumentEmail,
+                    jobDocumentName = jobInfo.jobDocumentName,
+                    jobDocumentType = jobInfo.jobDocumentType,
+                    jobTypeList = jobInfo.jobTypeList,
+                    jobDocumentDescription = jobInfo.jobDocumentDescription,
+                    jobDocumentProduct = jobInfo.jobDocumentProduct,
+                    jobDocumentStartDate = jobInfo.jobDocumentStartDate,
+                    jobDocumentEndDate = jobInfo.jobDocumentEndDate,
+                    jobDocumentAmount = jobInfo.jobDocumentAmount,
+                    jobDocumentCreateDate = jobInfo.jobDocumentCreateDate
+                };
+
+                response = new JobDocumentResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.Success.Text(),
+                        message = ResponseCode.Success.Description()
+                    },
+                    data = _dataInfo
+                };
+            }
+            catch (Exception ex)
+            {
+                response = new JobDocumentResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+                Logger.LogError(ex, "Get Job Documents Error");
+            }
+            return response;
+        }
+        #endregion
     }
 
 }

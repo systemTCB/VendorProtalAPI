@@ -511,7 +511,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
         {
             try
             {
-                using (var connection = _context.CreateConnectionRead())
+                using (var connection = _context.CreateConnectionWrite())
                 {
                     connection.Open();
                     var sql = "SP_UPDATE_RFQ";
@@ -647,51 +647,66 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-            public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id,string company_code, string document_name, string reason, string email, bool is_require_signature, string lang)
+        public async Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string company_code, string document_name, string reason, string email, bool is_require_signature, string lang, string WolfVendorCode)
+        {
+            try
             {
-                try
+                await Logger.LogInfo(
+                    $"SP_INSERT_RequestDocument: Start | DocNo:{docNo} | memoId:{memoId} | kubboss_document_id:{kubboss_document_id} | supplier_id:{supplier_id} | company_id:{company_id} | company_code:{company_code} | WolfVendorCode:{WolfVendorCode}",
+                    "WolfApproveRepository"
+                );
+
+                using (var connection = _context.CreateConnectionWrite())
                 {
-                    using (var connection = _context.CreateConnectionRead())
+                    connection.Open();
+                    var sql = "SP_INSERT_RequestDocument";
+                    var param = new SqlParameter[]
                     {
-                        connection.Open();
+                new SqlParameter("@docNo", docNo),
+                new SqlParameter("@memoId", memoId),
+                new SqlParameter("@kubboss_document_id", kubboss_document_id),
+                new SqlParameter("@supplier_id", supplier_id),
+                new SqlParameter("@company_id", company_id),
+                new SqlParameter("@company_code", company_code),
+                new SqlParameter("@document_name", document_name),
+                new SqlParameter("@reason", reason),
+                new SqlParameter("@email", email),
+                new SqlParameter("@is_require_signature", is_require_signature),
+                new SqlParameter("@lang", lang),
+                new SqlParameter("@WolfVendorCode", (object)WolfVendorCode ?? DBNull.Value)
+                    };
 
-                        var sql = "SP_INSERT_RequestDocument";
+                    var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
 
-                        var param = new SqlParameter[]
-                        {
-                    new SqlParameter("@docNo", docNo),
-                    new SqlParameter("@memoId", memoId),
-                    new SqlParameter("@kubboss_document_id", kubboss_document_id),
-                    new SqlParameter("@supplier_id", supplier_id),
-                    new SqlParameter("@company_id", company_id),
-                    new SqlParameter("@company_code", company_code),
-                    new SqlParameter("@document_name", document_name),
-                    new SqlParameter("@reason", reason),
-                    new SqlParameter("@email", email),
-                    new SqlParameter("@is_require_signature", is_require_signature),
-                    new SqlParameter("@lang", lang)
-                        };
-
-                        var sp_response = await _context.ExecuteStoreNonQueryAsync(sql, param);
-
-                        return new SP_CREATE_RequestDocument
-                        {
-                            Result = sp_response.isSuccess,
-                            Message = sp_response.message
-                        };
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogError(ex, "WolfApproveRepository");
+                    await Logger.LogInfo(
+                        $"SP_INSERT_RequestDocument: Result | isSuccess:{sp_response.isSuccess} | message:{sp_response.message}",
+                        "WolfApproveRepository"
+                    );
 
                     return new SP_CREATE_RequestDocument
                     {
-                        Result = false,
-                        Message = ex.Message
+                        Result = sp_response.isSuccess,
+                        Message = sp_response.message
                     };
                 }
             }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+
+                await Logger.LogInfo(
+                    $"SP_INSERT_RequestDocument: ERROR | DocNo:{docNo} | Error:{ex.Message}",
+                    "WolfApproveRepository",
+                    ex.ToString()
+                );
+
+                return new SP_CREATE_RequestDocument
+                {
+                    Result = false,
+                    Message = ex.Message
+                };
+            }
+        }
 
         public async Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value)
         {
@@ -717,6 +732,49 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             {
                 Logger.LogError(ex, "WolfApproveRepository");
                 return null;
+            }
+        }
+
+        public async Task<SP_GET_JobDocuments> SP_GET_JOB_DOCUMENTS(string jobDocumentID)
+        {
+            try
+            {
+                await Logger.LogInfo(
+                    $"SP_GET_JOB_DOCUMENTS: Start | jobDocumentID:{jobDocumentID}",
+                    "WolfApproveRepository"
+                );
+
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+                    var sql = "SP_GET_JOB_DOCUMENTS";
+                    var param = new SqlParameter[]
+                    {
+                new SqlParameter("@jobDocumentID", (object)jobDocumentID ?? DBNull.Value)
+                    };
+
+                    var result = await _context.ExcuteStoreQueryListAsync<SP_GET_JobDocuments>(sql, param);
+
+                    await Logger.LogInfo(
+                        $"SP_GET_JOB_DOCUMENTS: Result | count:{result?.Count ?? 0}",
+                        "WolfApproveRepository"
+                    );
+
+                    return result.FirstOrDefault();
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "WolfApproveRepository");
+
+                await Logger.LogInfo(
+                    $"SP_GET_JOB_DOCUMENTS: ERROR | jobDocumentID:{jobDocumentID} | Error:{ex.Message}",
+                    "WolfApproveRepository",
+                    ex.ToString()
+                );
+
+                throw;
             }
         }
     }

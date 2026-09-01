@@ -74,6 +74,7 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<RFPCreateResponse> CreateRFP(string documentNo, RFPCreateRequest requestData, int company_id, List<IFormFile> files, string domain);
         Task<AcknowledgeDocumentResponse> AcknowledgeDocument(AcknowledgeDocumentRequest request);
         Task<RFQCancelResponse> RFQCancelDocument(RFQCancelRequest request);
+        Task<JobDocumentResponse> GetJobDocuments(JobDocumentRequest request);
 
     }
 }

@@ -9,5 +9,6 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string kubboss_document_id { get; set; }
         public string company_code { get; set; }
         public string email { get; set; }
+        public string WolfVendorCode { get; set; }
     }
 }

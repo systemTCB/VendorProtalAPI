@@ -11,6 +11,7 @@ namespace VendorPortal.Application.Models.v1.Request
     {
         public string email { get; set; }
         public string company_wolf_id { get; set; }
+        public string buyerCode { get; set; }
         public CompanyPOV2 company { get; set; }
         public Requester requester { get; set; }
         public RfqData rfq_data { get; set; }

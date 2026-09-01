@@ -83,8 +83,9 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         Task<bool> SP_UPDATE_RFQ_CANCEL(string rfq_number, string remark);
 
-        Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_code, string document_name, string reason,  string email, bool is_require_signature, string lang);
+        Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_code, string document_name, string reason,  string email, bool is_require_signature, string lang, string WolfVendorCode);
 
         Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value);
+        Task<SP_GET_JobDocuments> SP_GET_JOB_DOCUMENTS(string search_value);
     }
 }

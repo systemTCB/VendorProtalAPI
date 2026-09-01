@@ -28,7 +28,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public DateTime? updated_at { get; set; }
         public List<DocumentCreate> documents { get; set; }
         public List<DocumentSignature> signatures { get; set; }
-
+        public string WolfVendorCode { get; set; }
     }
 
     public class DocumentCreate
