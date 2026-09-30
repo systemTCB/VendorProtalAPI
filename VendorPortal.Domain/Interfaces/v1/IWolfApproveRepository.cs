@@ -78,7 +78,7 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         //Register
         Task<List<SP_GET_COMPANY_API>> SP_GET_COMPANY_API(string company_id);
-        Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode);
+        Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string BuyerCode, string companyName = null);
         Task<List<SP_GET_Systems>> SP_GET_Systems(string host);
 
         Task<bool> SP_UPDATE_RFQ_CANCEL(string rfq_number, string remark);

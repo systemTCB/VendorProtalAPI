@@ -27,6 +27,8 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<POCreateV2Response> CreatePOKubbossV2(HttpClient client, POCreateV2Request request);
         Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request);
         Task<QuotationAwardResponse> CreatePOAwardKubboss(HttpClient client, QuotationAwardRequest request);
+        Task<POUpdateResponse> UpdatePOLineKubboss(HttpClient client, UpdatePORequest request, string purchase_order_number);
+        Task<POStandaloneResponse> CreatePOStandaloneKubboss(HttpClient client, POStandaloneRequest request, string quotation_id);
         Task<POByIDResponse> GetPOByID(string id, CreatePORequest request);
 
         Task<RFQCancelResponse> CancelRFQKubboss(HttpClient client, RFQCancelRequest request);
@@ -35,6 +37,7 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<DocumentCreatetResponse> GetRequestDocumentsByID(string id, PutRequestDocuments request);
         Task<DeliveryOrdersResponse> GetDeliveryOrdersByID(string id, PutDeliveryOrdersRequest request);
         Task<DeliveryOrdersUpdateResponse> DeliveryOrdersUpdateStatus(PutDeliveryOrdersUpdateRequest request);
+        Task<PatchSAPStatusResponse> DeliveryOrdersUpdateStatusSAP(PatchSAPStatusRequest request);
         Task<CreditNoteUpdateResponse> CreditNoteUpdateStatus(PutCreditNoteUpdateRequest request);
         Task<DebitNoteUpdateResponse> DebitNoteUpdateStatus(PutDebitNoteUpdateRequest request);
 
@@ -42,8 +45,13 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<InvoicesUpdateResponse> InvoicesUpdateStatus(PutInvoicesUpdateRequest request);
 
         Task<SubscriptionsResponse> Subscriptions(SubscriptionsRequest request);
+        Task<BlockStatusResponse> BlockStatus(BlockStatusRequest request);
+        Task<BlockStatusByEmailResponse> BlockStatusByEmail(BlockStatusByEmailRequest request);
         Task<CreditNoteByIDResponse> GetCreditNotesByID(string id, PutCreditNotesRequest request);
         Task<DebitNotesByIDResponse> GetDebitNotesByID(string id, PutDebitNotesRequest request);
+        Task<MediaFileContentResponse> GetMediaFileContent(string file_uuid);
+        Task<AwardQuotationResponse> AwardQuotation(awardQuotationRequest request);
+
 
     }
 }

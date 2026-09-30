@@ -30,7 +30,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public RFQRequester requester { get; set; }
         public List<RFQCreateQuestionnaire> questionaires { get; set; } = new List<RFQCreateQuestionnaire>();
         public List<RFQCreateDocument> attachments { get; set; } = new List<RFQCreateDocument>();
-        public int revision { get; set; }
+        public int? revision { get; set; }
         public string requestForType { get; set; }
 
     }
@@ -43,11 +43,11 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_uom_name { get; set; }
         public string item_descption { get; set; }
         public string item_category { get; set; }
-        public int quantity { get; set; }
-        public decimal unit_price { get; set; }
-        public decimal vat_rate { get; set; }
-        public decimal vat_amount { get; set; }
-        public decimal total_amount { get; set; }
+        public decimal? quantity { get; set; }
+        public decimal? unit_price { get; set; }
+        public decimal? vat_rate { get; set; }
+        public decimal? vat_amount { get; set; }
+        public decimal? total_amount { get; set; }
     }
 
 

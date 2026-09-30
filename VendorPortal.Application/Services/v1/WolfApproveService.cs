@@ -866,7 +866,40 @@ namespace VendorPortal.Application.Services.v1
                         }
                         var bytes = Convert.FromBase64String(base64);
 
-                        await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+                        var fileName = Path.GetFileName(file.file_name ?? "file");
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            fileName = fileName.Replace(c, '_');
+                        }
+
+                        var fileType = file.file_type?.Trim() ?? "";
+
+                        if (!string.IsNullOrWhiteSpace(fileType))
+                        {
+                            if (!fileType.StartsWith("."))
+                            {
+                                fileType = "." + fileType;
+                            }
+
+                            var currentExtension = Path.GetExtension(fileName);
+
+                            if (string.IsNullOrWhiteSpace(currentExtension) ||
+                                !string.Equals(currentExtension, fileType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var nameOnly = string.IsNullOrWhiteSpace(currentExtension)
+                                    ? fileName
+                                    : Path.GetFileNameWithoutExtension(fileName);
+
+                                fileName = nameOnly + fileType;
+                            }
+                        }
+                        else if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                        {
+                            Logger.LogInfo("CreatePOV2", "Unknown file type", $"file_name: {file.file_name}, file_seq: {file.file_seq}");
+                        }
+
+                        await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: fileName, contentType: contentType, uploadForm: "PurchaseOrder");
                     }
                 }
                 #endregion
@@ -903,18 +936,26 @@ namespace VendorPortal.Application.Services.v1
                                     originalFileName = originalFileName.Replace(c, '_');
                                 }
 
-                                var extension = Path.GetExtension(originalFileName);
+                                var fileType = item.file_type?.Trim() ?? "";
 
-                                if (string.IsNullOrWhiteSpace(extension))
+                                if (!string.IsNullOrWhiteSpace(fileType))
                                 {
-                                    var fileType = item.file_type ?? "";
-
                                     if (!fileType.StartsWith("."))
                                     {
                                         fileType = "." + fileType;
                                     }
 
-                                    originalFileName += fileType;
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                    }
                                 }
 
                                 var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
@@ -1022,7 +1063,41 @@ namespace VendorPortal.Application.Services.v1
                                 continue;
                             }
 
-                            await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+
+                            var fileName = Path.GetFileName(file.file_name ?? "file");
+
+                            foreach (char c in Path.GetInvalidFileNameChars())
+                            {
+                                fileName = fileName.Replace(c, '_');
+                            }
+
+                            var fileType = file.file_type?.Trim() ?? "";
+
+                            if (!string.IsNullOrWhiteSpace(fileType))
+                            {
+                                if (!fileType.StartsWith("."))
+                                {
+                                    fileType = "." + fileType;
+                                }
+
+                                var currentExtension = Path.GetExtension(fileName);
+
+                                if (string.IsNullOrWhiteSpace(currentExtension) ||
+                                    !string.Equals(currentExtension, fileType, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    var nameOnly = string.IsNullOrWhiteSpace(currentExtension)
+                                        ? fileName
+                                        : Path.GetFileNameWithoutExtension(fileName);
+
+                                    fileName = nameOnly + fileType;
+                                }
+                            }
+                            else if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                            {
+                                Logger.LogInfo("CreatePOV2", "Unknown file type", $"file_name: {file.file_name}, file_seq: {file.file_seq}");
+                            }
+
+                            await UploadMedia(resCreatePO.data.id, fileBytes: bytes, fileName: fileName, contentType: contentType, uploadForm: "PurchaseOrder");
                         }
                         catch (Exception ex)
                         {
@@ -1064,18 +1139,26 @@ namespace VendorPortal.Application.Services.v1
                                     originalFileName = originalFileName.Replace(c, '_');
                                 }
 
-                                var extension = Path.GetExtension(originalFileName);
+                                var fileType = item.file_type?.Trim() ?? "";
 
-                                if (string.IsNullOrWhiteSpace(extension))
+                                if (!string.IsNullOrWhiteSpace(fileType))
                                 {
-                                    var fileType = item.file_type ?? "";
-
                                     if (!fileType.StartsWith("."))
                                     {
                                         fileType = "." + fileType;
                                     }
 
-                                    originalFileName += fileType;
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                    }
                                 }
 
                                 var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
@@ -1195,7 +1278,40 @@ namespace VendorPortal.Application.Services.v1
                         }
                         var bytes = Convert.FromBase64String(base64);
 
-                        await UploadMedia(resCreatePO.data.purchase_order.id, fileBytes: bytes, fileName: file.file_name, contentType: contentType, uploadForm: "PurchaseOrder");
+                        var fileName = Path.GetFileName(file.file_name ?? "file");
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            fileName = fileName.Replace(c, '_');
+                        }
+
+                        var fileType = file.file_type?.Trim() ?? "";
+
+                        if (!string.IsNullOrWhiteSpace(fileType))
+                        {
+                            if (!fileType.StartsWith("."))
+                            {
+                                fileType = "." + fileType;
+                            }
+
+                            var currentExtension = Path.GetExtension(fileName);
+
+                            if (string.IsNullOrWhiteSpace(currentExtension) ||
+                                !string.Equals(currentExtension, fileType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var nameOnly = string.IsNullOrWhiteSpace(currentExtension)
+                                    ? fileName
+                                    : Path.GetFileNameWithoutExtension(fileName);
+
+                                fileName = nameOnly + fileType;
+                            }
+                        }
+                        else if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                        {
+                            Logger.LogInfo("CreatePOV2", "Unknown file type", $"file_name: {file.file_name}, file_seq: {file.file_seq}");
+                        }
+
+                        await UploadMedia(resCreatePO.data.purchase_order.id, fileBytes: bytes, fileName: fileName, contentType: contentType, uploadForm: "PurchaseOrder");
                     }
                 }
                 #endregion
@@ -1232,18 +1348,26 @@ namespace VendorPortal.Application.Services.v1
                                     originalFileName = originalFileName.Replace(c, '_');
                                 }
 
-                                var extension = Path.GetExtension(originalFileName);
+                                var fileType = item.file_type?.Trim() ?? "";
 
-                                if (string.IsNullOrWhiteSpace(extension))
+                                if (!string.IsNullOrWhiteSpace(fileType))
                                 {
-                                    var fileType = item.file_type ?? "";
-
                                     if (!fileType.StartsWith("."))
                                     {
                                         fileType = "." + fileType;
                                     }
 
-                                    originalFileName += fileType;
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                    }
                                 }
 
                                 var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
@@ -1275,6 +1399,363 @@ namespace VendorPortal.Application.Services.v1
 
 
                 return resCreatePO;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
+
+        public async Task<POUpdateResponse> UpdatePOLines(string purchase_order_number, UpdatePORequest request, string domain)
+        {
+            POUpdateResponse response = new POUpdateResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                POUpdateResponse resUpdatePO = await _kubBossService.UpdatePOLineKubboss(client, request, purchase_order_number);
+
+                if (resUpdatePO?.data == null)
+                    return resUpdatePO;
+
+                if (resUpdatePO.data.id == null)
+                    return resUpdatePO;
+
+                #region ส่งไป upload 
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    foreach (var file in request.attachments)
+                    {
+                        string contentType = "application/octet-stream";
+                        string base64 = file.file_base64;
+
+                        if (!string.IsNullOrWhiteSpace(base64) && base64.StartsWith("data:"))
+                        {
+                            var parts = base64.Split(',');
+
+                            if (parts.Length == 2)
+                            {
+                                // data:application/pdf;base64
+                                var header = parts[0];
+
+                                contentType = header
+                                    .Replace("data:", "")
+                                    .Replace(";base64", "");
+
+                                base64 = parts[1];
+                            }
+                        }
+                        var bytes = Convert.FromBase64String(base64);
+
+                        var fileName = Path.GetFileName(file.file_name ?? "file");
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            fileName = fileName.Replace(c, '_');
+                        }
+
+                        var fileType = file.file_type?.Trim() ?? "";
+
+                        if (!string.IsNullOrWhiteSpace(fileType))
+                        {
+                            if (!fileType.StartsWith("."))
+                            {
+                                fileType = "." + fileType;
+                            }
+
+                            var currentExtension = Path.GetExtension(fileName);
+
+                            if (string.IsNullOrWhiteSpace(currentExtension) ||
+                                !string.Equals(currentExtension, fileType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var nameOnly = string.IsNullOrWhiteSpace(currentExtension)
+                                    ? fileName
+                                    : Path.GetFileNameWithoutExtension(fileName);
+
+                                fileName = nameOnly + fileType;
+                            }
+                        }
+                        else if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                        {
+                            Logger.LogInfo("CreatePOV2", "Unknown file type", $"file_name: {file.file_name}, file_seq: {file.file_seq}");
+                        }
+
+                        await UploadMedia(resUpdatePO.data.id, fileBytes: bytes, fileName: fileName, contentType: contentType, uploadForm: "PurchaseOrder");
+                    }
+                }
+                #endregion
+
+                #region เก็บไฟล์ของ base64
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    string rootPath = _config["FileUpload:RootPath"];
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    foreach (var item in request.attachments)
+                    {
+
+                        if (!string.IsNullOrEmpty(item.file_base64))
+                        {
+                            try
+                            {
+                                var poFolder = Path.Combine(rootPath, "po", resUpdatePO.data.purchase_order_number);
+
+                                if (!Directory.Exists(poFolder))
+                                    Directory.CreateDirectory(poFolder);
+
+                                var base64 = item.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var fileType = item.file_type?.Trim() ?? "";
+
+                                if (!string.IsNullOrWhiteSpace(fileType))
+                                {
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                    }
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(poFolder, finalFileName);
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/po/{resUpdatePO.data.purchase_order_number}/{finalFileName}";
+
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = resUpdatePO.data.id.ToString(),
+                                    sFileName = finalFileName,
+                                    sFilePath = fileUrl,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = "system",
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "CreatePO File", $"request: {JsonConvert.SerializeObject(request)}");
+                                continue;
+                            }
+                        }
+                    }
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
+                }
+                #endregion
+
+                return resUpdatePO;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreatePO", $"request: {JsonConvert.SerializeObject(request)}");
+            }
+            return response;
+        }
+        public async Task<POStandaloneResponse> CreateStandalonePO(string quotation_id, POStandaloneRequest request, string domain)
+        {
+            POStandaloneResponse response = new POStandaloneResponse();
+            DateTime createdDate = DateTime.Now;
+            try
+            {
+
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                POStandaloneResponse resUpdatePO = await _kubBossService.CreatePOStandaloneKubboss(client, request, quotation_id);
+
+                if (resUpdatePO?.data == null)
+                    return resUpdatePO;
+
+                if (resUpdatePO.data.purchase_order.id == null)
+                    return resUpdatePO;
+
+                #region ส่งไป upload 
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    foreach (var file in request.attachments)
+                    {
+                        string contentType = "application/octet-stream";
+                        string base64 = file.file_base64;
+
+                        if (!string.IsNullOrWhiteSpace(base64) && base64.StartsWith("data:"))
+                        {
+                            var parts = base64.Split(',');
+
+                            if (parts.Length == 2)
+                            {
+                                // data:application/pdf;base64
+                                var header = parts[0];
+
+                                contentType = header
+                                    .Replace("data:", "")
+                                    .Replace(";base64", "");
+
+                                base64 = parts[1];
+                            }
+                        }
+                        var bytes = Convert.FromBase64String(base64);
+
+                        var fileName = Path.GetFileName(file.file_name ?? "file");
+
+                        foreach (char c in Path.GetInvalidFileNameChars())
+                        {
+                            fileName = fileName.Replace(c, '_');
+                        }
+
+                        var fileType = file.file_type?.Trim() ?? "";
+
+                        if (!string.IsNullOrWhiteSpace(fileType))
+                        {
+                            if (!fileType.StartsWith("."))
+                            {
+                                fileType = "." + fileType;
+                            }
+
+                            var currentExtension = Path.GetExtension(fileName);
+
+                            if (string.IsNullOrWhiteSpace(currentExtension) ||
+                                !string.Equals(currentExtension, fileType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                var nameOnly = string.IsNullOrWhiteSpace(currentExtension)
+                                    ? fileName
+                                    : Path.GetFileNameWithoutExtension(fileName);
+
+                                fileName = nameOnly + fileType;
+                            }
+                        }
+                        else if (string.IsNullOrWhiteSpace(Path.GetExtension(fileName)))
+                        {
+                            Logger.LogInfo("CreatePOV2", "Unknown file type", $"file_name: {file.file_name}, file_seq: {file.file_seq}");
+                        }
+
+                        await UploadMedia(resUpdatePO.data.purchase_order.id, fileBytes: bytes, fileName: fileName, contentType: contentType, uploadForm: "PurchaseOrder");
+                    }
+                }
+                #endregion
+
+                #region เก็บไฟล์ของ base64
+                if (request.attachments != null && request.attachments.Any())
+                {
+                    string rootPath = _config["FileUpload:RootPath"];
+                    List<TEMP_RFQ_DOCUMENT> documents = new();
+                    foreach (var item in request.attachments)
+                    {
+
+                        if (!string.IsNullOrEmpty(item.file_base64))
+                        {
+                            try
+                            {
+                                var poFolder = Path.Combine(rootPath, "po", resUpdatePO.data.purchase_order.id);
+
+                                if (!Directory.Exists(poFolder))
+                                    Directory.CreateDirectory(poFolder);
+
+                                var base64 = item.file_base64;
+                                if (base64.Contains(","))
+                                {
+                                    base64 = base64.Substring(base64.IndexOf(",") + 1);
+                                }
+
+                                var bytes = Convert.FromBase64String(base64);
+
+                                var originalFileName = Path.GetFileName(item.file_name ?? "file");
+
+                                foreach (char c in Path.GetInvalidFileNameChars())
+                                {
+                                    originalFileName = originalFileName.Replace(c, '_');
+                                }
+
+                                var fileType = item.file_type?.Trim() ?? "";
+
+                                if (!string.IsNullOrWhiteSpace(fileType))
+                                {
+                                    if (!fileType.StartsWith("."))
+                                    {
+                                        fileType = "." + fileType;
+                                    }
+
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                    }
+                                }
+
+                                var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
+                                var fullPath = Path.Combine(poFolder, finalFileName);
+                                await File.WriteAllBytesAsync(fullPath, bytes);
+
+                                var fileUrl = $"{domain}/uploads/po/{resUpdatePO.data.purchase_order.id}/{finalFileName}";
+
+                                documents.Add(new TEMP_RFQ_DOCUMENT()
+                                {
+                                    nRFQID = resUpdatePO.data.purchase_order.id.ToString(),
+                                    sFileName = finalFileName,
+                                    sFilePath = fileUrl,
+                                    sFileSeq = item.file_seq,
+                                    CreatedBy = "system",
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.LogError(ex, "CreatePO File", $"request: {JsonConvert.SerializeObject(request)}");
+                                continue;
+                            }
+                        }
+                    }
+                    var res = await _wolfApproveRepository.SP_INSERT_NEWRFQ_DOCUMENT(documents);
+                    Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
+                }
+                #endregion
+
+                return resUpdatePO;
             }
             catch (System.Exception ex)
             {
@@ -1593,10 +2074,64 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
+        public async Task<RFQCountResponse> GetRFQ_ShowBySuppilerID(string supplier_id)
+        {
+            RFQCountResponse response = new RFQCountResponse();
+            try
+            {
+                List<SP_GET_RFQ_LIST> itemSpecific = new List<SP_GET_RFQ_LIST>();
+
+                if (!string.IsNullOrEmpty(supplier_id))
+                {
+                    itemSpecific = await _wolfApproveRepository.SP_GET_RFQ_LIST_SPECIFIC_BY_SUP_ID(supplier_id);
+
+                    response = new RFQCountResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.Success.Text(),
+                            message = ResponseCode.Success.Text()
+                        },
+                        data = new RFQCountData()
+                        {
+                            RFQCount = itemSpecific?.Count ?? 0
+                        }
+                    };
+                }
+                else
+                {
+                    response = new RFQCountResponse()
+                    {
+                        status = new Status()
+                        {
+                            code = ResponseCode.NotFound.Text(),
+                            message = ResponseCode.NotFound.Text()
+                        }
+                    };
+                }
+            }
+            catch (System.Exception ex)
+            {
+                response = new RFQCountResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+                Logger.LogError(ex, "GetRFQ_Show");
+            }
+            return response;
+        }
+
         public async Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request, string domain)
         {
             RFQCreateResponse response = new();
             DateTime createdDate = DateTime.Now;
+
+            Logger.LogInfo("Request Body", "CreateRFQ", $"result: {JsonConvert.SerializeObject(request)}");
+
             try
             {
                 var _companyList = await _masterDataRepository.SP_GET_MASTER_COMPANY(isShowAll: true);
@@ -1661,18 +2196,26 @@ namespace VendorPortal.Application.Services.v1
                                     originalFileName = originalFileName.Replace(c, '_');
                                 }
 
-                                var extension = Path.GetExtension(originalFileName);
+                                var fileType = attach.file_type?.Trim() ?? "";
 
-                                if (string.IsNullOrWhiteSpace(extension))
+                                if (!string.IsNullOrWhiteSpace(fileType))
                                 {
-                                    var fileType = attach.file_type ?? "";
-
                                     if (!fileType.StartsWith("."))
                                     {
                                         fileType = "." + fileType;
                                     }
 
-                                    originalFileName += fileType;
+                                    var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                    originalFileName = nameOnly + fileType;
+                                }
+                                else
+                                {
+
+                                    var extension = Path.GetExtension(originalFileName);
+                                    if (string.IsNullOrWhiteSpace(extension))
+                                    {
+                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {attach.file_name}, file_seq: {attach.file_seq}");
+                                    }
                                 }
 
                                 var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
@@ -1722,11 +2265,15 @@ namespace VendorPortal.Application.Services.v1
                         .Where(x => !oldSupplierList.Contains(x))
                         .ToList();
 
-                    var allSupplierList = oldSupplierList
-                        .Union(request.supplier_id)
+                    var existingSupplier = request.supplier_id
+                        .Where(x => oldSupplierList.Contains(x))
                         .ToList();
 
-                    var mailRecipientList = (isEndDateChanged || isNewFileAdded) ? allSupplierList : newSupplier;
+                    bool hasUpdateContent = isEndDateChanged || isNewFileAdded;
+
+                    var updateMailRecipientList = hasUpdateContent ? existingSupplier : new List<string>();
+
+                    var newRfqMailRecipientList = newSupplier;
 
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
@@ -1757,12 +2304,10 @@ namespace VendorPortal.Application.Services.v1
 
                     //ส่งเมลแจ้งเตือน New RFQ
 
-                    #region send mail new RFQ
-                    if (mailRecipientList.Any())
+                    #region send mail (new + update)
+                    if (updateMailRecipientList.Any() || newRfqMailRecipientList.Any())
                     {
-                        var sqlParameter = new SqlParameter[] {
-                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-                            };
+                        var sqlParameter = new SqlParameter[] { new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel")) };
 
                         var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
 
@@ -1770,15 +2315,27 @@ namespace VendorPortal.Application.Services.v1
 
                         var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                        var delayMs = Random.Shared.Next(10000, 50001);
-                        await Task.Delay(delayMs);
+                        // ส่ง Update ให้ Supplier เดิม (เฉพาะกรณีมีการเปลี่ยนไฟล์/วันที่)
+                        if (updateMailRecipientList.Any())
+                        {
+                            await SendEmailNotifyUpdate(
+                                client,
+                                updateMailRecipientList,
+                                request.rfq_id.ToString(),
+                                "TH",
+                                request.requester.requesterEmail);
+                        }
 
-                        await SendEmailNotify(
-                            client,
-                            mailRecipientList,
-                            request.rfq_id.ToString(),
-                            "TH",
-                            request.requester.requesterEmail);
+                        // ส่ง NewRFQ ให้ Supplier ใหม่
+                        if (newRfqMailRecipientList.Any())
+                        {
+                            await SendEmailNotify(
+                                client,
+                                newRfqMailRecipientList,
+                                update_rfq_response.data?.rfq_id?.ToString() ?? request.rfq_id.ToString(),
+                                "TH",
+                                request.requester.requesterEmail);
+                        }
                     }
 
                     #endregion
@@ -1883,7 +2440,7 @@ namespace VendorPortal.Application.Services.v1
                         string.IsNullOrEmpty(request.is_specific) ? "N" : request.is_specific,
                         string.IsNullOrEmpty(sup_id) ? "" : sup_id,
                         requestForType: string.IsNullOrEmpty(request.requestForType) ? "RFQ" : request.requestForType,
-                        revision: request.revision
+                        revision: request.revision ?? 0
                     );
                 // Check if the RFQ was created successfully
                 if (result.Result == true)
@@ -1966,18 +2523,26 @@ namespace VendorPortal.Application.Services.v1
                                         originalFileName = originalFileName.Replace(c, '_');
                                     }
 
-                                    var extension = Path.GetExtension(originalFileName);
+                                    var fileType = item.file_type?.Trim() ?? "";
 
-                                    if (string.IsNullOrWhiteSpace(extension))
+                                    if (!string.IsNullOrWhiteSpace(fileType))
                                     {
-                                        var fileType = item.file_type ?? "";
-
                                         if (!fileType.StartsWith("."))
                                         {
                                             fileType = "." + fileType;
                                         }
 
-                                        originalFileName += fileType;
+                                        var nameOnly = Path.GetFileNameWithoutExtension(originalFileName);
+                                        originalFileName = nameOnly + fileType;
+                                    }
+                                    else
+                                    {
+
+                                        var extension = Path.GetExtension(originalFileName);
+                                        if (string.IsNullOrWhiteSpace(extension))
+                                        {
+                                            Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {item.file_name}, file_seq: {item.file_seq}");
+                                        }
                                     }
 
                                     var finalFileName = $"{Path.GetFileNameWithoutExtension(originalFileName)}_" + $"{DateTime.Now:yyyyMMddHHmmss}" + $"{Path.GetExtension(originalFileName)}";
@@ -2199,16 +2764,22 @@ namespace VendorPortal.Application.Services.v1
                                 }
                             };
 
-                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
-                            await Logger.LogInfo($"SP_GET_Buyer_Code routes count: {routes?.Count ?? 0} | buyerCode: {request.buyerCode}", "PutQuotation");
+                            var rfqDetail = verify.FirstOrDefault();
+                            var companyName = rfqDetail?.sCompanyName?.Trim();
+                            var useBuyerCode = !string.IsNullOrWhiteSpace(request.buyerCode);
+                            await Logger.LogInfo($"buyerCode: '{request.buyerCode}', companyName from RFQ: '{companyName}', useBuyerCode: {useBuyerCode}", "PutQuotation");
 
-                            var route = routes.FirstOrDefault(x => x.ActionType == "CREATE_QUOTATION");
-                            Logger.LogInfo("PutQuotation", $"RouteFound:{(route != null)} | Buyer:{request.buyerCode}");
+                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode, companyName);
+                            var candidates = routes?.Where(x => x.ActionType == "CREATE_QUOTATION").ToList() ?? new();
+                            await Logger.LogInfo($"CREATE_QUOTATION routes found: {candidates.Count}", "PutQuotation");
+
+                            var route = useBuyerCode ? candidates.FirstOrDefault() : (candidates.Count == 1 ? candidates[0] : null);
+
+                            await Logger.LogInfo($"Matched route: {(route != null ? JsonConvert.SerializeObject(route) : "NULL")}", "PutQuotation");
+                            await Logger.LogInfo("PutQuotation", $"RouteFound:{(route != null)} | Buyer:{request.buyerCode}");
                             await Logger.LogInfo($"Matched route: {(route != null ? JsonConvert.SerializeObject(route) : "NULL - no route with ActionType=CREATE_QUOTATION")}", "PutQuotation");
 
-                            var sqlParameter = new SqlParameter[] {
-            new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
-        };
+                            var sqlParameter = new SqlParameter[] { new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel")) };
                             var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
                             await Logger.LogInfo($"configToken.sToken exists: {!string.IsNullOrEmpty(configToken?.sToken)}", "PutQuotation");
 
@@ -2340,7 +2911,7 @@ namespace VendorPortal.Application.Services.v1
                                     reason = request.reason
                                 };
 
-                                Logger.LogInfo("SendToBuyer", "CreateRFP", $"result: {JsonConvert.SerializeObject(payload)}");
+                                Logger.LogInfo("SendToBuyer", "CreateRFQ", $"result: {JsonConvert.SerializeObject(payload)}");
 
                                 await _buyerApiService.SendToBuyer(route, JsonConvert.SerializeObject(payload));
 
@@ -2858,6 +3429,75 @@ namespace VendorPortal.Application.Services.v1
                     {
                         var response = await client.PostAsync(
                             "/api/notify/user/rfq",
+                            new StringContent(payload.ToString(), Encoding.UTF8, "application/json")
+                        );
+
+                        var resBody = await response.Content.ReadAsStringAsync();
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            Logger.LogInfo("NotifyRFQ",
+                                $"SUCCESS | supplier:{supId} | email:{email}");
+
+                            success = true;
+                            break;
+                        }
+
+                        Logger.LogInfo("NotifyRFQ",
+                            $"Retry {i} | supplier:{supId} | response:{resBody}");
+
+                        if (i < 3)
+                            await Task.Delay(6000);
+                    }
+
+                    if (!success)
+                    {
+                        Logger.LogError(
+                            new Exception("NotifyRFQ failed"),
+                            "NotifyRFQ",
+                            $"supplier:{supId} | email:{email}"
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, $"NotifyRFQ ERROR supplier:{supId}");
+                }
+            }
+        }
+        public async Task SendEmailNotifyUpdate(HttpClient client, List<string> supplierIds, string rfqId, string language, string cc_requester)
+        {
+            var delayMs = Random.Shared.Next(10000, 50001);
+            await Task.Delay(delayMs);
+
+            foreach (var supId in supplierIds)
+            {
+                try
+                {
+                    var resSuppliers = await _kubBossService.GetSuppliersDetail(client, supId);
+
+                    var email = resSuppliers["data"]?["supplier_email"]?.ToString();
+
+                    if (string.IsNullOrWhiteSpace(email))
+                    {
+                        Logger.LogInfo("NotifyRFQ", $"Skip supplier {supId} (no email)");
+                        continue;
+                    }
+
+                    var payload = new JObject
+                    {
+                        ["email"] = email,
+                        ["rfq_id"] = rfqId,
+                        ["lang"] = language ?? "TH"
+                        //["cc_requester"] = cc_requester
+                    };
+
+                    var success = false;
+
+                    for (int i = 1; i <= 3; i++)
+                    {
+                        var response = await client.PostAsync(
+                            "/api/notify/user/rfq/updated",
                             new StringContent(payload.ToString(), Encoding.UTF8, "application/json")
                         );
 

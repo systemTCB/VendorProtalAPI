@@ -207,6 +207,33 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
+        [HttpGet]
+        [Route("api/v1/wolf-approve/rfqs/CountRFQ")]
+        [Description("Create By Peetisook")]
+        [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้แสดง rfq จาก supplier_id")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQShowResponse))]
+        public async Task<IActionResult> GetRFQShowBySuppilerID(string supplier_id)
+        {
+            RFQCountResponse response;
+            try
+            {
+                response = await _wolfApproveService.GetRFQ_ShowBySuppilerID(supplier_id);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, nameof(GetRFQShow));
+                response = new RFQCountResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
+
         #endregion
 
         #region [Puchase Order]
@@ -458,6 +485,76 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 });
             }
+        }
+
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/purchases/{purchase_order_number}/update-po")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับ Update PO")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POUpdateResponse))]
+        public async Task<IActionResult> UpdatePOLines(string purchase_order_number, [FromBody] UpdatePORequest request)
+        {
+            POUpdateResponse response = new();
+            try
+            {
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
+
+                Logger.LogInfo("UpdatePO", $"domain: {domain}");
+
+                response = await _wolfApproveService.UpdatePOLines(purchase_order_number, request, domain);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "UpdatePO", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new POUpdateResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
+        }
+
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/purchases/create/by-quotation/{quotation_id}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับสร้าง PO เมื่อมีการ Award ใบ Quotation")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POCreateResponse))]
+        public async Task<IActionResult> CreateStandalonePO(string quotation_id, [FromBody] POStandaloneRequest request)
+        {
+            POStandaloneResponse response = new();
+            try
+            {
+                var requestHost = HttpContext.Request;
+                string domain = $"{requestHost.Scheme}://{requestHost.Host}";
+
+                Logger.LogInfo("CreateStandalonePO", $"domain: {domain} request:{JsonConvert.SerializeObject(request)}");
+
+                response = await _wolfApproveService.CreateStandalonePO(quotation_id, request, domain);
+
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "CreateStandalonePO", $"request:{JsonConvert.SerializeObject(request)}");
+                response = new POStandaloneResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(response);
         }
 
         #endregion
@@ -728,7 +825,32 @@ namespace VendorPortal.API.Controllers.v1
             return Ok(response);
         }
 
-
+        [HttpPost]
+        [Route("api/v1/wolf-approve/quotation/award")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Quotation V1" }, Summary = "", Description = "API สำหรับ Award Quotation")]
+        public async Task<IActionResult> awardQuotation([FromBody] awardQuotationRequest request)
+        {
+            BaseResponse response = new();
+            try
+            {
+                AwardQuotationResponse result = await _kubBossService.AwardQuotation(request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "Update Quotation", $"Quotation:{request.quotations} , request:{JsonConvert.SerializeObject(request)}");
+                response = new BaseResponse()
+                {
+                    status = new Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                };
+            }
+            return Ok(response);
+        }
         #endregion
 
         #region [Vendor Register]
@@ -1297,7 +1419,7 @@ namespace VendorPortal.API.Controllers.v1
         [HttpPost]
         [Route("api/v1/wolf-approve/delivery-orders/{id}")]
         [Description("Create By Triphop")]
-        [SwaggerOperation(Tags = new[] { "DeliveryOrders V1" }, Summary = "", Description = "API สำหรับ สร้าง Delivery Orders")]
+        [SwaggerOperation(Tags = new[] { "Delivery Orders V1" }, Summary = "", Description = "API สำหรับ สร้าง Delivery Orders")]
         public async Task<IActionResult> DeliveryOrders(string id, [FromBody] CreateDORequest request)
         {
             BaseResponse response = new();
@@ -1408,14 +1530,14 @@ namespace VendorPortal.API.Controllers.v1
             Description = "Updates whether a delivery order has been sent to SAP. When set to Y, the supplier's cancel delivery order action is disabled/hidden; " +
             "when set to N, it becomes available again (e.g. for correction).")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
-        public async Task<IActionResult> PatchDeliveryOrderSAPStatus([FromBody] PutDeliveryOrdersUpdateRequest request)
+        public async Task<IActionResult> PatchDeliveryOrderSAPStatus([FromBody] PatchSAPStatusRequest request)
         {
 
-            DeliveryOrdersUpdateResponse responseDeliveryOrdersUpdate = new();
+            PatchSAPStatusResponse responseDeliveryOrdersUpdate = new();
 
             try
             {
-                var result = await _kubBossService.DeliveryOrdersUpdateStatus(request);
+                var result = await _kubBossService.DeliveryOrdersUpdateStatusSAP(request);
 
                 return Ok(result);
 
@@ -1424,7 +1546,7 @@ namespace VendorPortal.API.Controllers.v1
             {
                 Logger.LogError(ex, "RequestDocuments ERROR");
 
-                responseDeliveryOrdersUpdate = new DeliveryOrdersUpdateResponse()
+                responseDeliveryOrdersUpdate = new PatchSAPStatusResponse()
                 {
                     status = new Application.Models.Common.Status()
                     {
@@ -1448,10 +1570,47 @@ namespace VendorPortal.API.Controllers.v1
         [SwaggerOperation(Tags = new[] { "Invoices V1" }, Summary = "", Description = "API สำหรับ สร้าง invoices")]
         public async Task<IActionResult> PutInvoices(string id, [FromBody] CreateInvoiceRequest request)
         {
+            InvoicesByIDResponse responseInvoicesByID = new();
+
             try
             {
-                var result = await _kubBossService.GetInvoicesByID(id, request);
-                return Ok(result);
+                //var result = await _kubBossService.GetInvoicesByID(id, request);
+                //return Ok(result);
+
+                responseInvoicesByID = new InvoicesByIDResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.Success.Text(),
+                        message = "รับคำขอเรียบร้อย กำลังดำเนินการส่งใบแจ้งหนี้"
+                    },
+                    data = null
+                };
+
+                _ = Task.Run(async () =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var kubBossService = scope.ServiceProvider.GetRequiredService<IKubbossService>();
+
+                    try
+                    {
+                        int delaySeconds = Random.Shared.Next(5, 15);
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | Invoices: {id}  | buyerCode: {request.buyerCode}  | delaySeconds:{delaySeconds}", "Invoices");
+
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | Invoices:{id} | buyerCode:{request.buyerCode}", "Invoices");
+
+                        var result = await _kubBossService.GetInvoicesByID(id, request);
+
+                        await Logger.LogInfo($"BACKGROUND RESULT | Invoices:{id} | success:{result.status}", "Invoices");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Invoices BACKGROUND ERROR", $"Invoices: {id}");
+                    }
+                });
 
             }
             catch (System.Exception ex)
@@ -1467,6 +1626,7 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 });
             }
+            return Ok(responseInvoicesByID);
         }
 
         [HttpPost]
@@ -1533,6 +1693,56 @@ namespace VendorPortal.API.Controllers.v1
                 });
             }
         }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/questionnaire/block-status")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Subscriptions V1" }, Summary = "", Description = "API สำหรับ Subscriptions BLOCK / UN-BLOCK")]
+        public async Task<IActionResult> BlockStatus([FromBody] BlockStatusRequest request)
+        {
+            try
+            {
+                var result = await _kubBossService.BlockStatus(request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "BlockStatus", $"email:{request.supplierAnswerID} , request:{JsonConvert.SerializeObject(request)}");
+                return Ok(new BlockStatusResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/questionnaire/update-status-by-email")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Subscriptions V1" }, Summary = "", Description = "API สำหรับ Subscriptions by E-mail")]
+        public async Task<IActionResult> BlockStatusByEmail([FromBody] BlockStatusByEmailRequest request)
+        {
+            try
+            {
+                var result = await _kubBossService.BlockStatusByEmail(request);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "BlockStatus", $"email:{request.email} , request:{JsonConvert.SerializeObject(request)}");
+                return Ok(new BlockStatusByEmailResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
+        }
         #endregion
 
         #region Credit Notes
@@ -1542,17 +1752,52 @@ namespace VendorPortal.API.Controllers.v1
         [SwaggerOperation(Tags = new[] { "Credit Notes V1" }, Summary = "", Description = "API สำหรับ สร้าง Credit Notes")]
         public async Task<IActionResult> PutCreditNotes(string id, [FromBody] PutCreditNotesRequest request)
         {
-            CreditNoteByIDResponse responseInvoiceByID = new();
+            CreditNoteByIDResponse responseCreditNoteByID = new();
             try
             {
-                var result = await _kubBossService.GetCreditNotesByID(id, request);
-                return Ok(result);
+                //var result = await _kubBossService.GetCreditNotesByID(id, request);
+                //return Ok(result);
+
+                responseCreditNoteByID = new CreditNoteByIDResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.Success.Text(),
+                        message = "รับคำขอเรียบร้อย กำลังดำเนินการส่งใบลดหนี้"
+                    },
+                    data = null
+                };
+
+                _ = Task.Run(async () =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var kubBossService = scope.ServiceProvider.GetRequiredService<IKubbossService>();
+
+                    try
+                    {
+                        int delaySeconds = Random.Shared.Next(5, 15);
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | CreditNote: {id}  | buyerCode: {request.buyerCode}  | delaySeconds:{delaySeconds}", "CreditNote");
+
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | CreditNote:{id} | buyerCode:{request.buyerCode}", "CreditNote");
+
+                        var result = await _kubBossService.GetCreditNotesByID(id, request);
+
+                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.status}", "CreditNote");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Credit Note BACKGROUND ERROR", $"CreditNote: {id}");
+                    }
+                });
 
             }
             catch (System.Exception ex)
             {
-                Logger.LogError(ex, "Create Invoice", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
-                responseInvoiceByID = new CreditNoteByIDResponse()
+                Logger.LogError(ex, "Create CreditNote", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
+                responseCreditNoteByID = new CreditNoteByIDResponse()
                 {
                     status = new Status()
                     {
@@ -1561,7 +1806,7 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 };
             }
-            return Ok(responseInvoiceByID);
+            return Ok(responseCreditNoteByID);
         }
 
         [HttpPost]
@@ -1608,17 +1853,52 @@ namespace VendorPortal.API.Controllers.v1
         [SwaggerOperation(Tags = new[] { "Debit Notes V1" }, Summary = "", Description = "API สำหรับ สร้าง Debit Notes")]
         public async Task<IActionResult> PutDebitNotes(string id, [FromBody] PutDebitNotesRequest request)
         {
-            DebitNotesByIDResponse responseInvoiceByID = new();
+            DebitNotesByIDResponse responseDebitNoteByID = new();
             try
             {
-                var result = await _kubBossService.GetDebitNotesByID(id, request);
-                return Ok(result);
+                //var result = await _kubBossService.GetDebitNotesByID(id, request);
+                //return Ok(result);
+
+                responseDebitNoteByID = new DebitNotesByIDResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.Success.Text(),
+                        message = "รับคำขอเรียบร้อย กำลังดำเนินการส่งใบเพิ่มหนี้"
+                    },
+                    data = null
+                };
+
+                _ = Task.Run(async () =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var kubBossService = scope.ServiceProvider.GetRequiredService<IKubbossService>();
+
+                    try
+                    {
+                        int delaySeconds = Random.Shared.Next(5, 15);
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | CreditNote: {id}  | buyerCode: {request.buyerCode}  | delaySeconds:{delaySeconds}", "DebitNotes");
+
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+                        await Logger.LogInfo($"BACKGROUND CALL KUBBOSS | CreditNote:{id} | buyerCode:{request.buyerCode}", "DebitNotes");
+
+                        var result = await _kubBossService.GetDebitNotesByID(id, request);
+
+                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.status}", "DebitNotes");
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.LogError(ex, "Debit Notes BACKGROUND ERROR", $"DebitNotes: {id}");
+                    }
+                });
 
             }
             catch (System.Exception ex)
             {
                 Logger.LogError(ex, "Create Debit Notes", $"id:{id} , request:{JsonConvert.SerializeObject(request)}");
-                responseInvoiceByID = new DebitNotesByIDResponse()
+                responseDebitNoteByID = new DebitNotesByIDResponse()
                 {
                     status = new Status()
                     {
@@ -1627,7 +1907,7 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 };
             }
-            return Ok(responseInvoiceByID);
+            return Ok(responseDebitNoteByID);
         }
 
 
@@ -1665,6 +1945,33 @@ namespace VendorPortal.API.Controllers.v1
             }
 
             return Ok(responseDebitNoteUpdate);
+        }
+        #endregion
+
+        #region GET Midia BASE64
+        [HttpGet]
+        [Route("api/v1/wolf-approve/media-file-content/{file_uuid}")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "File Media V1" }, Summary = "", Description = "API สำหรับ GET BASE64")]
+        public async Task<IActionResult> MediaFileContent(string file_uuid)
+        {
+            try
+            {
+                var result = await _kubBossService.GetMediaFileContent(file_uuid);
+                return Ok(result);
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, "MediaFileContent", $"uuid:{file_uuid} , request:{JsonConvert.SerializeObject(file_uuid)}");
+                return Ok(new BlockStatusResponse
+                {
+                    status = new Status
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    }
+                });
+            }
         }
         #endregion
     }

@@ -23,6 +23,7 @@ namespace VendorPortal.Application.Interfaces.v1
                     string order_by,
                     string q);
         Task<RFQShowResponse> GetRFQ_Show(string rfq_id);
+        Task<RFQCountResponse> GetRFQ_ShowBySuppilerID(string supplier_id);
 
         Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request, string domain);
         Task<RFQUpdateResponse> UpdateRFQ(RFQUpdateRequest request);
@@ -47,6 +48,9 @@ namespace VendorPortal.Application.Interfaces.v1
         Task<POCreateV2Response> CreatePOV2(POCreateV2Request request, string domain);
         Task<POCancelResponse> CancelPO(POCancelRequest request);
         Task<QuotationAwardResponse> CreatePOAward(QuotationAwardRequest request, string domain);
+        Task<POUpdateResponse> UpdatePOLines(string purchase_order_number, UpdatePORequest request, string domain);
+        Task<POStandaloneResponse> CreateStandalonePO(string quotation_id, POStandaloneRequest request, string domain);
+
 
 
         // Claim 

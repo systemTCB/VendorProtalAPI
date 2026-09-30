@@ -49,5 +49,33 @@ namespace VendorPortal.API.Controllers.v1
             }
             return Ok(responseJobDocumentByID);
         }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/GetCountRFQ")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(Tags = new[] { "Job Document V1" }, Summary = "Job Document", Description = "Job Document By ID")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(JobDocumentResponse))]
+        public async Task<IActionResult> GetCountRFQByID(JobDocumentRequest request)
+        {
+            JobDocumentResponse responseJobDocumentByID = new();
+            try
+            {
+                responseJobDocumentByID = await _wolfApproveService.GetJobDocuments(request);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Get JobDocument By ID ERROR");
+                responseJobDocumentByID = new JobDocumentResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+                    data = null
+                };
+            }
+            return Ok(responseJobDocumentByID);
+        }
     }
 }

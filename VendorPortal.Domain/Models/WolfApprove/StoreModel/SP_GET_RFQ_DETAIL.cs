@@ -44,7 +44,7 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sItemUomName { get; set; }
         public string sItemDescption { get; set; }
         public string sItemCategory { get; set; }
-        public int nQuantity { get; set; }
+        public decimal nQuantity { get; set; }
         public decimal dUnitPrice { get; set; }
         public decimal dVatRate { get; set; }
         public decimal dVatAmount { get; set; }

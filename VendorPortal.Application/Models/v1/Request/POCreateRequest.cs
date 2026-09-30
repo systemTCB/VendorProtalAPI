@@ -40,8 +40,8 @@ namespace VendorPortal.Application.Models.v1.Request
 
     public class DocumentDataPO
     {
-        public int net_amount { get; set; }
-        public int discount { get; set; }
+        public int? net_amount { get; set; }
+        public int? discount { get; set; }
         public string payment_condition { get; set; }
         public string remark { get; set; }
         public string issue_date { get; set; }
@@ -55,11 +55,11 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_name { get; set; }
         public string uom_name { get; set; }
         public string description { get; set; }
-        public int quantity { get; set; }
-        public int unit_price { get; set; }
-        public int discount { get; set; }
-        public int vat_rate { get; set; }
-        public int wht_rate { get; set; }
+        public int? quantity { get; set; }
+        public int? unit_price { get; set; }
+        public int? discount { get; set; }
+        public int? vat_rate { get; set; }
+        public int? wht_rate { get; set; }
     }
 
     public class RfqDataPO
@@ -81,9 +81,9 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_name { get; set; }
         public string uom_name { get; set; }
         public string description { get; set; }
-        public int quantity { get; set; }
-        public int unit_price { get; set; }
-        public int vat_rate { get; set; }
+        public int? quantity { get; set; }
+        public int? unit_price { get; set; }
+        public int? vat_rate { get; set; }
     }
 
    

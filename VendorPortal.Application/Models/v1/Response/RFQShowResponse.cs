@@ -43,4 +43,13 @@ namespace VendorPortal.Application.Models.v1.Response
         public List<Questionnaire> questionnaire { get; set; }
     }
 
+    public class RFQCountResponse : BaseResponse
+    {
+        public RFQCountData data { get; set; }
+    }
+
+    public class RFQCountData
+    {
+        public int RFQCount { get; set; }
+    }
 }

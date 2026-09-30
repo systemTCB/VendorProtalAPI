@@ -571,7 +571,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             return result;
         }
 
-        public async Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string? BuyerCode)
+        public async Task<List<SP_GET_Buyer_Code>> SP_GET_Buyer_Code(string? BuyerCode, string? CompanyName = null)
         {
             List<SP_GET_Buyer_Code> result = new List<SP_GET_Buyer_Code>();
             try
@@ -582,7 +582,8 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                     var sql = "SP_GET_Buyer_Code";
                     var param = new SqlParameter[]
                     {
-                        new SqlParameter("@BuyerCode", BuyerCode)
+                new SqlParameter("@BuyerCode",   (object?)BuyerCode   ?? DBNull.Value),
+                new SqlParameter("@CompanyName", (object?)CompanyName ?? DBNull.Value)
                     };
                     result = await _context.ExcuteStoreQueryListAsync<SP_GET_Buyer_Code>(sql, param);
                 }

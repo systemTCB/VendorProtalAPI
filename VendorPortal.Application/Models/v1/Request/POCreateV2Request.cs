@@ -47,9 +47,9 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_name { get; set; }
         public string uom_name { get; set; }
         public string description { get; set; }
-        public int quantity { get; set; }
-        public decimal unit_price { get; set; }
-        public int vat_rate { get; set; }
+        public int? quantity { get; set; }
+        public decimal? unit_price { get; set; }
+        public int? vat_rate { get; set; }
     }
 
 
@@ -72,16 +72,16 @@ namespace VendorPortal.Application.Models.v1.Request
         public class DocumentDataPOV2
         {
             public string document_type { get; set; }
-            public int net_amount { get; set; }
-            public int discount { get; set; }
-            public bool include_vat { get; set; }
-            public int vat_rate { get; set; }
-            public int vat_amount { get; set; }
-            public bool include_withholding_tax { get; set; }
-            public int wht_rate { get; set; }
-            public int wht_amount { get; set; }
-            public bool auto_cal_vat { get; set; }
-            public bool auto_cal_wht { get; set; }
+            public int? net_amount { get; set; }
+            public int? discount { get; set; }
+            public bool? include_vat { get; set; }
+            public int? vat_rate { get; set; }
+            public int? vat_amount { get; set; }
+            public bool? include_withholding_tax { get; set; }
+            public int? wht_rate { get; set; }
+            public int? wht_amount { get; set; }
+            public bool? auto_cal_vat { get; set; }
+            public bool? auto_cal_wht { get; set; }
             public string payment_condition { get; set; }
             public string remark { get; set; }
             public string issue_date { get; set; }
@@ -95,11 +95,13 @@ namespace VendorPortal.Application.Models.v1.Request
             public string item_name { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
-            public int quantity { get; set; }
-            public decimal unit_price { get; set; }
-            public int discount { get; set; }
-            public int vat_rate { get; set; }
-            public int wht_rate { get; set; }
+            public int? quantity { get; set; }
+            public decimal? unit_price { get; set; }
+            public decimal? discount { get; set; }
+            public decimal? vat_rate { get; set; }
+            public decimal? wht_rate { get; set; }
+            public decimal? vat_amount { get; set; }
+            public decimal? wht_amount { get; set; }
         }
 
         public class RfqDataPO
@@ -121,9 +123,9 @@ namespace VendorPortal.Application.Models.v1.Request
             public string item_name { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
-            public int quantity { get; set; }
-            public decimal unit_price { get; set; }
-            public int vat_rate { get; set; }
+            public int? quantity { get; set; }
+            public decimal? unit_price { get; set; }
+            public int? vat_rate { get; set; }
         }
 
     }

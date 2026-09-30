@@ -33,7 +33,7 @@ namespace VendorPortal.Application.Models.Common
             public string item_category { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
-            public int quantity { get; set; }
+            public decimal quantity { get; set; }
             public decimal unit_price { get; set; }
             public decimal vat_rate { get; set; }
             public decimal vat_amount { get; set; }

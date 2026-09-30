@@ -8,11 +8,11 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string sItemName { get; set; }
         public string sItemUomName { get; set; }
         public string sItemDescption { get; set; }
-        public int nQuantity { get; set; }
-        public decimal dUnitPrice { get; set; }
-        public decimal dVatRate { get; set; }
-        public decimal dVatAmount { get; set; }
-        public decimal dTotalAmount { get; set; }
+        public decimal? nQuantity { get; set; }
+        public decimal? dUnitPrice { get; set; }
+        public decimal? dVatRate { get; set; }
+        public decimal? dVatAmount { get; set; }
+        public decimal? dTotalAmount { get; set; }
         public bool IsActive { get; set; }
         public string CreatedBy { get; set; }
         public string sItemCategory { get; set; }

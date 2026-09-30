@@ -1,8 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 namespace VendorPortal.Logging
 {
     public static class Logger
@@ -86,6 +90,42 @@ namespace VendorPortal.Logging
                     @"C:\Temp\LoggerError.txt",
                     ex.ToString());
             }
+        }
+        public class MaskBase64Resolver : DefaultContractResolver
+        {
+            private static readonly HashSet<string> MaskedFields =
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "file_base64" };
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization ms)
+            {
+                var prop = base.CreateProperty(member, ms);
+                if (MaskedFields.Contains(prop.PropertyName))
+                    prop.ValueProvider = new MaskValueProvider(prop.ValueProvider);
+                return prop;
+            }
+
+            private class MaskValueProvider : IValueProvider
+            {
+                private readonly IValueProvider _inner;
+                public MaskValueProvider(IValueProvider inner) => _inner = inner;
+
+                public object GetValue(object target)
+                {
+                    var s = _inner.GetValue(target) as string;
+                    return s == null ? null : $"[base64 length={s.Length}]";
+                }
+                public void SetValue(object target, object value) => _inner.SetValue(target, value);
+            }
+        }
+        public static class LogJson
+        {
+            // cache settings ไว้ เพราะ resolver จะ cache contract ให้ ทำให้เร็ว
+            private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
+            {
+                ContractResolver = new MaskBase64Resolver()
+            };
+
+            public static string Serialize(object obj) => JsonConvert.SerializeObject(obj, Settings);
         }
     }
 }
