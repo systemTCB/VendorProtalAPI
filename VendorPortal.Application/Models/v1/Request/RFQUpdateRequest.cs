@@ -24,6 +24,7 @@ namespace VendorPortal.Application.Models.v1.Request
     {
         public string status { get; set; }
         public string supplier_name { get; set; }
+        public string supplier_id { get; set; }
         public string supplier_email { get; set; }
         public string doc_number { get; set; }
         public string reason { get; set; }

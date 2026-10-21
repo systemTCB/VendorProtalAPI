@@ -8,7 +8,6 @@ using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using HandlebarsDotNet;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
@@ -445,14 +444,33 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 var payloadObj = answerData ?? new JObject();
                 var jObj = JObject.FromObject(payloadObj);
-                jObj["data"]["docNo"] = docNo;
-                jObj["data"]["is_unblock"] = is_unblock;
+                if (jObj["data"] == null) jObj["data"] = new JObject();
+                var data = (JObject)jObj["data"];
+                data["docNo"] = docNo;
+                data["is_unblock"] = is_unblock;
+
+                // คำนวณ submission_version_show
+                int submissionVersion = 0;
+                var versionToken = data["submission_version"];
+                if (versionToken != null && versionToken.Type != JTokenType.Null)
+                {
+                    int.TryParse(versionToken.ToString(), out submissionVersion);
+                }
+
+                int submissionVersionShow = submissionVersion >= 99990
+                    ? submissionVersion - 99990
+                    : submissionVersion;
+
+                data["submission_version_show"] = submissionVersionShow;
+
                 var payloadJson = JsonConvert.SerializeObject(jObj);
 
                 await Logger.LogInfo($"Payload built | Buyer:{buyerRoute.BuyerCode} | Payload:{payloadJson}", "RegsiterSuppliersFromKubboss");
 
                 await Logger.LogInfo($"Calling SendToBuyer | Buyer:{buyerRoute.BuyerCode}", "RegsiterSuppliersFromKubboss");
-                var sent = await SendToBuyer(buyerRoute, payloadJson);
+
+                var sent = await SendToBuyer(buyerRoute, payloadJson); //<<<<<<<<<<<<<<<<<<<<<<<<<<< SendToBuyer
+
                 await Logger.LogInfo($"SendToBuyer returned | Buyer:{buyerRoute.BuyerCode} | Result:{sent}", "RegsiterSuppliersFromKubboss");
 
                 if (!sent)
@@ -1028,98 +1046,6 @@ namespace VendorPortal.Application.Services.SyncExternalData
             return JObject.Parse(content);
         }
 
-        public async Task<ProductMedicalResponse> GetProductMedical(string? sku, string? name, string? sortDirection, int page, int per_page)
-        {
-            try
-            {
-                var host = _httpContextAccessor.HttpContext?.Request.Host.Host.ToLower();
-                var system = await _wolfApproveRepository.SP_GET_Systems(host);
-                if (system == null || system.Count == 0)
-                    throw new Exception("System not configured");
-
-                var systemConfig = system.First();
-                var baseUrl = systemConfig.BaseUrl;
-                var token = systemConfig.Token;
-
-                var client = HttpClientHelper.CreateClient(baseUrl, token);
-
-                var query = new Dictionary<string, string?>
-                {
-                    ["sku"] = sku,
-                    ["name"] = name,
-                    ["sortDirection"] = sortDirection,
-                    ["page"] = page.ToString(),
-                    ["per_page"] = per_page.ToString()
-                };
-
-                var url = QueryHelpers.AddQueryString("api/product-medical", query);
-
-                var response = await client.GetAsync(url);
-
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception("Failed to call destination API");
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                return JsonConvert.DeserializeObject<ProductMedicalResponse>(content);
-            }
-            catch (System.Exception ex)
-            {
-                Logger.LogError(ex, "GetProductMedical");
-
-                return new ProductMedicalResponse
-                {
-                    status = new Status()
-                    {
-                        code = "500",
-                        message = "Failed to GetProductMedical"
-                    },
-                    data = null
-
-                };
-            }
-        }
-
-        public async Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id)
-        {
-            try
-            {
-                var host = _httpContextAccessor.HttpContext?.Request.Host.Host.ToLower();
-                var system = await _wolfApproveRepository.SP_GET_Systems(host);
-                if (system == null || system.Count == 0)
-                    throw new Exception("System not configured");
-
-                var systemConfig = system.First();
-                var baseUrl = systemConfig.BaseUrl;
-                var token = systemConfig.Token;
-
-                var client = HttpClientHelper.CreateClient(baseUrl, token);
-
-                var response = await client.GetAsync($"/api/product-medical/{id}");
-
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception("Failed to call destination API");
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                return JsonConvert.DeserializeObject<ProductMedicalByIdResponse>(content);
-            }
-            catch (System.Exception ex)
-            {
-                Logger.LogError(ex, "GetProductMedical By ID");
-
-                return new ProductMedicalByIdResponse
-                {
-                    status = new Status()
-                    {
-                        code = "500",
-                        message = "Failed to GetProductMedical By ID"
-                    },
-                    data = null
-
-                };
-            }
-        }
         public async Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request)
         {
             try
@@ -1203,6 +1129,31 @@ namespace VendorPortal.Application.Services.SyncExternalData
         {
             try
             {
+                await Logger.LogInfo(
+                    $"CancelPOKubboss: Request | purchase_order_number:{request?.purchase_order_number}, cancel_reason:{request?.cancel_reason}",
+                    "PurchaseOrderKubboss"
+                );
+
+                var localData = await _wolfApproveRepository.SP_GET_TRNPurchaseOrderKubboss(request.purchase_order_number);
+
+                if (string.IsNullOrEmpty(localData?.purchase_order_id))
+                {
+                    await Logger.LogInfo(
+                        $"CancelPOKubboss: Not found purchase_order_id | purchase_order_number:{request.purchase_order_number}",
+                        "PurchaseOrderKubboss"
+                    );
+
+                    return new POCancelResponse
+                    {
+                        status = new Status
+                        {
+                            code = "404",
+                            message = $"ไม่พบ purchase_order_id ของเลข PO {request.purchase_order_number}"
+                        },
+                        data = null
+                    };
+                }
+
                 var body = new
                 {
                     remark = request.cancel_reason ?? "ยกเลิก PO"
@@ -1215,24 +1166,34 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     Encoding.UTF8,
                     "application/json");
 
+                var url = $"/api/purchase-order/id/{Uri.EscapeDataString(localData.purchase_order_id)}/cancel";
 
-                var res = await client.PatchAsync($"/api/purchase-order/{request.purchase_order_number}/cancel", content);
+                await Logger.LogInfo(
+                    $"CancelPOKubboss: Call KB | url:{url}, body:{json}, purchase_order_number:{request.purchase_order_number}",
+                    "PurchaseOrderKubboss"
+                );
+
+                var res = await client.PatchAsync(url, content);
 
                 var responseContent = await res.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo(
+                    $"CancelPOKubboss: Response KB | httpStatus:{(int)res.StatusCode}, purchase_order_id:{localData.purchase_order_id}, body:{responseContent}",
+                    "PurchaseOrderKubboss"
+                );
 
                 return JsonConvert.DeserializeObject<POCancelResponse>(responseContent);
             }
             catch (System.Exception ex)
             {
-
-                Logger.LogError(ex, "CanlcelPOKubboss");
+                Logger.LogError(ex, "PurchaseOrderKubboss");
 
                 return new POCancelResponse
                 {
                     status = new Status
                     {
                         code = "500",
-                        message = " response failed"
+                        message = "response failed"
                     },
                     data = null
                 };
@@ -1320,10 +1281,34 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
         }
 
-        public async Task<POUpdateResponse> UpdatePOLineKubboss(HttpClient client, UpdatePORequest request, string purchase_order_number)
+        public async Task<POUpdateResponse> UpdatePOLineKubboss(HttpClient client, UpdatePORequest request)
         {
             try
             {
+                await Logger.LogInfo(
+                    $"UpdatePOLineKubboss: Request | purchase_order_number:{request.purchase_order_number}",
+                    "PurchaseOrderKubboss"
+                );
+
+                var localData = await _wolfApproveRepository.SP_GET_TRNPurchaseOrderKubboss(request.purchase_order_number);
+
+                if (string.IsNullOrEmpty(localData?.purchase_order_id))
+                {
+                    await Logger.LogInfo(
+                        $"UpdatePOLineKubboss: Not found purchase_order_id | purchase_order_number:{request.purchase_order_number}",
+                        "PurchaseOrderKubboss"
+                    );
+
+                    return new POUpdateResponse
+                    {
+                        status = new Status
+                        {
+                            code = "404",
+                            message = $"ไม่พบ purchase_order_id ของเลข PO {request.purchase_order_number}"
+                        },
+                        data = null
+                    };
+                }
 
                 var requestToSend = JsonConvert.DeserializeObject<UpdatePORequest>(JsonConvert.SerializeObject(request));
 
@@ -1335,21 +1320,33 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     Encoding.UTF8,
                     "application/json");
 
-                var res = await client.PostAsync($"/api/purchase-order/{purchase_order_number}/lines", content);
+                var url = $"/api/purchase-order/id/{Uri.EscapeDataString(localData.purchase_order_id)}/lines";
+
+                await Logger.LogInfo(
+                    $"UpdatePOLineKubboss: Call KB | url:{url}, purchase_order_number:{request.purchase_order_number}, body:{json}",
+                    "PurchaseOrderKubboss"
+                );
+
+                var res = await client.PatchAsync(url, content);
                 var responseContent = await res.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo(
+                    $"UpdatePOLineKubboss: Response KB | httpStatus:{(int)res.StatusCode}, purchase_order_id:{localData.purchase_order_id}, body:{responseContent}",
+                    "PurchaseOrderKubboss"
+                );
+
                 return JsonConvert.DeserializeObject<POUpdateResponse>(responseContent);
             }
             catch (System.Exception ex)
             {
-
-                Logger.LogError(ex, "CreatePOKubboss");
+                Logger.LogError(ex, "PurchaseOrderKubboss");
 
                 return new POUpdateResponse
                 {
                     status = new Status
                     {
                         code = "500",
-                        message = " response failed"
+                        message = "response failed"
                     },
                     data = null
                 };
@@ -1835,6 +1832,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
         {
             try
             {
+                var logName = "DeliveryOrders";
                 var sqlParameter = new SqlParameter[] {
                                 new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
                             };
@@ -1855,16 +1853,51 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 var resultDeliveryOrders = JsonConvert.DeserializeObject<DeliveryOrdersResponse>(content);
 
                 var routes = await GetActiveBuyerRoute(request.buyerCode);
-                var buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_DO");
+
+                SP_GET_Buyer_Code buyerRoute = null;
+
+                var status = request.status?.ToLower();
+
+                if (status == "create")
+                {
+                    buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CREATE_DO");
+                }
+                else if (status == "cancel")
+                {
+                    buyerRoute = routes.FirstOrDefault(x => x.ActionType == "CANCEL_DO");
+                }
+                else
+                {
+                    await Logger.LogInfo($"ABORT | Unsupported status:{request.status} | DeliveryOrders:{id}", logName);
+                    throw new Exception($"Unsupported status: {request.status}");
+                }
 
                 if (buyerRoute == null)
-                    throw new Exception("Failed to call destination API");
+                    throw new Exception("Failed to call destination API DeliveryOrders");
 
                 var jObj = JObject.Parse(content);
-
                 var payloadObj = jObj["data"] ?? new JObject();
 
-                var payloadJson = JsonConvert.SerializeObject(payloadObj);
+                string payloadJson;
+
+                if (status == "cancel")
+                {
+                    var delivery_order_number = payloadObj["delivery_order_number"]?.ToString();
+
+                    var cancelRequestBody = new
+                    {
+                        docNumber = delivery_order_number,
+                        reason = request.reason?.ToString(),
+                    };
+
+                    payloadJson = JsonConvert.SerializeObject(cancelRequestBody);
+                }
+                else
+                {
+                    payloadJson = JsonConvert.SerializeObject(payloadObj);
+                }
+
+                await Logger.LogInfo($"Send To Buyer | Buyer:{buyerRoute.BuyerCode} | Action:{buyerRoute.ActionType}", logName);
 
                 await SendToBuyer(buyerRoute, payloadJson);
 
@@ -2401,6 +2434,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                 {
                     email = request.email,
                     company_id = request.company_id,
+                    supplier_id = request.supplier_id,
                     status = request.status,
                     remark = request.remark
                 };
@@ -2502,11 +2536,11 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 if (status == "cancel")
                 {
-                    var invoice_number = payloadObj["invoice_number"]?.ToString();
+                    var credit_note_number = payloadObj["credit_note_number"]?.ToString();
 
                     var cancelRequestBody = new
                     {
-                        docNumber = invoice_number,
+                        docNumber = credit_note_number,
                         reason = request.reason?.ToString(),
                     };
 
@@ -2592,11 +2626,11 @@ namespace VendorPortal.Application.Services.SyncExternalData
 
                 if (status == "cancel")
                 {
-                    var invoice_number = payloadObj["invoice_number"]?.ToString();
+                    var debit_note_number = payloadObj["debit_note_number"]?.ToString();
 
                     var cancelRequestBody = new
                     {
-                        docNumber = invoice_number,
+                        docNumber = debit_note_number,
                         reason = request.reason?.ToString(),
                     };
 
@@ -2761,7 +2795,6 @@ namespace VendorPortal.Application.Services.SyncExternalData
         public async Task<AwardQuotationResponse> AwardQuotation(awardQuotationRequest request)
         {
             const string logName = "AwardQuotation";
-
             try
             {
                 var sqlParameter = new SqlParameter[] {
@@ -2814,6 +2847,58 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     {
                         code = "500",
                         message = "Failed to Award Quotation"
+                    },
+                    data = null
+                };
+            }
+        }
+        public async Task<CheckSupplierResponse> GetSupplierByEmail(CheckSupplierRequest request)
+        {
+            const string logName = "GetSupplierByEmail";
+
+            try
+            {
+                var sqlParameter = new SqlParameter[] {
+                                new SqlParameter("@sChannel", _appConfigHelper.GetConfiguration("KubbossChannel"))
+                            };
+
+                var configToken = await _dbContext.ExcuteStoreQuerySingleAsync<SP_GET_SYSENDPOINT>("SP_GET_SYSENDPOINT", sqlParameter);
+
+                var endPoint = _appConfigHelper.GetConfiguration("EndPoint:Kubboss");
+
+                var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
+
+                var GetSupplierByEmail = JsonConvert.SerializeObject(request);
+
+                await Logger.LogInfo($"Start Send | Method:POST | Url:{endPoint}/api/check-supplier | Body:{GetSupplierByEmail}", logName);
+
+                var SupplierByEmailContent = new StringContent(GetSupplierByEmail, Encoding.UTF8, "application/json");
+
+                var responseGetSupplierByEmail = await client.PostAsync($"/api/check-supplier", SupplierByEmailContent);
+
+                if (!responseGetSupplierByEmail.IsSuccessStatusCode)
+                    throw new Exception("Failed to check-supplier.");
+
+                var GetSupplierByEmailResponseString = await responseGetSupplierByEmail.Content.ReadAsStringAsync();
+
+                await Logger.LogInfo($"Response | StatusCode:{(int)responseGetSupplierByEmail.StatusCode} | Body:{GetSupplierByEmailResponseString}", logName);
+
+                var result = JsonConvert.DeserializeObject<CheckSupplierResponse>(GetSupplierByEmailResponseString);
+
+                await Logger.LogInfo("SUCCESS | check-supplier", logName);
+
+                return result;
+            }
+            catch (System.Exception ex)
+            {
+                Logger.LogError(ex, logName);
+
+                return new CheckSupplierResponse
+                {
+                    status = new Status()
+                    {
+                        code = "500",
+                        message = "Failed to Check-supplier"
                     },
                     data = null
                 };

@@ -41,4 +41,9 @@ namespace VendorPortal.Domain.Models.WolfApprove.StoreModel
         public string CancelRemark { get; set; }
 
     }
+    public class SP_COUNT_RFQ_RESULT
+    {
+        public int RFQCount { get; set; }
+    }
+
 }

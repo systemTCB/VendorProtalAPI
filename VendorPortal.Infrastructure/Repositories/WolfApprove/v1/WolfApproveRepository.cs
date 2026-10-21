@@ -4,7 +4,6 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
-using Microsoft.SqlServer.Server;
 using VendorPortal.Domain.Interfaces.v1;
 using VendorPortal.Domain.Models.WolfApprove.StoreModel;
 using VendorPortal.Infrastructure.Extensions;
@@ -84,6 +83,27 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 return result;
             }
             return result;
+        }
+        public async Task<int> SP_COUNT_RFQ_BY_SUP_ID(string supplier_id, DateTime? dateFrom, DateTime? dateTo)
+        {
+            try
+            {
+                var sql = "SP_COUNT_RFQ_BY_SUP_ID";
+                var param = new SqlParameter[]
+                {
+            new SqlParameter("@SupplierId", SqlDbType.NVarChar, 50) { Value = supplier_id },
+            new SqlParameter("@DateFrom", SqlDbType.DateTime) { Value = (object?)dateFrom ?? DBNull.Value },
+            new SqlParameter("@DateTo",   SqlDbType.DateTime) { Value = (object?)dateTo   ?? DBNull.Value }
+                };
+
+                var result = await _context.ExcuteStoreQueryListAsync<SP_COUNT_RFQ_RESULT>(sql, param);
+                return result?.FirstOrDefault()?.RFQCount ?? 0;
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, nameof(SP_COUNT_RFQ_BY_SUP_ID));
+                throw;
+            }
         }
 
         public async Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id)
@@ -271,7 +291,7 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
             }
         }
 
-        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id,string supplier_id, string status, string reason)
+        public async Task<SP_PUT_QUOTATION> SP_PUT_QUOTATION_CREATE(string rfq_id, string quo_number, string quo_id, string supplier_id, string status, string reason)
         {
             try
             {
@@ -776,6 +796,91 @@ namespace VendorPortal.Infrastructure.Repositories.WolfApprove.v1
                 );
 
                 throw;
+            }
+        }
+        public async Task<SP_INSERT_TRNPurchaseOrderKubboss> SP_INSERT_TRNPurchaseOrderKubboss(string email, string purchaseOrderId, string purchaseOrderNumber, string remark = null, string status = "in_progress")
+        {
+            try
+            {
+                await Logger.LogInfo(
+                    $"SP_INSERT_TRNPurchaseOrderKubboss: Request | email:{email}, purchase_order_id:{purchaseOrderId}, purchase_order_number:{purchaseOrderNumber}, remark:{remark}, status:{status}",
+                    "PurchaseOrderKubboss"
+                );
+
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+
+                    var sql = "SP_INSERT_TRNPurchaseOrderKubboss";
+
+                    var param = new SqlParameter[]
+                    {
+                        new SqlParameter("@sEmail",               (object)email ?? DBNull.Value),
+                        new SqlParameter("@sPurchaseOrderId",     (object)purchaseOrderId ?? DBNull.Value),
+                        new SqlParameter("@sPurchaseOrderNumber", (object)purchaseOrderNumber ?? DBNull.Value),
+                        new SqlParameter("@sRemark",              (object)remark ?? DBNull.Value),
+                        new SqlParameter("@sStatus",              status ?? "in_progress")
+                    };
+
+                    var result = await _context.ExcuteStoreQueryListAsync<SP_INSERT_TRNPurchaseOrderKubboss>(sql, param);
+
+                    var data = result?.FirstOrDefault();
+
+                    await Logger.LogInfo(
+                        $"SP_INSERT_TRNPurchaseOrderKubboss: Result | count:{result?.Count ?? 0}, result:{data?.result}, message:{data?.message}",
+                        "PurchaseOrderKubboss"
+                    );
+
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "PurchaseOrderKubboss");
+                return new SP_INSERT_TRNPurchaseOrderKubboss
+                {
+                    result = false,
+                    message = ex.Message
+                };
+            }
+        }
+
+        public async Task<SP_GET_TRNPurchaseOrderKubboss> SP_GET_TRNPurchaseOrderKubboss(string purchaseOrderNumber)
+        {
+            try
+            {
+                await Logger.LogInfo(
+                    $"SP_GET_TRNPurchaseOrderKubboss: Request | purchase_order_number:{purchaseOrderNumber}",
+                    "PurchaseOrderKubboss"
+                );
+
+                using (var connection = _context.CreateConnectionRead())
+                {
+                    connection.Open();
+
+                    var sql = "SP_GET_TRNPurchaseOrderKubboss";
+
+                    var param = new SqlParameter[]
+                    {
+                new SqlParameter("@sPurchaseOrderNumber", (object)purchaseOrderNumber ?? DBNull.Value)
+                    };
+
+                    var result = await _context.ExcuteStoreQueryListAsync<SP_GET_TRNPurchaseOrderKubboss>(sql, param);
+
+                    var data = result?.FirstOrDefault();
+
+                    await Logger.LogInfo(
+                        $"SP_GET_TRNPurchaseOrderKubboss: Result | count:{result?.Count ?? 0}, purchase_order_id:{data?.purchase_order_id}, status:{data?.status}",
+                        "PurchaseOrderKubboss"
+                    );
+
+                    return data;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "PurchaseOrderKubboss");
+                return null;
             }
         }
     }

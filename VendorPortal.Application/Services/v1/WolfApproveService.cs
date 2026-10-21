@@ -1022,6 +1022,13 @@ namespace VendorPortal.Application.Services.v1
                 if (resCreatePO.data.id == null)
                     return resCreatePO;
 
+                var insertResult = await _wolfApproveRepository.SP_INSERT_TRNPurchaseOrderKubboss(
+                    request.email,
+                    resCreatePO.data.id,
+                    resCreatePO.data.purchase_order_number,
+                    resCreatePO.data.remark,
+                    resCreatePO.data.status);
+
                 #region ส่งไป upload 
                 if (request.attachments != null && request.attachments.Any())
                 {
@@ -1187,8 +1194,6 @@ namespace VendorPortal.Application.Services.v1
                     Logger.LogInfo("Insert Document", "CreatePO", $"result: {res.Message}");
                 }
                 #endregion
-
-
 
                 return resCreatePO;
 
@@ -1407,7 +1412,7 @@ namespace VendorPortal.Application.Services.v1
             return response;
         }
 
-        public async Task<POUpdateResponse> UpdatePOLines(string purchase_order_number, UpdatePORequest request, string domain)
+        public async Task<POUpdateResponse> UpdatePOLines(UpdatePORequest request, string domain)
         {
             POUpdateResponse response = new POUpdateResponse();
             DateTime createdDate = DateTime.Now;
@@ -1424,7 +1429,7 @@ namespace VendorPortal.Application.Services.v1
 
                 var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
-                POUpdateResponse resUpdatePO = await _kubBossService.UpdatePOLineKubboss(client, request, purchase_order_number);
+                POUpdateResponse resUpdatePO = await _kubBossService.UpdatePOLineKubboss(client, request);
 
                 if (resUpdatePO?.data == null)
                     return resUpdatePO;
@@ -2124,6 +2129,34 @@ namespace VendorPortal.Application.Services.v1
             }
             return response;
         }
+        public async Task<RFQCountResponse> GetRFQCountBySupplierID(string supplier_id, int? year, int? month)
+        {
+            if (string.IsNullOrEmpty(supplier_id))
+                return Error(ResponseCode.NotFound);
+
+            if ((month.HasValue && !year.HasValue) || month is < 1 or > 12)
+                return Error(ResponseCode.BadRequest);
+
+            DateTime? dateFrom = null, dateTo = null;
+            if (year.HasValue)
+            {
+                dateFrom = new DateTime(year.Value, month ?? 1, 1);
+                dateTo = month.HasValue ? dateFrom.Value.AddMonths(1) : dateFrom.Value.AddYears(1);
+            }
+
+            int count = await _wolfApproveRepository.SP_COUNT_RFQ_BY_SUP_ID(supplier_id, dateFrom, dateTo);
+
+            return new RFQCountResponse
+            {
+                status = new Status { code = ResponseCode.Success.Text(), message = ResponseCode.Success.Text() },
+                data = new RFQCountData { RFQCount = count }
+            };
+        }
+
+        private static RFQCountResponse Error(ResponseCode code) => new RFQCountResponse
+        {
+            status = new Status { code = code.Text(), message = code.Description() }
+        };
 
         public async Task<RFQCreateResponse> CreateAndUpdateRFQ(RFQCreateRequest request, string domain)
         {
@@ -2214,7 +2247,7 @@ namespace VendorPortal.Application.Services.v1
                                     var extension = Path.GetExtension(originalFileName);
                                     if (string.IsNullOrWhiteSpace(extension))
                                     {
-                                        Logger.LogInfo("CreatePO File", "Unknown file type", $"file_name: {attach.file_name}, file_seq: {attach.file_seq}");
+                                        Logger.LogInfo("Create File", "Unknown file type", $"file_name: {attach.file_name}, file_seq: {attach.file_seq}");
                                     }
                                 }
 
@@ -2250,6 +2283,14 @@ namespace VendorPortal.Application.Services.v1
                     bool isNewFileAdded = newFileNameSet.Except(oldFileNameSet).Any();
                     bool isEndDateChanged = currentRfq.dEndDate != request.end_date;
 
+                    #region Log เช็คเวลา ถ้านิ่งแล้วลบออกดีกว่า เริ่มเยอะ
+                    Logger.LogInfo("End Date Check", "UpdateRFQ",
+                     $"rfq_id: {request.rfq_id} | " +
+                     $"db_end_date: {currentRfq.dEndDate:yyyy-MM-dd HH:mm:ss.fff} (Kind: {((DateTime?)currentRfq.dEndDate)?.Kind}) | " +
+                     $"request_end_date: {request.end_date:yyyy-MM-dd HH:mm:ss.fff} (Kind: {((DateTime?)request.end_date)?.Kind}) | " +
+                     $"isEndDateChanged: {isEndDateChanged}");
+                    #endregion
+
                     string update_sup_id = string.Empty;
                     if (request.supplier_id.Count != 0)
                         update_sup_id = string.Join(",", request.supplier_id);
@@ -2274,6 +2315,22 @@ namespace VendorPortal.Application.Services.v1
                     var updateMailRecipientList = hasUpdateContent ? existingSupplier : new List<string>();
 
                     var newRfqMailRecipientList = newSupplier;
+
+                    #region Log Mail 
+                    Logger.LogInfo("Mail Recipient Check", "UpdateRFQ",
+                        $"rfq_id: {request.rfq_id} | " +
+                        $"old_supplier: [{string.Join(",", oldSupplierList)}] | " +
+                        $"request_supplier: [{string.Join(",", request.supplier_id)}] | " +
+                        $"new_supplier: [{string.Join(",", newSupplier)}] | " +
+                        $"existing_supplier: [{string.Join(",", existingSupplier)}] | " +
+                        $"isEndDateChanged: {isEndDateChanged} | isNewFileAdded: {isNewFileAdded} | hasUpdateContent: {hasUpdateContent}");
+
+                    Logger.LogInfo("Mail Recipient Result", "UpdateRFQ",
+                        $"rfq_id: {request.rfq_id} | " +
+                        $"update_mail_to: [{string.Join(",", updateMailRecipientList)}] | " +
+                        $"new_rfq_mail_to: [{string.Join(",", newRfqMailRecipientList)}]");
+
+                    #endregion
 
                     var update_rfq_response = await UpdateRFQ(new RFQUpdateRequest
                     {
@@ -2303,7 +2360,6 @@ namespace VendorPortal.Application.Services.v1
                     }
 
                     //ส่งเมลแจ้งเตือน New RFQ
-
                     #region send mail (new + update)
                     if (updateMailRecipientList.Any() || newRfqMailRecipientList.Any())
                     {
@@ -2318,6 +2374,9 @@ namespace VendorPortal.Application.Services.v1
                         // ส่ง Update ให้ Supplier เดิม (เฉพาะกรณีมีการเปลี่ยนไฟล์/วันที่)
                         if (updateMailRecipientList.Any())
                         {
+                            Logger.LogInfo("Send Mail Update", "UpdateRFQ",
+                                $"rfq_id: {request.rfq_id} | to_supplier: [{string.Join(",", updateMailRecipientList)}] | requester: {request.requester?.requesterEmail}");
+
                             await SendEmailNotifyUpdate(
                                 client,
                                 updateMailRecipientList,
@@ -2329,15 +2388,24 @@ namespace VendorPortal.Application.Services.v1
                         // ส่ง NewRFQ ให้ Supplier ใหม่
                         if (newRfqMailRecipientList.Any())
                         {
+                            var mailRfqId = update_rfq_response.data?.rfq_id?.ToString() ?? request.rfq_id.ToString();
+
+                            Logger.LogInfo("Send Mail New RFQ", "UpdateRFQ",
+                                $"rfq_id: {mailRfqId} | to_supplier: [{string.Join(",", newRfqMailRecipientList)}] | requester: {request.requester?.requesterEmail}");
+
                             await SendEmailNotify(
                                 client,
                                 newRfqMailRecipientList,
-                                update_rfq_response.data?.rfq_id?.ToString() ?? request.rfq_id.ToString(),
+                                mailRfqId,
                                 "TH",
                                 request.requester.requesterEmail);
                         }
                     }
-
+                    else
+                    {
+                        Logger.LogInfo("Skip Send Mail", "UpdateRFQ",
+                            $"rfq_id: {request.rfq_id} | reason: no new supplier and no content change (end_date/file)");
+                    }
                     #endregion
 
                     return response;
@@ -2612,7 +2680,18 @@ namespace VendorPortal.Application.Services.v1
                     var client = HttpClientHelper.CreateClient(endPoint, configToken?.sToken);
 
                     var defaultLang = "TH";
-                    await SendEmailNotify(client, request.supplier_id, result.RFQID?.ToString(), defaultLang, request.requester.requesterEmail);
+
+                    if (request.supplier_id != null && request.supplier_id.Any())
+                    {
+                        Logger.LogInfo("Send Mail New RFQ", "CreateRFQ",
+                            $"rfq_id: {result.RFQID} | rfq_number: {request.rfq_number} | to_supplier: [{string.Join(",", request.supplier_id)}] | requester: {request.requester?.requesterEmail}");
+
+                        await SendEmailNotify(client, request.supplier_id, result.RFQID?.ToString(), defaultLang, request.requester.requesterEmail);
+                    }
+                    else
+                    {
+                        Logger.LogInfo("Skip Send Mail", "CreateRFQ", $"rfq_id: {result.RFQID} | reason: supplier_id is empty");
+                    }
 
                     #endregion
                 }
@@ -2630,7 +2709,6 @@ namespace VendorPortal.Application.Services.v1
                     };
 
                 }
-
             }
             catch (System.Exception ex)
             {
@@ -2880,8 +2958,12 @@ namespace VendorPortal.Application.Services.v1
                         };
                         try
                         {
+                            var rfqDetail = verify.FirstOrDefault();
+                            var companyName = rfqDetail?.sCompanyName?.Trim();
+                            var useBuyerCode = !string.IsNullOrWhiteSpace(request.buyerCode);
+                            await Logger.LogInfo($"buyerCode: '{request.buyerCode}', companyName from RFQ: '{companyName}', useBuyerCode: {useBuyerCode}", "PutQuotation");
 
-                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                            var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode, companyName);
                             var route = routes.FirstOrDefault(x => x.ActionType == "UPDATE_QUOTATION");
 
                             var sqlParameter = new SqlParameter[] {
@@ -2908,7 +2990,8 @@ namespace VendorPortal.Application.Services.v1
                                     supplier_name = name,
                                     supplier_email = supplier_email,
                                     status = "ไม่เข้าร่วม",
-                                    reason = request.reason
+                                    reason = request.reason,
+                                    supplier_id = request.supplier_id
                                 };
 
                                 Logger.LogInfo("SendToBuyer", "CreateRFQ", $"result: {JsonConvert.SerializeObject(payload)}");
@@ -2971,7 +3054,12 @@ namespace VendorPortal.Application.Services.v1
                         {
                             try
                             {
-                                var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode);
+                                var rfqDetail = verify.FirstOrDefault();
+                                var companyName = rfqDetail?.sCompanyName?.Trim();
+                                var useBuyerCode = !string.IsNullOrWhiteSpace(request.buyerCode);
+                                await Logger.LogInfo($"buyerCode: '{request.buyerCode}', companyName from RFQ: '{companyName}', useBuyerCode: {useBuyerCode}", "PutQuotation");
+
+                                var routes = await _wolfApproveRepository.SP_GET_Buyer_Code(request.buyerCode, companyName);
                                 var route = routes.FirstOrDefault(x => x.ActionType == "UPDATE_QUOTATION");
 
                                 var sqlParameter = new SqlParameter[] {
@@ -2998,7 +3086,8 @@ namespace VendorPortal.Application.Services.v1
                                         supplier_email = supplier_email,
                                         status = "ไม่เข้าร่วม",
                                         reason = request.reason,
-                                        cancel = true
+                                        cancel = true,
+                                        supplier_id = request.supplier_id
                                     };
 
                                     Logger.LogInfo("SendToBuyer", "CreatRFP", $"result: {JsonConvert.SerializeObject(payload)}");
@@ -3399,6 +3488,14 @@ namespace VendorPortal.Application.Services.v1
         public async Task SendEmailNotify(HttpClient client, List<string> supplierIds, string rfqId, string language, string cc_requester)
         {
             var delayMs = Random.Shared.Next(10000, 50001);
+
+            Logger.LogInfo("Start Send Email", "NotifyRFQ",
+                $"rfq_id: {rfqId} | " +
+                $"supplier_count: {supplierIds?.Count ?? 0} | " +
+                $"supplier_ids: [{string.Join(",", supplierIds ?? new List<string>())}] | " +
+                $"lang: {language} | " +
+                $"delay_ms: {delayMs}");
+
             await Task.Delay(delayMs);
 
             foreach (var supId in supplierIds)
@@ -3411,7 +3508,10 @@ namespace VendorPortal.Application.Services.v1
 
                     if (string.IsNullOrWhiteSpace(email))
                     {
-                        Logger.LogInfo("NotifyRFQ", $"Skip supplier {supId} (no email)");
+                        Logger.LogInfo("Skip Supplier", "NotifyRFQ",
+                            $"rfq_id: {rfqId} | " +
+                            $"supplier_id: {supId} | " +
+                            $"reason: no email");
                         continue;
                     }
 
@@ -3419,9 +3519,15 @@ namespace VendorPortal.Application.Services.v1
                     {
                         ["email"] = email,
                         ["rfq_id"] = rfqId,
-                        ["lang"] = language ?? "TH"
+                        ["lang"] = language ?? "TH",
+                        ["supplier_id"] = supId,
                         //["cc_requester"] = cc_requester
                     };
+
+                    Logger.LogInfo("Send Request", "NotifyRFQ",
+                        $"rfq_id: {rfqId} | " +
+                        $"supplier_id: {supId} | " +
+                        $"payload: {payload.ToString(Formatting.None)}");
 
                     var success = false;
 
@@ -3436,15 +3542,24 @@ namespace VendorPortal.Application.Services.v1
 
                         if (response.IsSuccessStatusCode)
                         {
-                            Logger.LogInfo("NotifyRFQ",
-                                $"SUCCESS | supplier:{supId} | email:{email}");
+                            Logger.LogInfo("Send Success", "NotifyRFQ",
+                                $"rfq_id: {rfqId} | " +
+                                $"supplier_id: {supId} | " +
+                                $"email: {email} | " +
+                                $"attempt: {i} | " +
+                                $"httpStatus: {(int)response.StatusCode}");
 
                             success = true;
                             break;
                         }
 
-                        Logger.LogInfo("NotifyRFQ",
-                            $"Retry {i} | supplier:{supId} | response:{resBody}");
+                        Logger.LogInfo("Send Retry", "NotifyRFQ",
+                            $"rfq_id: {rfqId} | " +
+                            $"supplier_id: {supId} | " +
+                            $"email: {email} | " +
+                            $"attempt: {i}/3 | " +
+                            $"httpStatus: {(int)response.StatusCode} | " +
+                            $"response: {resBody}");
 
                         if (i < 3)
                             await Task.Delay(6000);
@@ -3453,21 +3568,34 @@ namespace VendorPortal.Application.Services.v1
                     if (!success)
                     {
                         Logger.LogError(
-                            new Exception("NotifyRFQ failed"),
-                            "NotifyRFQ",
-                            $"supplier:{supId} | email:{email}"
-                        );
+                            new Exception($"NotifyRFQ failed after 3 attempts | rfq_id: {rfqId} | supplier_id: {supId} | email: {email}"),
+                            "NotifyRFQ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, $"NotifyRFQ ERROR supplier:{supId}");
+                    Logger.LogInfo("Send Error", "NotifyRFQ",
+                        $"rfq_id: {rfqId} | " +
+                        $"supplier_id: {supId} | " +
+                        $"error: {ex.Message}");
+
+                    Logger.LogError(ex, "NotifyRFQ");
                 }
             }
+
+            Logger.LogInfo("End Send Email", "NotifyRFQ",
+                $"rfq_id: {rfqId}");
         }
         public async Task SendEmailNotifyUpdate(HttpClient client, List<string> supplierIds, string rfqId, string language, string cc_requester)
         {
             var delayMs = Random.Shared.Next(10000, 50001);
+            Logger.LogInfo("Start Send Email", "NotifyRFQ",
+            $"rfq_id: {rfqId} | " +
+            $"supplier_count: {supplierIds?.Count ?? 0} | " +
+            $"supplier_ids: [{string.Join(",", supplierIds ?? new List<string>())}] | " +
+            $"lang: {language} | " +
+            $"delay_ms: {delayMs}");
+
             await Task.Delay(delayMs);
 
             foreach (var supId in supplierIds)
@@ -3488,9 +3616,15 @@ namespace VendorPortal.Application.Services.v1
                     {
                         ["email"] = email,
                         ["rfq_id"] = rfqId,
-                        ["lang"] = language ?? "TH"
+                        ["lang"] = language ?? "TH",
+                        ["supplier_id"] = supId,
                         //["cc_requester"] = cc_requester
                     };
+
+                    Logger.LogInfo("Send Request", "NotifyRFQ",
+                    $"rfq_id: {rfqId} | " +
+                    $"supplier_id: {supId} | " +
+                    $"payload: {payload.ToString(Formatting.None)}");
 
                     var success = false;
 
@@ -3505,15 +3639,24 @@ namespace VendorPortal.Application.Services.v1
 
                         if (response.IsSuccessStatusCode)
                         {
-                            Logger.LogInfo("NotifyRFQ",
-                                $"SUCCESS | supplier:{supId} | email:{email}");
+                            Logger.LogInfo("Send Success", "NotifyRFQ",
+                            $"rfq_id: {rfqId} | " +
+                            $"supplier_id: {supId} | " +
+                            $"email: {email} | " +
+                            $"attempt: {i} | " +
+                            $"httpStatus: {(int)response.StatusCode}");
 
                             success = true;
                             break;
                         }
 
-                        Logger.LogInfo("NotifyRFQ",
-                            $"Retry {i} | supplier:{supId} | response:{resBody}");
+                        Logger.LogInfo("Send Retry", "NotifyRFQ",
+                        $"rfq_id: {rfqId} | " +
+                        $"supplier_id: {supId} | " +
+                        $"email: {email} | " +
+                        $"attempt: {i}/3 | " +
+                        $"httpStatus: {(int)response.StatusCode} | " +
+                        $"response: {resBody}");
 
                         if (i < 3)
                             await Task.Delay(6000);
@@ -3521,16 +3664,13 @@ namespace VendorPortal.Application.Services.v1
 
                     if (!success)
                     {
-                        Logger.LogError(
-                            new Exception("NotifyRFQ failed"),
-                            "NotifyRFQ",
-                            $"supplier:{supId} | email:{email}"
-                        );
+                        Logger.LogError(new Exception($"NotifyRFQ failed after 3 attempts | rfq_id: {rfqId} | supplier_id: {supId} | email: {email}"), "NotifyRFQ");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Logger.LogError(ex, $"NotifyRFQ ERROR supplier:{supId}");
+                    Logger.LogInfo("Send Error", "NotifyRFQ", $"rfq_id: {rfqId} | " + $"supplier_id: {supId} | " + $"error: {ex.Message}");
+                    Logger.LogError(ex, "NotifyRFQ");
                 }
             }
         }

@@ -71,6 +71,8 @@ builder.Services.AddControllersWithViews();
 // builder.Services.AddHealthChecks()
 //     .AddCheck<HealthCheckDisburseDataService>("hc", failureStatus: HealthStatus.Unhealthy);
 
+builder.Services.Configure<IISServerOptions>(o => o.MaxRequestBodySize = 100_000_000);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 100_000_000);
 
 builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 {

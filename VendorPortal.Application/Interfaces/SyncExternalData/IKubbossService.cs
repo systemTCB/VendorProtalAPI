@@ -21,13 +21,11 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
       
         Task<JObject> GetQuotationDetail(HttpClient client, string quoId);
         Task<JObject> GetSuppliersDetail(HttpClient client, string supplier_id);
-        Task<ProductMedicalResponse> GetProductMedical(string sku, string name, string sortDirection, int page, int per_page);
-        Task<ProductMedicalByIdResponse> GetProductMedicalByID(string id);
         Task<POCreateResponse> CreatePOKubboss(HttpClient client, POCreateRequest request);
         Task<POCreateV2Response> CreatePOKubbossV2(HttpClient client, POCreateV2Request request);
         Task<POCancelResponse> CancelPOKubboss(HttpClient client, POCancelRequest request);
         Task<QuotationAwardResponse> CreatePOAwardKubboss(HttpClient client, QuotationAwardRequest request);
-        Task<POUpdateResponse> UpdatePOLineKubboss(HttpClient client, UpdatePORequest request, string purchase_order_number);
+        Task<POUpdateResponse> UpdatePOLineKubboss(HttpClient client, UpdatePORequest request);
         Task<POStandaloneResponse> CreatePOStandaloneKubboss(HttpClient client, POStandaloneRequest request, string quotation_id);
         Task<POByIDResponse> GetPOByID(string id, CreatePORequest request);
 
@@ -51,6 +49,7 @@ namespace VendorPortal.Application.Interfaces.SyncExternalData
         Task<DebitNotesByIDResponse> GetDebitNotesByID(string id, PutDebitNotesRequest request);
         Task<MediaFileContentResponse> GetMediaFileContent(string file_uuid);
         Task<AwardQuotationResponse> AwardQuotation(awardQuotationRequest request);
+        Task<CheckSupplierResponse> GetSupplierByEmail(CheckSupplierRequest request);
 
 
     }

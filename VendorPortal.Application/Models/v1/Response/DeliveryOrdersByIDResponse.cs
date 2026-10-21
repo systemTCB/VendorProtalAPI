@@ -23,7 +23,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string delivery_address { get; set; }
         public string origin_address { get; set; }
         public string delivery_person { get; set; }
-        public DateTime delivery_date { get; set; }
+        public DateTime? delivery_date { get; set; }
         public string receive_by { get; set; }
         public DateTime? receive_date { get; set; }
         public DateTime? estimated_delivery_date { get; set; }
@@ -46,8 +46,8 @@ namespace VendorPortal.Application.Models.v1.Response
         public string final_amount { get; set; }
         public string status { get; set; }
         public CreatedBy created_by { get; set; }
-        public DateTime created_at { get; set; }
-        public DateTime updated_at { get; set; }
+        public DateTime? created_at { get; set; }
+        public DateTime? updated_at { get; set; }
         public List<LineDO> lines { get; set; }
         public List<DocumentDO> documents { get; set; }
 

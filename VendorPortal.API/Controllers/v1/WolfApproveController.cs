@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -210,14 +209,14 @@ namespace VendorPortal.API.Controllers.v1
         [HttpGet]
         [Route("api/v1/wolf-approve/rfqs/CountRFQ")]
         [Description("Create By Peetisook")]
-        [SwaggerOperation(Tags = new[] { "RFQ V1" }, Summary = "", Description = "ใช้แสดง rfq จาก supplier_id")]
+        [SwaggerOperation(Tags = new[] { "RFQ V1" }, Description = "นับจำนวน RFQ จาก supplier_id (filter ปี/เดือนได้)")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RFQShowResponse))]
-        public async Task<IActionResult> GetRFQShowBySuppilerID(string supplier_id)
+        public async Task<IActionResult> GetRFQCountBySupplierID([FromQuery] string supplier_id, [FromQuery] int? year, [FromQuery] int? month)
         {
             RFQCountResponse response;
             try
             {
-                response = await _wolfApproveService.GetRFQ_ShowBySuppilerID(supplier_id);
+                response = await _wolfApproveService.GetRFQCountBySupplierID(supplier_id, year, month);
             }
             catch (System.Exception ex)
             {
@@ -489,11 +488,11 @@ namespace VendorPortal.API.Controllers.v1
 
 
         [HttpPost]
-        [Route("api/v1/wolf-approve/purchases/{purchase_order_number}/update-po")]
+        [Route("api/v1/wolf-approve/purchases/update-po")]
         [Description("Create By Triphop")]
         [SwaggerOperation(Tags = new[] { "PO V1" }, Summary = "", Description = "ใช้สำหรับ Update PO")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(POUpdateResponse))]
-        public async Task<IActionResult> UpdatePOLines(string purchase_order_number, [FromBody] UpdatePORequest request)
+        public async Task<IActionResult> UpdatePOLines([FromBody] UpdatePORequest request)
         {
             POUpdateResponse response = new();
             try
@@ -503,7 +502,7 @@ namespace VendorPortal.API.Controllers.v1
 
                 Logger.LogInfo("UpdatePO", $"domain: {domain}");
 
-                response = await _wolfApproveService.UpdatePOLines(purchase_order_number, request, domain);
+                response = await _wolfApproveService.UpdatePOLines(request, domain);
 
             }
             catch (System.Exception ex)
@@ -920,7 +919,7 @@ namespace VendorPortal.API.Controllers.v1
                     }
                 });
 
-          
+
 
             }
             catch (Exception ex)
@@ -1094,6 +1093,90 @@ namespace VendorPortal.API.Controllers.v1
 
         #endregion
 
+        #region supplier
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/check-supplier")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+        Tags = new[] { "Supplier V1" },
+        Summary = "Get Supplier by email",
+        Description = "Get Supplier by email"
+    )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeliveryOrdersUpdateResponse))]
+        public async Task<IActionResult> GetSupplierByEmail([FromBody] CheckSupplierRequest request)
+        {
+
+            CheckSupplierResponse responseDeliveryOrdersUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.GetSupplierByEmail(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "GetSupplierByEmail ERROR");
+
+                responseDeliveryOrdersUpdate = new CheckSupplierResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDeliveryOrdersUpdate);
+        }
+
+        [HttpPost]
+        [Route("api/v1/wolf-approve/check-supplier-registered")]
+        [Description("Create By Triphop")]
+        [SwaggerOperation(
+       Tags = new[] { "Supplier V1" },
+       Summary = "Get Supplier by email",
+       Description = "Get Supplier by email"
+   )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeliveryOrdersUpdateResponse))]
+        public async Task<IActionResult> GetSupplierByEmailAndCompanaID([FromBody] CheckSupplierRequest request)
+        {
+
+            CheckSupplierResponse responseDeliveryOrdersUpdate = new();
+
+            try
+            {
+                var result = await _kubBossService.GetSupplierByEmail(request);
+
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "GetSupplierByEmail ERROR");
+
+                responseDeliveryOrdersUpdate = new CheckSupplierResponse()
+                {
+                    status = new Application.Models.Common.Status()
+                    {
+                        code = ResponseCode.InternalServerError.Text(),
+                        message = ResponseCode.InternalServerError.Description()
+                    },
+
+                    data = null
+                };
+            }
+
+            return Ok(responseDeliveryOrdersUpdate);
+        }
+
+        #endregion
+
         #region RFP
         [HttpPost]
         [Route("api/v1/wolf-approve/rfp/create/{DocumentNo}/{company_id}")]
@@ -1155,87 +1238,6 @@ namespace VendorPortal.API.Controllers.v1
                 };
             }
             return Ok(response);
-        }
-
-        #endregion
-
-        #region Siriraj
-        [HttpGet]
-        [Route("api/v1/wolf-approve/productMedical")]
-        [Description("Create By Triphop")]
-        [SwaggerOperation(
-            Tags = new[] { "Product Medical V1" },
-            Summary = "Product Medical",
-            Description = "Product Medical"
-        )]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
-        public async Task<IActionResult> productMedical(string sku, string name, string sortDirection, int page = 1, int per_page = 5)
-        {
-
-            ProductMedicalResponse responseProductMedical = new();
-            try
-            {
-                var result = await _kubBossService.GetProductMedical(sku, name, sortDirection, page, per_page);
-
-                return Ok(result);
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "GetProductMedical ERROR");
-
-                responseProductMedical = new ProductMedicalResponse()
-                {
-                    status = new Application.Models.Common.Status()
-                    {
-                        code = ResponseCode.InternalServerError.Text(),
-                        message = ResponseCode.InternalServerError.Description()
-                    },
-
-                    data = null
-                };
-            }
-
-            return Ok(responseProductMedical);
-        }
-
-        [HttpGet]
-        [Route("api/v1/wolf-approve/productMedical/{id}")]
-        [Description("Create By Triphop")]
-        [SwaggerOperation(
-           Tags = new[] { "Product Medical V1" },
-           Summary = "Product Medical",
-           Description = "Product Medical"
-       )]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(ProductMedicalResponse))]
-        public async Task<IActionResult> productMedicalByID(string id)
-        {
-
-            ProductMedicalByIdResponse responseProductMedicalByID = new();
-            try
-            {
-                var result = await _kubBossService.GetProductMedicalByID(id);
-
-                return Ok(result);
-
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(ex, "GetProductMedical ERROR");
-
-                responseProductMedicalByID = new ProductMedicalByIdResponse()
-                {
-                    status = new Application.Models.Common.Status()
-                    {
-                        code = ResponseCode.InternalServerError.Text(),
-                        message = ResponseCode.InternalServerError.Description()
-                    },
-
-                    data = null
-                };
-            }
-
-            return Ok(responseProductMedicalByID);
         }
 
         #endregion
@@ -1308,7 +1310,7 @@ namespace VendorPortal.API.Controllers.v1
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "GetProductMedical ERROR");
+                Logger.LogError(ex, "GetRequestDocumentsByID ERROR");
 
                 responseRequestDocumentsByID = new DocumentCreatetResponse()
                 {
@@ -1450,7 +1452,7 @@ namespace VendorPortal.API.Controllers.v1
         Summary = "Get request document by id",
         Description = "Get request document by id"
     )]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeliveryOrdersResponse))]
         public async Task<IActionResult> PutDeliveryOrders(string id, [FromBody] PutDeliveryOrdersRequest request)
         {
 
@@ -1489,7 +1491,7 @@ namespace VendorPortal.API.Controllers.v1
         Summary = "Get delivery orders by id",
         Description = "Get delivery orders by id"
     )]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DeliveryOrdersUpdateResponse))]
         public async Task<IActionResult> PutDeliveryOrdersUpdateStatus([FromBody] PutDeliveryOrdersUpdateRequest request)
         {
 
@@ -1525,8 +1527,8 @@ namespace VendorPortal.API.Controllers.v1
         [Route("api/v1/wolf-approve/delivery-orders/sap-status")]
         [Description("Create By Triphop")]
         [SwaggerOperation(
-            Tags = new[] { "Delivery Orders V1" }, 
-            Summary = "Get delivery orders by id", 
+            Tags = new[] { "Delivery Orders V1" },
+            Summary = "Get delivery orders by id",
             Description = "Updates whether a delivery order has been sent to SAP. When set to Y, the supplier's cancel delivery order action is disabled/hidden; " +
             "when set to N, it becomes available again (e.g. for correction).")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(DocumentCreatetResponse))]
@@ -1604,7 +1606,7 @@ namespace VendorPortal.API.Controllers.v1
 
                         var result = await _kubBossService.GetInvoicesByID(id, request);
 
-                        await Logger.LogInfo($"BACKGROUND RESULT | Invoices:{id} | success:{result.status}", "Invoices");
+                        await Logger.LogInfo($"BACKGROUND RESULT | Invoices:{id} | success:{result.data.status}", "Invoices");
                     }
                     catch (Exception ex)
                     {
@@ -1785,7 +1787,7 @@ namespace VendorPortal.API.Controllers.v1
 
                         var result = await _kubBossService.GetCreditNotesByID(id, request);
 
-                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.status}", "CreditNote");
+                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.data.status}", "CreditNote");
                     }
                     catch (Exception ex)
                     {
@@ -1886,7 +1888,7 @@ namespace VendorPortal.API.Controllers.v1
 
                         var result = await _kubBossService.GetDebitNotesByID(id, request);
 
-                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.status}", "DebitNotes");
+                        await Logger.LogInfo($"BACKGROUND RESULT | CreditNoteID:{id} | success:{result.data.status}", "DebitNotes");
                     }
                     catch (Exception ex)
                     {

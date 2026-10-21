@@ -10,6 +10,7 @@ namespace VendorPortal.Domain.Interfaces.v1
         // RFQ
         Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST();
         Task<List<SP_GET_RFQ_LIST>> SP_GET_RFQ_LIST_SPECIFIC_BY_SUP_ID(string supplier_id);
+        Task<int> SP_COUNT_RFQ_BY_SUP_ID(string supplier_id, DateTime? dateFrom, DateTime? dateTo);
         Task<List<SP_GET_RFQ_DETAIL>> SP_GET_RFQ_DETAIL(string id);
         Task<List<SP_GET_RFQ_DOCUMENT>> SP_GET_RFQ_DOCUMENT(string id);
 
@@ -47,7 +48,7 @@ namespace VendorPortal.Domain.Interfaces.v1
             int revision
 
         );
-        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document , string nRFQID , DateTime? startDate , DateTime? endDate ,string modified_by, string supplier_id);
+        Task<SP_UPDATE_RFQ> SP_UPDATE_RFQ(List<TEMP_RFQ_DOCUMENT> document, string nRFQID, DateTime? startDate, DateTime? endDate, string modified_by, string supplier_id);
 
         Task<SP_CREATE_ITEM> SP_INSERT_NEWREQ_ITEMLINES(List<TEMP_RFQ_ITEM> rfq_items);
         Task<SP_CREATE_QUESTIONNAIRE> SP_INSERT_NEWRFQ_QUESTIONNAIRE(List<TEMP_RFQ_QUESTIONNAIRE> rfq_questionnaires);
@@ -58,6 +59,8 @@ namespace VendorPortal.Domain.Interfaces.v1
         Task<List<SP_GET_PURCHASE_ORDER>> SP_GET_PURCHASE_ORDER_LIST();
         Task<List<SP_GET_PURCHASE_ORDER_DETAIL>> SP_GET_PURCHASE_ORDER_DETAIL(string id, string supplier_id);
         Task<SP_PUT_PURCHASE_ORDER_CONFIRM> SP_PUT_PURCHASE_ORDER_CONFIRM(string id, string status, string reason, string description);
+        Task<SP_INSERT_TRNPurchaseOrderKubboss> SP_INSERT_TRNPurchaseOrderKubboss(string email, string purchaseOrderId, string purchaseOrderNumber, string remark = null, string status = "in_progress");
+
 
         // Claim
         Task<List<SP_GET_CLAIM_LIST>> SP_GET_CLAIM_LIST(int? supplier_id, int? company_id, string from_date, string to_date, int? status_id);
@@ -83,9 +86,10 @@ namespace VendorPortal.Domain.Interfaces.v1
 
         Task<bool> SP_UPDATE_RFQ_CANCEL(string rfq_number, string remark);
 
-        Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_code, string document_name, string reason,  string email, bool is_require_signature, string lang, string WolfVendorCode);
+        Task<SP_CREATE_RequestDocument> SP_INSERT_RequestDocument(string docNo, int memoId, string kubboss_document_id, string supplier_id, string company_id, string document_code, string document_name, string reason, string email, bool is_require_signature, string lang, string WolfVendorCode);
 
         Task<SP_GET_RequestDocument> SP_GET_RequestDocument(string search_value);
         Task<SP_GET_JobDocuments> SP_GET_JOB_DOCUMENTS(string search_value);
+        Task<SP_GET_TRNPurchaseOrderKubboss> SP_GET_TRNPurchaseOrderKubboss(string purchaseOrderNumber);
     }
 }

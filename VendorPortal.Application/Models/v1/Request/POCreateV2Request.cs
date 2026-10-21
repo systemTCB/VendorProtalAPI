@@ -11,6 +11,7 @@ namespace VendorPortal.Application.Models.v1.Request
     {
         public string email { get; set; }
         public string company_wolf_id { get; set; }
+        public string supplier_id { get; set; }
         public string buyerCode { get; set; }
         public CompanyPOV2 company { get; set; }
         public Requester requester { get; set; }
@@ -47,7 +48,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public string item_name { get; set; }
         public string uom_name { get; set; }
         public string description { get; set; }
-        public int? quantity { get; set; }
+        public decimal? quantity { get; set; }
         public decimal? unit_price { get; set; }
         public int? vat_rate { get; set; }
     }
@@ -95,7 +96,7 @@ namespace VendorPortal.Application.Models.v1.Request
             public string item_name { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
-            public int? quantity { get; set; }
+            public decimal? quantity { get; set; }
             public decimal? unit_price { get; set; }
             public decimal? discount { get; set; }
             public decimal? vat_rate { get; set; }
@@ -123,7 +124,7 @@ namespace VendorPortal.Application.Models.v1.Request
             public string item_name { get; set; }
             public string uom_name { get; set; }
             public string description { get; set; }
-            public int? quantity { get; set; }
+            public decimal? quantity { get; set; }
             public decimal? unit_price { get; set; }
             public int? vat_rate { get; set; }
         }

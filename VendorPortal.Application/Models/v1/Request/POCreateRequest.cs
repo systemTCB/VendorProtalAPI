@@ -8,6 +8,7 @@ namespace VendorPortal.Application.Models.v1.Request
     {
         public string email { get; set; }
         public string company_tax_id { get; set; }
+        public string supplier_id { get; set; }
         public CompanyPO company { get; set; }
         public RfqDataPO rfq_data { get; set; }
         public List<RfqLinePO> rfq_lines { get; set; }
