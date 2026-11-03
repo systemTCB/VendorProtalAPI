@@ -63,6 +63,14 @@ namespace VendorPortal.Application.Models.v1.Response
         public string id { get; set; }
         public string invoice_number { get; set; }
         public string status { get; set; }
+        public string total_amount { get; set; }
+        public bool? is_down_payment { get; set; }
+        public string down_payment { get; set; }
+        public string down_payment_amount { get; set; }
+        public string advance_payment { get; set; }
+        public string vat_amount { get; set; }
+        public string net_amount { get; set; }
+        public string original_value { get; set; }
     }
 
     public class LineCreditNote

@@ -46,6 +46,7 @@ namespace VendorPortal.Application.Models.v1.Response
         public string final_amount { get; set; }
         public bool is_down_payment { get; set; }
         public string down_payment { get; set; }
+        public string advance_payment { get; set; }
         public string status { get; set; }
         public CreatedBy created_by { get; set; }
         public DateTime created_at { get; set; }

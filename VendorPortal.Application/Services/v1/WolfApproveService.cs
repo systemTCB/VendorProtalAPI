@@ -1051,7 +1051,7 @@ namespace VendorPortal.Application.Services.v1
                                 {
                                     var header = parts[0];
                                     contentType = header.Replace("data:", "").Replace(";base64", "");
-                                    base64 = parts[1]; // ใช้ parts[1] เพียงพอแม้มี comma เกิน (payload ไม่มี comma อยู่แล้ว)
+                                    base64 = parts[1];
                                 }
                                 else
                                 {
@@ -1160,7 +1160,6 @@ namespace VendorPortal.Application.Services.v1
                                 }
                                 else
                                 {
-
                                     var extension = Path.GetExtension(originalFileName);
                                     if (string.IsNullOrWhiteSpace(extension))
                                     {

@@ -1417,7 +1417,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Regsiter Suppliers To Kubboss");
+                Logger.LogError(ex, "RequestDocuments");
 
                 return new DocumentCreatetResponse
                 {
@@ -1604,7 +1604,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
                     await Logger.LogInfo($"CreateDocument: Response received | /api/check-supplier", "CreateDocument", checkResult);
 
                     var checkObj = JObject.Parse(checkResult);
-                    supplierId = checkObj["data"]?["id"]?.Value<int>() ?? 0;
+                    supplierId = checkObj.SelectToken("data[0].id")?.Value<int>() ?? 0;
                     if (supplierId == 0)
                         throw new Exception($"Supplier not found. Email: {request.email}");
                 }
