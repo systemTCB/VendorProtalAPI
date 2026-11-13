@@ -1086,7 +1086,7 @@ namespace VendorPortal.Application.Services.SyncExternalData
             try
             {
 
-                var json = JsonConvert.SerializeObject(request);
+                var json = Logger.ApiJson.SerializeWithoutBase64(request);
                 var logJson = Logger.LogJson.Serialize(request);
 
                 Logger.LogInfo($"Start Create PO | Url:{client.BaseAddress}/api/document/v2/purchase_order/create | Body:{logJson}", "CreatePOKubbossV2");

@@ -119,13 +119,41 @@ namespace VendorPortal.Logging
         }
         public static class LogJson
         {
-            // cache settings ไว้ เพราะ resolver จะ cache contract ให้ ทำให้เร็ว
             private static readonly JsonSerializerSettings Settings = new JsonSerializerSettings
             {
                 ContractResolver = new MaskBase64Resolver()
             };
 
             public static string Serialize(object obj) => JsonConvert.SerializeObject(obj, Settings);
+        }
+
+        public class ExcludeFieldsResolver : DefaultContractResolver
+        {
+            private readonly HashSet<string> _excluded;
+
+            public ExcludeFieldsResolver(params string[] fields)
+            {
+                _excluded = new HashSet<string>(fields, StringComparer.OrdinalIgnoreCase);
+            }
+
+            protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization ms)
+            {
+                var prop = base.CreateProperty(member, ms);
+                if (_excluded.Contains(prop.PropertyName))
+                    prop.ShouldSerialize = _ => false;   // ไม่ใส่ field นี้ใน JSON เลย
+                return prop;
+            }
+        }
+
+        public static class ApiJson
+        {
+            private static readonly JsonSerializerSettings NoBase64Settings = new JsonSerializerSettings
+            {
+                ContractResolver = new ExcludeFieldsResolver("file_base64")
+            };
+
+            public static string SerializeWithoutBase64(object obj)
+                => JsonConvert.SerializeObject(obj, NoBase64Settings);
         }
     }
 }

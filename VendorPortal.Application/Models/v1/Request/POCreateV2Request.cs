@@ -73,6 +73,7 @@ namespace VendorPortal.Application.Models.v1.Request
         public class DocumentDataPOV2
         {
             public string document_type { get; set; }
+            public string currency { get; set; }
             public int? net_amount { get; set; }
             public int? discount { get; set; }
             public bool? include_vat { get; set; }
